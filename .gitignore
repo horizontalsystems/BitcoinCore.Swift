@@ -27,3 +27,6 @@ _Pods.xcodeproj
 Pods/
 .idea
 GeneratedMocks.swift
+
+.swiftpm
+Package.resolved
