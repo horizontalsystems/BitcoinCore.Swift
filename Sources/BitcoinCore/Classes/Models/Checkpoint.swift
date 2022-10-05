@@ -19,8 +19,8 @@ public struct Checkpoint {
 
         let checkpointData = try CheckpointData(blockchain: blockchain, network: network, blockType: blockType)
 
-        block = try Checkpoint.readBlock(string: lines.removeFirst())
-        additionalBlocks = try lines.map { try Checkpoint.readBlock(string: $0) }
+        block = try Checkpoint.readBlock(data: checkpointData.block)
+        additionalBlocks = try checkpointData.additionalBlocks.map { try Checkpoint.readBlock(data: $0) }
     }
 
     private static func readBlock(data: Data) throws -> Block {
