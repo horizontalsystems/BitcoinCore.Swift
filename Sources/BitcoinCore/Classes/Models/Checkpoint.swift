@@ -1,4 +1,5 @@
 import Foundation
+import Checkpoints
 import HsExtensions
 
 public struct Checkpoint {
@@ -10,33 +11,19 @@ public struct Checkpoint {
         self.additionalBlocks = additionalBlocks
     }
 
-    public init(podBundle: Bundle, bundleName: String, filename: String) throws {
-        guard let checkpointsBundleURL = podBundle.url(forResource: bundleName, withExtension: "bundle") else {
-            throw ParseError.invalidBundleUrl
-        }
-        guard let checkpointsBundle = Bundle(url: checkpointsBundleURL) else {
-            throw ParseError.invalidBundle
-        }
-        guard let fileURL = checkpointsBundle.url(forResource: filename, withExtension: "checkpoint") else {
-            throw ParseError.invalidFileUrl
+    public init(bundleName: String, network: String, blockType: CheckpointData.BlockType) throws {
+        guard let blockchain = CheckpointData.Blockchain(rawValue: bundleName),
+              let network = CheckpointData.Network(rawValue: network) else {
+            throw ParseError.wrongParameters
         }
 
-        let string = try String(contentsOf: fileURL, encoding: .utf8)
-        var lines = string.components(separatedBy: .newlines).filter { !$0.isEmpty }
-
-        guard !lines.isEmpty else {
-            throw ParseError.invalidFile
-        }
+        let checkpointData = try CheckpointData(blockchain: blockchain, network: network, blockType: blockType)
 
         block = try Checkpoint.readBlock(string: lines.removeFirst())
         additionalBlocks = try lines.map { try Checkpoint.readBlock(string: $0) }
     }
 
-    private static func readBlock(string: String) throws -> Block {
-        guard let data = string.hs.hexData else {
-            throw ParseError.invalidFile
-        }
-
+    private static func readBlock(data: Data) throws -> Block {
         let byteStream = ByteStream(data)
 
         let version = Int(byteStream.read(Int32.self))
@@ -66,10 +53,7 @@ public struct Checkpoint {
 public extension Checkpoint {
 
     enum ParseError: Error {
-        case invalidBundleUrl
-        case invalidBundle
-        case invalidFileUrl
-        case invalidFile
+        case wrongParameters
     }
 
 }

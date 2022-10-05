@@ -20,6 +20,7 @@ let package = Package(
         .package(url: "https://github.com/Quick/Quick.git", .upToNextMajor(from: "5.0.1")),
         .package(url: "https://github.com/ReactiveX/RxSwift.git", .upToNextMajor(from: "5.0.1")),
 
+        .package(url: "https://github.com/horizontalsystems/Checkpoints.git", .upToNextMajor(from: "1.0.0")),
         .package(url: "https://github.com/horizontalsystems/HdWalletKit.Swift.git", .upToNextMajor(from: "1.0.0")),
         .package(url: "https://github.com/horizontalsystems/HsCryptoKit.Swift.git", .upToNextMajor(from: "1.0.0")),
         .package(url: "https://github.com/horizontalsystems/HsExtensions.Swift.git", .upToNextMajor(from: "1.0.0")),
@@ -30,6 +31,7 @@ let package = Package(
             name: "BitcoinCore",
             dependencies: [
                 "BigInt", "RxSwift",
+                "Checkpoints",
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "HdWalletKit", package: "HdWalletKit.Swift"),
                 .product(name: "HsCryptoKit", package: "HsCryptoKit.Swift"),

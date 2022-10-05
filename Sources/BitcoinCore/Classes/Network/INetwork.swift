@@ -6,11 +6,11 @@ public extension INetwork {
     var serviceFullNode: UInt64 { 1 }
 
     var bip44Checkpoint: Checkpoint {
-        try! Checkpoint(podBundle: Bundle(for: type(of: self)), bundleName: bundleName, filename: "\(String(describing: type(of: self)))-bip44")
+        try! Checkpoint(bundleName: bundleName, network: String(describing: type(of: self)), blockType: .bip44)
     }
 
     var lastCheckpoint: Checkpoint {
-        try! Checkpoint(podBundle: Bundle(for: type(of: self)), bundleName: bundleName, filename: "\(String(describing: type(of: self)))-last")
+        try! Checkpoint(bundleName: bundleName, network: String(describing: type(of: self)), blockType: .last)
     }
 
 }
