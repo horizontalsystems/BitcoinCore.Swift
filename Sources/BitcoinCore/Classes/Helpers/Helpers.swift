@@ -5,7 +5,7 @@ func ipv4(from data: Data) -> String {
 }
 
 func ipv6(from data: Data) -> String {
-    return stride(from: 0, to: data.count - 1, by: 2).map { Data([data[$0], data[$0 + 1]]).hex }.joined(separator: ":")
+    return stride(from: 0, to: data.count - 1, by: 2).map { Data([data[$0], data[$0 + 1]]).hs.hex }.joined(separator: ":")
 }
 
 func pton(_ address: String) -> Data {

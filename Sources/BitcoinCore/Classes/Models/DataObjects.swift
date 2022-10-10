@@ -116,7 +116,7 @@ public struct FullTransactionForInfo {
                 outputs: outputs
         )
 
-        return TransactionSerializer.serialize(transaction: fullTransaction).hex
+        return TransactionSerializer.serialize(transaction: fullTransaction).hs.hex
     }
 
 }

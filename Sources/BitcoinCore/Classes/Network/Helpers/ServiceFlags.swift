@@ -11,7 +11,7 @@ import Foundation
 struct ServiceFlags : OptionSet {
     let rawValue: UInt64
     /// Nothing
-    static let none = ServiceFlags(rawValue: 0)
+    static let none = [ServiceFlags(rawValue: 0)]
     /// NODE_NETWORK means that the node is capable of serving the complete block chain. It is currently
     /// set by all Bitcoin Core non pruned nodes, and is unset by SPV clients or other light clients.
     static let network = ServiceFlags(rawValue: 1 << 0)

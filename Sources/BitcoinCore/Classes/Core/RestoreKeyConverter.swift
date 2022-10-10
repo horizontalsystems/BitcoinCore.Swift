@@ -105,7 +105,7 @@ public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
     public init() {}
 
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        [publicKey.keyHash.hex]
+        [publicKey.keyHash.hs.hex]
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
