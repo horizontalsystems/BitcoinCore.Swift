@@ -3,7 +3,7 @@ import HdWalletKit
 
 extension HDWallet: IHDWallet {
 
-    enum HDWalletError: Error {
+    public enum HDWalletError: Error {
         case publicKeysDerivationFailed
     }
 

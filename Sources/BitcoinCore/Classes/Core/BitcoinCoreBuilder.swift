@@ -3,13 +3,13 @@ import HdWalletKit
 import HsToolKit
 
 public class BitcoinCoreBuilder {
-    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noInitialSyncApi }
+    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noInitialSyncApi, notSupported }
 
     // chains
     public let addressConverter = AddressConverterChain()
 
     // required parameters
-    private var seed: Data?
+    private var restoreData: WalletRestoreData?
     private var bip: Bip = .bip44
     private var network: INetwork?
     private var paymentAddressParser: IPaymentAddressParser?
@@ -31,7 +31,13 @@ public class BitcoinCoreBuilder {
     private var storage: IStorage?
 
     public func set(seed: Data) -> BitcoinCoreBuilder {
-        self.seed = seed
+        restoreData = .seed(seed)
+        return self
+    }
+
+    public func set(extendedKey: String) throws -> BitcoinCoreBuilder {
+        let key = try HDExtendedKey(extendedKey: extendedKey)
+        restoreData = .extendedKey(key)
         return self
     }
 
@@ -109,10 +115,7 @@ public class BitcoinCoreBuilder {
     }
 
     public func build() throws -> BitcoinCore {
-        let seed: Data
-        if let selfSeed = self.seed {
-           seed = selfSeed
-        } else {
+        guard let keyData = restoreData else {
             throw BuildError.noSeedData
         }
         guard let network = self.network else {
@@ -142,7 +145,42 @@ public class BitcoinCoreBuilder {
 
         let reachabilityManager = ReachabilityManager()
 
-        let hdWallet = HDWallet(seed: seed, coinType: network.coinType, xPrivKey: network.xPrivKey, xPubKey: network.xPubKey, gapLimit: 20, purpose: bip.purpose)
+        let hdWallet: IPrivateHDWallet
+        let publicKeyFetcher: IPublicKeyFetcher
+        var multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?
+        let publicKeyManager: IPublicKeyManager & IBloomFilterProvider
+
+        switch keyData {
+        case .seed(let data):
+            let wallet = HDWallet(seed: data, coinType: network.coinType, xPrivKey: network.xPrivKey, gapLimit: 20, purpose: bip.purpose)
+            hdWallet = wallet
+            let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet, gapLimit: 20)
+            publicKeyFetcher = fetcher
+            multiAccountPublicKeyFetcher = fetcher
+            publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, restoreKeyConverter: restoreKeyConverterChain)
+        case .extendedKey(let key):
+            switch key {
+            case .private(let privateKey):
+                switch key.derivedType {
+                case .master:
+                    let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, gapLimit: 20, purpose: bip.purpose)
+                    hdWallet = wallet
+                    let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet, gapLimit: 20)
+                    publicKeyFetcher = fetcher
+                    multiAccountPublicKeyFetcher = fetcher
+                    publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, restoreKeyConverter: restoreKeyConverterChain)
+                case .account:
+                    let wallet = HDAccountWallet(privateKey: privateKey, gapLimit: 20)
+                    hdWallet = wallet
+                    publicKeyFetcher = PublicKeyFetcher(hdAccountWallet: wallet, gapLimit: 20)
+                    publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, restoreKeyConverter: restoreKeyConverterChain)
+                case .bip32:
+                    throw BuildError.notSupported
+                }
+            case .public:
+                throw BuildError.notSupported
+            }
+        }
 
         let networkMessageParser = NetworkMessageParser(magic: network.magic)
         let networkMessageSerializer = NetworkMessageSerializer(magic: network.magic)
@@ -153,7 +191,6 @@ public class BitcoinCoreBuilder {
 
         let factory = Factory(network: network, networkMessageParser: networkMessageParser, networkMessageSerializer: networkMessageSerializer)
 
-        let publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: hdWallet, restoreKeyConverter: restoreKeyConverterChain)
         let pendingOutpointsProvider = PendingOutpointsProvider(storage: storage)
 
         let transactionMetadataExtractor = TransactionMetadataExtractor(storage: storage)
@@ -181,11 +218,11 @@ public class BitcoinCoreBuilder {
         let checkpoint = BlockSyncer.resolveCheckpoint(network: network, syncMode: syncMode, storage: storage)
 
         let blockHashFetcher = BlockHashFetcher(restoreKeyConverter: restoreKeyConverterChain, apiManager: initialSyncApi, helper: BlockHashFetcherHelper())
-        let blockDiscovery = BlockDiscoveryBatch(checkpoint: checkpoint, wallet: hdWallet, blockHashFetcher: blockHashFetcher, logger: logger)
+        let blockDiscovery = BlockDiscoveryBatch(checkpoint: checkpoint, gapLimit: 20, blockHashFetcher: blockHashFetcher, publicKeyFetcher: publicKeyFetcher, logger: logger)
 
         let stateManager = ApiSyncStateManager(storage: storage, restoreFromApi: network.syncableFromApi && syncMode == BitcoinCore.SyncMode.api)
 
-        let initialSyncer = InitialSyncer(storage: storage, blockDiscovery: blockDiscovery, publicKeyManager: publicKeyManager, logger: logger)
+        let initialSyncer = InitialSyncer(storage: storage, blockDiscovery: blockDiscovery, publicKeyManager: publicKeyManager, multiAccountPublicKeyFetcher: multiAccountPublicKeyFetcher, logger: logger)
 
         let bloomFilterLoader = BloomFilterLoader(bloomFilterManager: bloomFilterManager, peerManager: peerManager)
         let watchedTransactionManager = WatchedTransactionManager()

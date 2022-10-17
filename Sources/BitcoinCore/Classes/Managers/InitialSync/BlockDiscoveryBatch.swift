@@ -4,22 +4,22 @@ import ObjectMapper
 import HsToolKit
 
 class BlockDiscoveryBatch {
-    private let wallet: IHDWallet
     private let blockHashFetcher: IBlockHashFetcher
+    private let publicKeyFetcher: IPublicKeyFetcher
 
     private let maxHeight: Int
     private let gapLimit: Int
 
-    init(checkpoint: Checkpoint, wallet: IHDWallet, blockHashFetcher: IBlockHashFetcher, logger: Logger? = nil) {
-        self.wallet = wallet
+    init(checkpoint: Checkpoint, gapLimit: Int, blockHashFetcher: IBlockHashFetcher, publicKeyFetcher: IPublicKeyFetcher, logger: Logger? = nil) {
         self.blockHashFetcher = blockHashFetcher
+        self.publicKeyFetcher = publicKeyFetcher
 
         maxHeight = checkpoint.block.height
-        gapLimit = wallet.gapLimit
+        self.gapLimit = gapLimit
     }
 
-    private func fetchRecursive(account: Int, blockHashes: [BlockHash] = [], externalBatchInfo: KeyBlockHashBatchInfo = KeyBlockHashBatchInfo(), internalBatchInfo: KeyBlockHashBatchInfo = KeyBlockHashBatchInfo()) -> Single<([PublicKey], [BlockHash])> {
-        let maxHeight = self.maxHeight
+    private func fetchRecursive(blockHashes: [BlockHash] = [], externalBatchInfo: KeyBlockHashBatchInfo = KeyBlockHashBatchInfo(), internalBatchInfo: KeyBlockHashBatchInfo = KeyBlockHashBatchInfo()) -> Single<([PublicKey], [BlockHash])> {
+        let maxHeight = maxHeight
 
         let externalCount = gapLimit - externalBatchInfo.prevCount + externalBatchInfo.prevLastUsedIndex + 1
         let internalCount = gapLimit - internalBatchInfo.prevCount + internalBatchInfo.prevLastUsedIndex + 1
@@ -28,8 +28,8 @@ class BlockDiscoveryBatch {
         var internalNewKeys = [PublicKey]()
 
         do {
-            externalNewKeys.append(contentsOf: try wallet.publicKeys(account: account, indices: UInt32(externalBatchInfo.startIndex)..<UInt32(externalBatchInfo.startIndex + externalCount), external: true))
-            internalNewKeys.append(contentsOf: try wallet.publicKeys(account: account, indices: UInt32(internalBatchInfo.startIndex)..<UInt32(internalBatchInfo.startIndex + internalCount), external: false))
+            externalNewKeys.append(contentsOf: try publicKeyFetcher.publicKeys(indices: UInt32(externalBatchInfo.startIndex)..<UInt32(externalBatchInfo.startIndex + externalCount), external: true))
+            internalNewKeys.append(contentsOf: try publicKeyFetcher.publicKeys(indices: UInt32(internalBatchInfo.startIndex)..<UInt32(internalBatchInfo.startIndex + internalCount), external: false))
         } catch {
             return Single.error(error)
         }
@@ -47,7 +47,7 @@ class BlockDiscoveryBatch {
                 let externalBatch = KeyBlockHashBatchInfo(publicKeys: externalPublicKeys, prevCount: externalCount, prevLastUsedIndex: fetcherResponse.externalLastUsedIndex, startIndex: externalBatchInfo.startIndex + externalCount)
                 let internalBatch = KeyBlockHashBatchInfo(publicKeys: internalPublicKeys, prevCount: internalCount, prevLastUsedIndex: fetcherResponse.internalLastUsedIndex, startIndex: internalBatchInfo.startIndex + internalCount)
 
-                return self?.fetchRecursive(account: account, blockHashes: resultBlockHashes, externalBatchInfo: externalBatch, internalBatchInfo: internalBatch) ?? finishSingle
+                return self?.fetchRecursive(blockHashes: resultBlockHashes, externalBatchInfo: externalBatch, internalBatchInfo: internalBatch) ?? finishSingle
             }
         }
     }
@@ -56,8 +56,8 @@ class BlockDiscoveryBatch {
 
 extension BlockDiscoveryBatch: IBlockDiscovery {
 
-    func discoverBlockHashes(account: Int) -> Single<([PublicKey], [BlockHash])> {
-        fetchRecursive(account: account)
+    func discoverBlockHashes() -> Single<([PublicKey], [BlockHash])> {
+        fetchRecursive()
     }
 
 }

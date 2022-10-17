@@ -10,10 +10,10 @@ class PublicKeyManager {
 
     private let restoreKeyConverter: IRestoreKeyConverter
     private let storage: IStorage
-    private let hdWallet: IHDWallet
+    private let hdWallet: HDWallet
     weak var bloomFilterManager: IBloomFilterManager?
 
-    init(storage: IStorage, hdWallet: IHDWallet, restoreKeyConverter: IRestoreKeyConverter) {
+    init(storage: IStorage, hdWallet: HDWallet, restoreKeyConverter: IRestoreKeyConverter) {
         self.storage = storage
         self.hdWallet = hdWallet
         self.restoreKeyConverter = restoreKeyConverter
@@ -54,16 +54,17 @@ class PublicKeyManager {
 
         return unusedKey.publicKey
     }
+
 }
 
 extension PublicKeyManager: IPublicKeyManager {
 
     func changePublicKey() throws -> PublicKey {
-        return try publicKey(external: false)
+        try publicKey(external: false)
     }
 
     func receivePublicKey() throws -> PublicKey {
-        return try publicKey(external: true)
+        try publicKey(external: true)
     }
 
     func fillGap() throws {
@@ -143,7 +144,7 @@ extension PublicKeyManager: IBloomFilterProvider {
 
 extension PublicKeyManager {
 
-    public static func instance(storage: IStorage, hdWallet: IHDWallet, restoreKeyConverter: IRestoreKeyConverter) -> PublicKeyManager {
+    public static func instance(storage: IStorage, hdWallet: HDWallet, restoreKeyConverter: IRestoreKeyConverter) -> PublicKeyManager {
         let addressManager = PublicKeyManager(storage: storage, hdWallet: hdWallet, restoreKeyConverter: restoreKeyConverter)
         try? addressManager.fillGap()
         return addressManager

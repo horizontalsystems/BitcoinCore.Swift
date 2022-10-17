@@ -122,8 +122,6 @@ public struct FullTransactionForInfo {
 }
 
 public struct PublicKeyWithUsedState {
-
     let publicKey: PublicKey
     let used: Bool
-
 }

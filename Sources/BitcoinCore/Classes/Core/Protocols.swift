@@ -55,7 +55,7 @@ protocol IApiSyncStateManager: AnyObject {
 }
 
 protocol IBlockDiscovery {
-    func discoverBlockHashes(account: Int) -> Single<([PublicKey], [BlockHash])>
+    func discoverBlockHashes() -> Single<([PublicKey], [BlockHash])>
 }
 
 public protocol IOutputStorage {
