@@ -3,11 +3,9 @@ import HdWalletKit
 
 class PublicKeyFetcher {
     private let hdAccountWallet: HDAccountWallet
-    let gapLimit: Int
 
-    init(hdAccountWallet: HDAccountWallet, gapLimit: Int = 5) {
+    init(hdAccountWallet: HDAccountWallet) {
         self.hdAccountWallet = hdAccountWallet
-        self.gapLimit = gapLimit
     }
 
 }
@@ -20,33 +18,29 @@ extension PublicKeyFetcher: IPublicKeyFetcher {
 
 }
 
-class ReadOnlyPublicKeyFetcher {
-    private let readOnlyAccountWallet: ReadOnlyHDWallet
-    let gapLimit: Int
+class WatchPublicKeyFetcher {
+    private let hdWatchAccountWallet: HDWatchAccountWallet
 
-    init(readOnlyAccountWallet: ReadOnlyHDWallet, gapLimit: Int = 5) {
-        self.readOnlyAccountWallet = readOnlyAccountWallet
-        self.gapLimit = gapLimit
+    init(hdWatchAccountWallet: HDWatchAccountWallet) {
+        self.hdWatchAccountWallet = hdWatchAccountWallet
     }
 
 }
 
-extension ReadOnlyPublicKeyFetcher: IPublicKeyFetcher {
+extension WatchPublicKeyFetcher: IPublicKeyFetcher {
 
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
-        []//try readOnlyAccountWallet.publicKeys(indices: indices, external: external)
+        try hdWatchAccountWallet.publicKeys(indices: indices, external: external)
     }
 
 }
 
 class MultiAccountPublicKeyFetcher {
     private let hdWallet: HDWallet
-    let gapLimit: Int
     private(set) var currentAccount: Int = 0
 
-    init(hdWallet: HDWallet, gapLimit: Int = 5) {
+    init(hdWallet: HDWallet) {
         self.hdWallet = hdWallet
-        self.gapLimit = gapLimit
     }
 
 }

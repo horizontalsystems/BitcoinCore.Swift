@@ -10,6 +10,10 @@ open class AbstractKit {
         self.network = network
     }
 
+    public var watchAccount: Bool {
+        bitcoinCore.watchAccount
+    }
+
     open func start() {
         bitcoinCore.start()
     }
@@ -74,8 +78,8 @@ open class AbstractKit {
         try bitcoinCore.maxSpendLimit(pluginData: pluginData)
     }
 
-    open func minSpendableValue(toAddress: String? = nil) -> Int {
-        bitcoinCore.minSpendableValue(toAddress: toAddress)
+    open func minSpendableValue(toAddress: String? = nil) throws -> Int {
+        try bitcoinCore.minSpendableValue(toAddress: toAddress)
     }
 
     open func receiveAddress() -> String {

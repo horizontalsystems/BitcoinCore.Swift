@@ -3,7 +3,6 @@ import RxSwift
 import HsToolKit
 
 protocol IPublicKeyFetcher {
-    var gapLimit: Int { get }
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey]
 }
 

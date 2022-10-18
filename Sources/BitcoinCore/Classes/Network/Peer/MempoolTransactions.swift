@@ -4,11 +4,11 @@ import RxSwift
 class MempoolTransactions {
     private let disposeBag = DisposeBag()
     private let transactionSyncer: ITransactionSyncer
-    private let transactionSender: ITransactionSender
+    private let transactionSender: ITransactionSender?
     private var requestedTransactions = [String: [Data]]()
     private let peersQueue: DispatchQueue
 
-    init(transactionSyncer: ITransactionSyncer, transactionSender: ITransactionSender,
+    init(transactionSyncer: ITransactionSyncer, transactionSender: ITransactionSender?,
          peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.mempool-transactions", qos: .userInitiated)) {
         self.transactionSyncer = transactionSyncer
         self.transactionSender = transactionSender
@@ -66,7 +66,7 @@ extension MempoolTransactions : IPeerTaskHandler {
         case let task as RequestTransactionsTask:
             transactionSyncer.handleRelayed(transactions: task.transactions)
             removeFromRequestedTransactions(peerHost: peer.host, transactionHashes: task.transactions.map { $0.header.dataHash })
-            transactionSender.transactionsRelayed(transactions: task.transactions)
+            transactionSender?.transactionsRelayed(transactions: task.transactions)
             return true
 
         default: return false

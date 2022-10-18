@@ -13,9 +13,9 @@ public class BitcoinCore {
     private let restoreKeyConverterChain: RestoreKeyConverterChain
     private let unspentOutputSelector: UnspentOutputSelectorChain
 
-    private let transactionCreator: ITransactionCreator
-    private let transactionFeeCalculator: ITransactionFeeCalculator
-    private let dustCalculator: IDustCalculator
+    private let transactionCreator: ITransactionCreator?
+    private let transactionFeeCalculator: ITransactionFeeCalculator?
+    private let dustCalculator: IDustCalculator?
     private let paymentAddressParser: IPaymentAddressParser
 
     private let networkMessageSerializer: NetworkMessageSerializer
@@ -85,7 +85,7 @@ public class BitcoinCore {
          peerGroup: IPeerGroup, initialBlockDownload: IInitialBlockDownload, bloomFilterLoader: BloomFilterLoader, transactionSyncer: ITransactionSyncer,
          publicKeyManager: IPublicKeyManager, addressConverter: AddressConverterChain, restoreKeyConverterChain: RestoreKeyConverterChain,
          unspentOutputSelector: UnspentOutputSelectorChain,
-         transactionCreator: ITransactionCreator, transactionFeeCalculator: ITransactionFeeCalculator, dustCalculator: IDustCalculator,
+         transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, dustCalculator: IDustCalculator?,
          paymentAddressParser: IPaymentAddressParser, networkMessageParser: NetworkMessageParser, networkMessageSerializer: NetworkMessageSerializer,
          syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, bip: Bip,
          peerManager: IPeerManager) {
@@ -131,6 +131,10 @@ extension BitcoinCore {
 
 extension BitcoinCore {
 
+    public var watchAccount: Bool { //todo: What is better way to determine watch?
+        transactionCreator == nil
+    }
+
     public var lastBlockInfo: BlockInfo? {
         dataProvider.lastBlockInfo
     }
@@ -152,20 +156,36 @@ extension BitcoinCore {
     }
 
     public func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
-        try transactionCreator.create(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: pluginData)
+        guard let transactionCreator = transactionCreator else {
+            throw CoreError.readOnlyCore
+        }
+
+        return try transactionCreator.create(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: pluginData)
     }
 
     public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+        guard let transactionCreator = transactionCreator else {
+            throw CoreError.readOnlyCore
+        }
+
         let toAddress = try addressConverter.convert(keyHash: hash, type: scriptType)
         return try transactionCreator.create(to: toAddress.stringValue, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: [:])
     }
 
     func redeem(from unspentOutput: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
-        try transactionCreator.create(from: unspentOutput, to: address, feeRate: feeRate, sortType: sortType)
+        guard let transactionCreator = transactionCreator else {
+            throw CoreError.readOnlyCore
+        }
+
+        return try transactionCreator.create(from: unspentOutput, to: address, feeRate: feeRate, sortType: sortType)
     }
 
     public func createRawTransaction(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
-        try transactionCreator.createRawTransaction(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: pluginData)
+        guard let transactionCreator = transactionCreator else {
+            throw CoreError.readOnlyCore
+        }
+
+        return try transactionCreator.createRawTransaction(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: pluginData)
     }
 
     public func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {
@@ -177,15 +197,27 @@ extension BitcoinCore {
     }
 
     public func fee(for value: Int, toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
-        try transactionFeeCalculator.fee(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, pluginData: pluginData)
+        guard let transactionFeeCalculator = transactionFeeCalculator else {
+            throw CoreError.readOnlyCore
+        }
+
+        return try transactionFeeCalculator.fee(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, pluginData: pluginData)
     }
 
     public func maxSpendableValue(toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
+        guard let transactionFeeCalculator = transactionFeeCalculator else {
+            throw CoreError.readOnlyCore
+        }
+
         let sendAllFee = try transactionFeeCalculator.fee(for: balance.spendable, feeRate: feeRate, senderPay: false, toAddress: toAddress, pluginData: pluginData)
         return max(0, balance.spendable - sendAllFee)
     }
 
-    public func minSpendableValue(toAddress: String? = nil) -> Int {
+    public func minSpendableValue(toAddress: String? = nil) throws -> Int {
+        guard let dustCalculator = dustCalculator else {
+            throw CoreError.readOnlyCore
+        }
+
         var scriptType = ScriptType.p2pkh
         if let addressStr = toAddress, let address = try? addressConverter.convert(address: addressStr) {
             scriptType = address.scriptType
@@ -371,6 +403,10 @@ extension BitcoinCore.KitState: Equatable {
 }
 
 extension BitcoinCore {
+
+    public enum CoreError: Error {
+        case readOnlyCore
+    }
 
     public enum StateError: Error {
         case notStarted
