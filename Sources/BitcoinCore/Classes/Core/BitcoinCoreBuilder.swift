@@ -9,7 +9,7 @@ public class BitcoinCoreBuilder {
     public let addressConverter = AddressConverterChain()
 
     // required parameters
-    private var restoreData: WalletRestoreData?
+    private var extendedKey: HDExtendedKey?
     private var bip: Bip = .bip44
     private var network: INetwork?
     private var paymentAddressParser: IPaymentAddressParser?
@@ -30,14 +30,8 @@ public class BitcoinCoreBuilder {
 
     private var storage: IStorage?
 
-    public func set(seed: Data) -> BitcoinCoreBuilder {
-        restoreData = .seed(seed)
-        return self
-    }
-
-    public func set(extendedKey: String) throws -> BitcoinCoreBuilder {
-        let key = try HDExtendedKey(extendedKey: extendedKey)
-        restoreData = .extendedKey(key)
+    @discardableResult public func set(extendedKey: HDExtendedKey) -> BitcoinCoreBuilder {
+        self.extendedKey = extendedKey
         return self
     }
 
@@ -115,7 +109,7 @@ public class BitcoinCoreBuilder {
     }
 
     public func build() throws -> BitcoinCore {
-        guard let keyData = restoreData else {
+        guard let extendedKey = extendedKey else {
             throw BuildError.noSeedData
         }
         guard let network = self.network else {
@@ -150,41 +144,31 @@ public class BitcoinCoreBuilder {
         var multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?
         let publicKeyManager: IPublicKeyManager & IBloomFilterProvider
 
-        switch keyData {
-        case .seed(let data):
-            let wallet = HDWallet(seed: data, coinType: network.coinType, xPrivKey: network.xPrivKey, purpose: bip.purpose)
-            hdWallet = wallet
-            let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
-            publicKeyFetcher = fetcher
-            multiAccountPublicKeyFetcher = fetcher
-            publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-        case .extendedKey(let key):
-            switch key {
-            case .private(let privateKey):
-                switch key.derivedType {
-                case .master:
-                    let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: bip.purpose)
-                    hdWallet = wallet
-                    let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
-                    publicKeyFetcher = fetcher
-                    multiAccountPublicKeyFetcher = fetcher
-                    publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                case .account:
-                    let wallet = HDAccountWallet(privateKey: privateKey)
-                    hdWallet = wallet
-                    publicKeyFetcher = PublicKeyFetcher(hdAccountWallet: wallet)
-                    publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                case .bip32:
-                    throw BuildError.notSupported
-                }
-            case .public(let publicKey):
-                switch key.derivedType {
-                case .account:
-                    let wallet = HDWatchAccountWallet(publicKey: publicKey)
-                    publicKeyFetcher = WatchPublicKeyFetcher(hdWatchAccountWallet: wallet)
-                    publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                default: throw BuildError.notSupported
-                }
+        switch extendedKey {
+        case .private(let privateKey):
+            switch extendedKey.derivedType {
+            case .master:
+                let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: bip.purpose)
+                hdWallet = wallet
+                let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
+                publicKeyFetcher = fetcher
+                multiAccountPublicKeyFetcher = fetcher
+                publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+            case .account:
+                let wallet = HDAccountWallet(privateKey: privateKey)
+                hdWallet = wallet
+                publicKeyFetcher = PublicKeyFetcher(hdAccountWallet: wallet)
+                publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+            case .bip32:
+                throw BuildError.notSupported
+            }
+        case .public(let publicKey):
+            switch extendedKey.derivedType {
+            case .account:
+                let wallet = HDWatchAccountWallet(publicKey: publicKey)
+                publicKeyFetcher = WatchPublicKeyFetcher(hdWatchAccountWallet: wallet)
+                publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+            default: throw BuildError.notSupported
             }
         }
 
