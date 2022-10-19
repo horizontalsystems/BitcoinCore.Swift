@@ -10,7 +10,6 @@ public class BitcoinCoreBuilder {
 
     // required parameters
     private var extendedKey: HDExtendedKey?
-    private var bip: Bip = .bip44
     private var network: INetwork?
     private var paymentAddressParser: IPaymentAddressParser?
     private var walletId: String?
@@ -32,11 +31,6 @@ public class BitcoinCoreBuilder {
 
     @discardableResult public func set(extendedKey: HDExtendedKey) -> BitcoinCoreBuilder {
         self.extendedKey = extendedKey
-        return self
-    }
-
-    public func set(bip: Bip) -> BitcoinCoreBuilder {
-        self.bip = bip
         return self
     }
 
@@ -144,11 +138,13 @@ public class BitcoinCoreBuilder {
         var multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?
         let publicKeyManager: IPublicKeyManager & IBloomFilterProvider
 
+        let purpose = extendedKey.info.purpose
+
         switch extendedKey {
         case .private(let privateKey):
             switch extendedKey.derivedType {
             case .master:
-                let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: bip.purpose)
+                let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: purpose)
                 hdWallet = wallet
                 let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
                 publicKeyFetcher = fetcher
@@ -239,11 +235,11 @@ public class BitcoinCoreBuilder {
             let dustCalculatorInstance = DustCalculator(dustRelayTxFee: network.dustRelayTxFee, sizeCalculator: transactionSizeCalculatorInstance)
             let recipientSetter = RecipientSetter(addressConverter: addressConverter, pluginManager: pluginManager)
             let outputSetter = OutputSetter(outputSorterFactory: transactionDataSorterFactory, factory: factory)
-            let inputSetter = InputSetter(unspentOutputSelector: unspentOutputSelector, transactionSizeCalculator: transactionSizeCalculatorInstance, addressConverter: addressConverter, publicKeyManager: publicKeyManager, factory: factory, pluginManager: pluginManager, dustCalculator: dustCalculatorInstance, changeScriptType: bip.scriptType, inputSorterFactory: transactionDataSorterFactory)
+            let inputSetter = InputSetter(unspentOutputSelector: unspentOutputSelector, transactionSizeCalculator: transactionSizeCalculatorInstance, addressConverter: addressConverter, publicKeyManager: publicKeyManager, factory: factory, pluginManager: pluginManager, dustCalculator: dustCalculatorInstance, changeScriptType: purpose.scriptType, inputSorterFactory: transactionDataSorterFactory)
             let lockTimeSetter = LockTimeSetter(storage: storage)
             let transactionSigner = TransactionSigner(inputSigner: inputSigner)
             let transactionBuilder = TransactionBuilder(recipientSetter: recipientSetter, inputSetter: inputSetter, lockTimeSetter: lockTimeSetter, outputSetter: outputSetter, signer: transactionSigner)
-            transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: bip.scriptType)
+            transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: purpose.scriptType)
             let transactionSendTimer = TransactionSendTimer(interval: 60)
             let transactionSenderInstance = TransactionSender(transactionSyncer: transactionSyncer, initialBlockDownload: initialBlockDownload, peerManager: peerManager, storage: storage, timer: transactionSendTimer, logger: logger)
 
@@ -278,7 +274,7 @@ public class BitcoinCoreBuilder {
                 syncManager: syncManager,
                 pluginManager: pluginManager,
                 watchedTransactionManager: watchedTransactionManager,
-                bip: bip,
+                purpose: purpose,
                 peerManager: peerManager)
 
         initialSyncer.delegate = syncManager

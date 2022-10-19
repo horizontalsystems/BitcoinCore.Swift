@@ -24,8 +24,7 @@ public class BitcoinCore {
     private let syncManager: SyncManager
     private let pluginManager: IPluginManager
 
-    private let bip: Bip
-
+    private let purpose: Purpose
     private let peerManager: IPeerManager
 
     // START: Extending
@@ -87,7 +86,7 @@ public class BitcoinCore {
          unspentOutputSelector: UnspentOutputSelectorChain,
          transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, dustCalculator: IDustCalculator?,
          paymentAddressParser: IPaymentAddressParser, networkMessageParser: NetworkMessageParser, networkMessageSerializer: NetworkMessageSerializer,
-         syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, bip: Bip,
+         syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, purpose: Purpose,
          peerManager: IPeerManager) {
         self.storage = storage
         self.dataProvider = dataProvider
@@ -110,8 +109,8 @@ public class BitcoinCore {
         self.syncManager = syncManager
         self.pluginManager = pluginManager
         self.watchedTransactionManager = watchedTransactionManager
-        self.bip = bip
 
+        self.purpose = purpose
         self.peerManager = peerManager
     }
 
@@ -232,7 +231,7 @@ extension BitcoinCore {
 
     public func receiveAddress() -> String {
         guard let publicKey = try? publicKeyManager.receivePublicKey(),
-              let address = try? addressConverter.convert(publicKey: publicKey, type: bip.scriptType) else {
+              let address = try? addressConverter.convert(publicKey: publicKey, type: purpose.scriptType) else {
             return ""
         }
 
@@ -252,7 +251,7 @@ extension BitcoinCore {
     }
 
     public func debugInfo(network: INetwork) -> String {
-        dataProvider.debugInfo(network: network, scriptType: bip.scriptType, addressConverter: addressConverter)
+        dataProvider.debugInfo(network: network, scriptType: purpose.scriptType, addressConverter: addressConverter)
     }
 
     public var statusInfo: [(String, Any)] {
@@ -260,7 +259,7 @@ extension BitcoinCore {
         status.append(("state", syncManager.syncState.toString()))
         status.append(("synced until", ((lastBlockInfo?.timestamp.map { Double($0) })?.map { Date(timeIntervalSince1970: $0) }) ?? "n/a"))
         status.append(("syncing peer", initialBlockDownload.syncPeer?.host ?? "n/a"))
-        status.append(("derivation", bip.description))
+        status.append(("derivation", purpose.description))
 
         status.append(contentsOf:
             peerManager.connected.enumerated().map { (index, peer) in
