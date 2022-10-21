@@ -126,7 +126,7 @@ extension PublicKeyManager: IPublicKeyManager {
             return publicKey
         }
 
-        return try hdWallet.publicKey(account: account, index: index, external: external == 1)
+        return try hdWallet.publicKey(account: account, index: index, external: external == 0)
     }
 }
 
