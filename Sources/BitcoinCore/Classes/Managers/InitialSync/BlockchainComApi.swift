@@ -48,11 +48,11 @@ public class BlockchainComApi {
     }
 
     private func itemsSingle(transactionResponses: [TransactionResponse]) -> Single<[SyncTransactionItem]> {
-        guard !transactionResponses.isEmpty else {
+        let blockHeights = Array(Set(transactionResponses.compactMap { $0.blockHeight }))
+
+        guard !blockHeights.isEmpty else {
             return Single.just([])
         }
-
-        let blockHeights = Array(Set(transactionResponses.map { $0.blockHeight }))
 
         return blocksSingle(heights: blockHeights)
                 .map { blocks in
@@ -131,11 +131,11 @@ extension BlockchainComApi {
     }
 
     struct TransactionResponse: ImmutableMappable {
-        let blockHeight: Int
+        let blockHeight: Int?
         let outputs: [TransactionOutputResponse]
 
         init(map: Map) throws {
-            blockHeight = try map.value("block_height")
+            blockHeight = try? map.value("block_height")
             outputs = try map.value("out")
         }
     }
