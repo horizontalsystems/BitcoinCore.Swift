@@ -14,6 +14,7 @@ public class Block: Record {
     public var height: Int
     var stale: Bool = false
     var hasTransactions: Bool = false
+    var partial: Bool = false
 
     public init(withHeader header: BlockHeader, height: Int) {
         version = header.version
@@ -33,7 +34,7 @@ public class Block: Record {
     }
 
     override open class var databaseTableName: String {
-        return "blocks"
+        "blocks"
     }
 
     public enum Columns: String, ColumnExpression, CaseIterable {
@@ -47,6 +48,7 @@ public class Block: Record {
         case height
         case stale
         case hasTransactions
+        case partial
     }
 
     required init(row: Row) {
@@ -60,6 +62,7 @@ public class Block: Record {
         height = row[Columns.height]
         stale = row[Columns.stale]
         hasTransactions = row[Columns.hasTransactions]
+        partial = row[Columns.partial]
 
         super.init(row: row)
     }
@@ -75,6 +78,7 @@ public class Block: Record {
         container[Columns.height] = height
         container[Columns.stale] = stale
         container[Columns.hasTransactions] = hasTransactions
+        container[Columns.partial] = partial
     }
 
 }

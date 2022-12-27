@@ -100,6 +100,7 @@ public protocol IStorage: IOutputStorage {
     func block(byHash: Data) -> Block?
     func block(stale: Bool, sortedHeight: String) -> Block?
     func add(block: Block) throws
+    func setBlockPartial(hash: Data) throws
     func delete(blocks: [Block]) throws
     func unstaleAllBlocks() throws
     func timestamps(from startHeight: Int, to endHeight: Int) -> [Int]

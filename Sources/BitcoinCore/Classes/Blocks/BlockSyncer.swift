@@ -52,7 +52,9 @@ class BlockSyncer {
 
         let blockHashes = storage.blockHashHeaderHashes(except: excludedHashes)
         let blocksToDelete = storage.blocks(byHexes: blockHashes)
-        try blockchain.deleteBlocks(blocks: blocksToDelete)
+        let partialBlocksToDelete = blocksToDelete.filter { $0.partial }
+
+        try blockchain.deleteBlocks(blocks: partialBlocksToDelete)
     }
 
     private func handlePartialBlocks() throws {
@@ -102,9 +104,7 @@ extension BlockSyncer: IBlockSyncer {
 
         if let lastBlockHash = storage.lastBlockchainBlockHash {
             blockLocatorHashes.append(lastBlockHash.headerHash)
-        }
-
-        if blockLocatorHashes.isEmpty {
+        } else {
             for block in storage.blocks(heightGreaterThan: checkpoint.block.height, sortedBy: Block.Columns.height, limit: 10) {
                 blockLocatorHashes.append(block.headerHash)
             }
@@ -151,7 +151,9 @@ extension BlockSyncer: IBlockSyncer {
             state.iteration(hasPartialBlocks: true)
         }
 
-        if !state.iterationHasPartialBlocks {
+        if state.iterationHasPartialBlocks {
+            try storage.setBlockPartial(hash: block.headerHash)
+        } else {
             storage.deleteBlockHash(byHash: block.headerHash)
         }
 
