@@ -267,6 +267,17 @@ open class GrdbStorage {
             try InvalidTransaction.deleteAll(db)
         }
 
+        migrator.registerMigration("addPartialToBlocks") { db in
+            try db.alter(table: Block.databaseTableName) { t in
+                t.add(column: Block.Columns.partial.name, .boolean).notNull().defaults(to: false)
+            }
+
+            let blockHashes = try BlockHash.fetchAll(db)
+            let hashes = blockHashes.map { $0.headerHash }
+
+            try Block.filter(hashes.contains(Block.Columns.headerHash)).updateAll(db, Block.Columns.partial.set(to: true))
+        }
+
         return migrator
     }
 
@@ -608,6 +619,12 @@ extension GrdbStorage: IStorage {
     public func add(block: Block) throws {
         _ = try! dbPool.write { db in
             try block.insert(db)
+        }
+    }
+
+    public func setBlockPartial(hash: Data) throws {
+        _ = try! dbPool.write { db in
+            try Block.filter(Block.Columns.headerHash == hash).updateAll(db, Block.Columns.partial.set(to: true))
         }
     }
 
