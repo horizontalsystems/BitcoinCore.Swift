@@ -1,19 +1,26 @@
 # BitcoinCore.Swift
-BitcoinCore for Bitcoin, BitcoinCash(ABC), Litecoin and Dash wallet toolkit for Swift. This is a full implementation of SPV node including wallet creation/restore, synchronization with network, send/receive transactions, and more.
 
+`BitcoinCore.Swift` is a core package that implements a full Simplified Payment Verification (`SPV`) client in `Swift`. It implements Bitcoin `P2P Protocol` and can be extended to be a client of other Bitcoin forks like BitcoinCash, Litecoin, etc. Currently, we have extensions [BitcoinKit.Swift](https://github.com/horizontalsystems/BitcoinKit.Swift), [BitcoinCashKit.Swift](https://github.com/horizontalsystems/BitcoinCashKit.Swift), [LitecoinKit.Swift](https://github.com/horizontalsystems/LitecoinKit.Swift) and [DashKit.Swift](https://github.com/horizontalsystems/DashKit.Swift) that complement this package with blockchain(fork) specific logic and used by `UnstoppableWallet` for integration of them.
+
+Being an SPV client, `BitcoinCore.Swift` downloads and validates all the block headers, inclusion of transactions in the blocks, integrity and immutability of transactions as described in the Bitcoin whitepaper or delegates validation to the extensions that implement the forks of Bitcoin.  
 
 ## Features
 
-- Full SPV implementation for fast mobile performance
-- Send/Receive Legacy transactions (*P2PKH*, *P2PK*, *P2SH*)
-- [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) hierarchical deterministic wallets implementation.
-- [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) mnemonic code for generating deterministic keys.
-- [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki) multi-account hierarchy for deterministic wallets.
-- [BIP21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki) URI schemes, which include payment address, amount, label and other params
+- [x] Bitcoin P2P Protocol implementaion in Swift.
+- [x] Full SPV implementation for fast mobile performance with account security and privacy in mind
+- [x] `P2PK`, `P2PKH`, `P2SH-P2WPKH`, `P2WPKH` outputs support.
+- [x] Restoring with mnemonic seed. (Generated from private seed phrase)
+- [x] Restoring with [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) extended public key. (This becomes a `Watch account` unable to spend funds)
+- [x] Quick initial restore over node API. (optional)
+- [x] Handling transaction (Replacement)/(Doube spend)/(Failure by expiration)
+- [x] Optimized UTXO selection when spending coins.
+- [x] [BIP69](https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki) or simple shuffle output ordering. (configurable)
+- [x] [BIP21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki) URI schemes with payment address, amount, label and other parameters
 
-### Initialization
 
-Core must be used by concrete Kit, i.e. BitcoinKit.Swift, DashKit.swift...
+## Usage
+
+This package is designed to be used by a concrete kit like BitcoinKit.Swift. See [BitcoinKit.Swift](https://github.com/horizontalsystems/BitcoinKit.Swift) for more documentation.
 
 ## Prerequisites
 
@@ -21,17 +28,9 @@ Core must be used by concrete Kit, i.e. BitcoinKit.Swift, DashKit.swift...
 * Swift 5+
 * iOS 13+
 
-## Installation
-To run tests you need make cuckoo generator using instructions from https://github.com/Brightify/Cuckoo
-
 ### Swift Package Manager
 
-The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code
-and is integrated into the `swift` compiler. It is in early development, but HdWalletKit does support its use on
-supported platforms.
-
-Once you have your Swift package set up, adding HdWalletKit as a dependency is as easy as adding it to
-the `dependencies` value of your `Package.swift`.
+[Swift Package Manager](https://www.swift.org/package-manager/) is a dependency manager for Swift projects. You can install `BitcoinCore.Swift` by adding a line in `dependencies` value of your `Package.swift`:
 
 ```swift
 dependencies: [
