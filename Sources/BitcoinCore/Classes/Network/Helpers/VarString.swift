@@ -2,18 +2,14 @@ import Foundation
 import HsExtensions
 
 /// Variable length string can be stored using a variable length integer followed by the string itself.
-public struct VarString : ExpressibleByStringLiteral {
+public struct VarString {
     public typealias StringLiteralType = String
     let length: VarInt
     let value: String
 
-    public init(stringLiteral value: String) {
-        self.init(value)
-    }
-
-    init(_ value: String) {
+    init(_ value: String, length: Int) {
         self.value = value
-        length = VarInt(value.data(using: .ascii)!.count)
+        self.length = VarInt(length)
     }
 
     func serialized() -> Data {

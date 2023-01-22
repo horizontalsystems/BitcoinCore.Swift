@@ -68,7 +68,7 @@ public class ByteStream {
         let size = Int(length)
         let value = data[offset..<(offset + size)].hs.to(type: String.self)
         offset += size
-        return VarString(value)
+        return VarString(value, length: size)
     }
 
     public func read(_ type: Data.Type, count: Int) -> Data {

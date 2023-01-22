@@ -67,7 +67,7 @@ class Peer {
                 yourAddress: NetworkAddress(services: 0x00, address: connection.host, port: UInt16(connection.port)),
                 myAddress: NetworkAddress(services: 0x00, address: "::ffff:127.0.0.1", port: UInt16(connection.port)),
                 nonce: 0,
-                userAgent: "/WalletKit:0.1.0/",
+                userAgent: VarString("/WalletKit:0.1.0/", length: 17),
                 startHeight: localBestBlockHeight,
                 relay: false
         )
