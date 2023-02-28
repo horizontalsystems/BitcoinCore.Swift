@@ -3,14 +3,16 @@ import Foundation
 public class SegWitBech32AddressConverter: IAddressConverter {
     private let prefix: String
     private let scriptConverter: IScriptConverter
+    private let hasAdvanced: Bool
 
-    public init(prefix: String, scriptConverter: IScriptConverter) {
+    public init(prefix: String, scriptConverter: IScriptConverter, hasAdvanced: Bool = true) {
         self.prefix = prefix
         self.scriptConverter = scriptConverter
+        self.hasAdvanced = hasAdvanced
     }
 
     public func convert(address: String) throws -> Address {
-        if let segWitData = try? SegWitBech32.decode(hrp: prefix, addr: address) {
+        if let segWitData = try? SegWitBech32.decode(hrp: prefix, addr: address, hasAdvanced: hasAdvanced) {
             var type: AddressType = .pubKeyHash
             if segWitData.version == 0 {
                 switch segWitData.program.count {

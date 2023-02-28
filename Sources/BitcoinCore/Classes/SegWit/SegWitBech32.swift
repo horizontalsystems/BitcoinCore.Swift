@@ -14,7 +14,7 @@ import Foundation
 /// Segregated Witness Address encoder/decoder
 public class SegWitBech32 {
     private static let bech32 = Bech32()
-    
+
     /// Convert from one power-of-2 number base to another
     private static func convertBits(from: Int, to: Int, pad: Bool, idata: Data) throws -> Data {
         var acc: Int = 0
@@ -41,7 +41,7 @@ public class SegWitBech32 {
     }
     
     /// Decode segwit address
-    public static func decode(hrp: String, addr: String) throws -> (version: UInt8, program: Data) {
+    public static func decode(hrp: String, addr: String, hasAdvanced: Bool = true) throws -> (version: UInt8, program: Data) {
         let dec = try bech32.decode(addr)
         guard dec.hrp == hrp else {
             throw CoderError.hrpMismatch(dec.hrp, hrp)
@@ -49,7 +49,8 @@ public class SegWitBech32 {
         guard dec.checksum.count >= 1 else {
             throw CoderError.checksumSizeTooLow
         }
-        let conv = try convertBits(from: 5, to: 8, pad: false, idata: dec.checksum.advanced(by: 1))
+        let idata = (hasAdvanced ? dec.checksum.advanced(by: 1) : dec.checksum)
+        let conv = try convertBits(from: 5, to: 8, pad: false, idata: idata)
         guard conv.count >= 2 && conv.count <= 40 else {
             throw CoderError.dataSizeMismatch(conv.count)
         }
@@ -72,6 +73,9 @@ public class SegWitBech32 {
         }
         return result
     }
+
+    public init() {}
+
 }
 
 extension SegWitBech32 {
