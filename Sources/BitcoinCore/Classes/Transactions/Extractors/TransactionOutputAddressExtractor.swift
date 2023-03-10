@@ -25,7 +25,7 @@ extension TransactionOutputAddressExtractor: ITransactionExtractor {
             case .p2pk:
                 keyHash = Crypto.ripeMd160Sha256(key)
             case .p2wpkhSh:
-                keyHash = Crypto.ripeMd160Sha256(OpCode.scriptWPKH(key))
+                keyHash = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(key))
             default: keyHash = key
             }
 

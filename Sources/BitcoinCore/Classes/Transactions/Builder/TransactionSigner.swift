@@ -43,7 +43,7 @@ extension TransactionSigner: ITransactionSigner {
             case .p2wpkhSh:
                 mutableTransaction.transaction.segWit = true
                 inputToSign.input.witnessData = sigScriptData
-                inputToSign.input.signatureScript = OpCode.push(OpCode.scriptWPKH(publicKey.keyHash))
+                inputToSign.input.signatureScript = OpCode.push(OpCode.segWitOutputScript(publicKey.keyHash))
             case .p2sh:
                 guard let redeemScript = previousOutput.redeemScript else {
                     throw SignError.noRedeemScript

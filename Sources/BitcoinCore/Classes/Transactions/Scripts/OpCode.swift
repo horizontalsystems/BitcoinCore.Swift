@@ -70,7 +70,7 @@ public class OpCode {
         return bytes + data
     }
 
-    public static func scriptWPKH(_ data: Data, versionByte: Int = 0) -> Data {
+    public static func segWitOutputScript(_ data: Data, versionByte: Int = 0) -> Data {
         return OpCode.push(versionByte) + OpCode.push(data)
     }
 
