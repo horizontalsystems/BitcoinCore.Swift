@@ -13,14 +13,23 @@ public class SegWitBech32AddressConverter: IAddressConverter {
 
     public func convert(address: String) throws -> Address {
         if let segWitData = try? SegWitBech32.decode(hrp: prefix, addr: address, hasAdvanced: hasAdvanced) {
-            var type: AddressType = .pubKeyHash
-            if segWitData.version == 0 {
+            switch segWitData.version {
+            case 0:
+                var type: AddressType = .pubKeyHash
                 switch segWitData.program.count {
+                    case 20: type = .pubKeyHash
                     case 32: type = .scriptHash
                     default: break
                 }
+                return SegWitAddress(type: type, keyHash: segWitData.program, bech32: address, version: segWitData.version)
+            case 1:
+                guard segWitData.program.count == 32 else {
+                    break
+                }
+                return TaprootAddress(keyHash: segWitData.program, bech32m: address, version: segWitData.version)
+            default:
+                break
             }
-            return SegWitAddress(type: type, keyHash: segWitData.program, bech32: address, version: segWitData.version)
         }
         throw BitcoinCoreErrors.AddressConversion.unknownAddressType
     }
@@ -33,20 +42,29 @@ public class SegWitBech32AddressConverter: IAddressConverter {
               let keyHash = script.chunks.last?.data else {
             throw BitcoinCoreErrors.AddressConversion.invalidAddressLength
         }
-        let addressType: AddressType
+        
+        let bech32Encoding: Bech32.Encoding = versionByte > 0 ? .bech32m : .bech32
+        let bech32 = try SegWitBech32.encode(hrp: prefix, version: versionByte, program: keyHash, encoding: bech32Encoding)
+
         switch type {
             case .p2wpkh:
-                addressType = AddressType.pubKeyHash
+                return SegWitAddress(type: AddressType.pubKeyHash, keyHash: keyHash, bech32: bech32, version: versionByte)
             case .p2wsh:
-                addressType = AddressType.scriptHash
+                return SegWitAddress(type: AddressType.scriptHash, keyHash: keyHash, bech32: bech32, version: versionByte)
+            case .p2tr:
+                return TaprootAddress(keyHash: keyHash, bech32m: bech32, version: versionByte)
             default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
         }
-        let bech32 = try SegWitBech32.encode(hrp: prefix, version: versionByte, program: keyHash, encoding: .bech32)
-        return SegWitAddress(type: addressType, keyHash: keyHash, bech32: bech32, version: versionByte)
     }
 
     public func convert(publicKey: PublicKey, type: ScriptType) throws -> Address {
-        try convert(keyHash: OpCode.scriptWPKH(publicKey.keyHash), type: type)
+        switch type {
+            case .p2wpkh, .p2wsh:
+                return try convert(keyHash:  OpCode.segWitOutputScript(publicKey.keyHash, versionByte: 0), type: type)
+            case .p2tr:
+                return try convert(keyHash:  OpCode.segWitOutputScript(publicKey.raw, versionByte: 1), type: type)
+            default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
+        }
     }
 
 }

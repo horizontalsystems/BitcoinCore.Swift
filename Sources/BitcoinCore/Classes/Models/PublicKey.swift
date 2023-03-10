@@ -24,7 +24,7 @@ public class PublicKey: Record {
         path = "\(account)/\(external ? 1 : 0)/\(index)"
         raw = data
         keyHash = Crypto.ripeMd160Sha256(data)
-        scriptHashForP2WPKH = Crypto.ripeMd160Sha256(OpCode.scriptWPKH(keyHash))
+        scriptHashForP2WPKH = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(keyHash))
 
         super.init()
     }

@@ -60,7 +60,7 @@ public class SegWitBech32 {
         if dec.checksum[0] == 0 && conv.count != 20 && conv.count != 32 {
             throw CoderError.segwitV0ProgramSizeMismatch(conv.count)
         }
-        if (dec.checksum[0] == 0 && dec.encoding == .bech32) || (dec.checksum[0] != 0 && dec.encoding == .bech32m) {
+        if (dec.checksum[0] == 0 && dec.encoding != .bech32) || (dec.checksum[0] != 0 && dec.encoding != .bech32m) {
             throw CoderError.segwitVersionAndEncodingMismatch
         }
         return (dec.checksum[0], conv)
