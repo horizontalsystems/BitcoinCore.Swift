@@ -3,13 +3,14 @@ import HdWalletKit
 import HsToolKit
 
 public class BitcoinCoreBuilder {
-    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noInitialSyncApi, notSupported }
+    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noPurpose, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noInitialSyncApi, notSupported }
 
     // chains
     public let addressConverter = AddressConverterChain()
 
     // required parameters
     private var extendedKey: HDExtendedKey?
+    private var purpose: Purpose?
     private var network: INetwork?
     private var paymentAddressParser: IPaymentAddressParser?
     private var walletId: String?
@@ -36,6 +37,11 @@ public class BitcoinCoreBuilder {
 
     public func set(network: INetwork) -> BitcoinCoreBuilder {
         self.network = network
+        return self
+    }
+
+    public func set(purpose: Purpose) -> BitcoinCoreBuilder {
+        self.purpose = purpose
         return self
     }
 
@@ -106,6 +112,9 @@ public class BitcoinCoreBuilder {
         guard let extendedKey = extendedKey else {
             throw BuildError.noSeedData
         }
+        guard let purpose = purpose else {
+            throw BuildError.noPurpose
+        }
         guard let network = self.network else {
             throw BuildError.noNetwork
         }
@@ -137,8 +146,6 @@ public class BitcoinCoreBuilder {
         let publicKeyFetcher: IPublicKeyFetcher
         var multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?
         let publicKeyManager: IPublicKeyManager & IBloomFilterProvider
-
-        let purpose = extendedKey.info.purpose
 
         switch extendedKey {
         case .private(let privateKey):
