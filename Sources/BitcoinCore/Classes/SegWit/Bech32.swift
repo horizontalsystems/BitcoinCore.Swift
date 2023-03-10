@@ -57,19 +57,19 @@ public class Bech32 {
         return result
     }
     
-    /// Verify checksum
-    private func verifyChecksum(hrp: String, checksum: Data) -> Bool {
+    private func extractChecksumWithEncoding(hrp: String, checksum: Data) -> (check: UInt32, encoding: Encoding)? {
         var data = expandHrp(hrp)
         data.append(checksum)
-        return polymod(data) == 1
+        let check = polymod(data)
+        return Encoding.fromCheck(check).flatMap { (check, $0) }
     }
     
     /// Create checksum
-    private func createChecksum(hrp: String, values: Data) -> Data {
+    private func createChecksum(hrp: String, values: Data, encoding: Encoding) -> Data {
         var enc = expandHrp(hrp)
         enc.append(values)
         enc.append(Data(repeating: 0x00, count: 6))
-        let mod: UInt32 = polymod(enc) ^ 1
+        let mod: UInt32 = polymod(enc) ^ encoding.checksumXorConstant
         var ret: Data = Data(repeating: 0x00, count: 6)
         for i in 0..<6 {
             ret[i] = UInt8((mod >> (5 * (5 - i))) & 31)
@@ -78,8 +78,8 @@ public class Bech32 {
     }
     
     /// Encode Bech32 string
-    public func encode(_ hrp: String, values: Data) -> String {
-        let checksum = createChecksum(hrp: hrp, values: values)
+    public func encode(_ hrp: String, values: Data, encoding: Encoding) -> String {
+        let checksum = createChecksum(hrp: hrp, values: values, encoding: encoding)
         var combined = values
         combined.append(checksum)
         guard let hrpBytes = hrp.data(using: .utf8) else { return "" }
@@ -92,7 +92,7 @@ public class Bech32 {
     }
     
     /// Decode Bech32 string
-    public func decode(_ str: String) throws -> (hrp: String, checksum: Data) {
+    public func decode(_ str: String) throws -> (hrp: String, checksum: Data, encoding: Encoding) {
         guard let strBytes = str.data(using: .utf8) else {
             throw DecodingError.nonUTF8String
         }
@@ -139,10 +139,11 @@ public class Bech32 {
             values[i] = UInt8(decInt)
         }
         let hrp = String(str[..<pos]).lowercased()
-        guard verifyChecksum(hrp: hrp, checksum: values) else {
+        guard let (check, encoding) = extractChecksumWithEncoding(hrp: hrp, checksum: values),
+              check == encoding.checksumXorConstant else {
             throw DecodingError.checksumMismatch
         }
-        return (hrp, Data(values[..<(vSize-6)]))
+        return (hrp, Data(values[..<(vSize-6)]), encoding)
     }
 }
 
@@ -179,6 +180,26 @@ extension Bech32 {
                 return "String cannot be decoded by utf8 decoder"
             case .stringLengthExceeded:
                 return "Input string is too long"
+            }
+        }
+    }
+    
+    public enum Encoding {
+        case bech32
+        case bech32m
+        
+        var checksumXorConstant: UInt32 {
+            switch self {
+            case .bech32: return 1
+            case .bech32m: return 0x2bc830a3
+            }
+        }
+        
+        static func fromCheck(_ check: UInt32) -> Encoding? {
+            switch check {
+            case Encoding.bech32.checksumXorConstant: return .bech32
+            case Encoding.bech32m.checksumXorConstant: return .bech32m
+            default: return nil
             }
         }
     }

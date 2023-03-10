@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 
 public enum ScriptType: Int, DatabaseValueConvertible {
-    case unknown, p2pkh, p2pk, p2multi, p2sh, p2wsh, p2wpkh, p2wpkhSh, nullData
+    case unknown, p2pkh, p2pk, p2multi, p2sh, p2wsh, p2wpkh, p2wpkhSh, p2tr, nullData
 
     var size: Int {
         switch self {

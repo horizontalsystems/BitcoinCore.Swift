@@ -3,22 +3,10 @@ import Foundation
 public enum AddressType: UInt8 { case pubKeyHash = 0, scriptHash = 8 }
 
 public protocol Address: AnyObject {
-    var type: AddressType { get }
     var scriptType: ScriptType { get }
     var keyHash: Data { get }
     var stringValue: String { get }
     var lockingScript: Data { get }
-}
-
-extension Address {
-
-    public var scriptType: ScriptType {
-        switch type {
-            case .pubKeyHash: return .p2pkh
-            case .scriptHash: return .p2sh
-        }
-    }
-
 }
 
 public class LegacyAddress: Address, Equatable {
@@ -26,6 +14,13 @@ public class LegacyAddress: Address, Equatable {
     public let keyHash: Data
     public let stringValue: String
 
+    public var scriptType: ScriptType {
+        switch type {
+            case .pubKeyHash: return .p2pkh
+            case .scriptHash: return .p2sh
+        }
+    }
+    
     public var lockingScript: Data {
         switch type {
         case .pubKeyHash: return OpCode.p2pkhStart + OpCode.push(keyHash) + OpCode.p2pkhFinish
