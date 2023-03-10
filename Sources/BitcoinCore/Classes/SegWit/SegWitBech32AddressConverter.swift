@@ -41,7 +41,7 @@ public class SegWitBech32AddressConverter: IAddressConverter {
                 addressType = AddressType.scriptHash
             default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
         }
-        let bech32 = try SegWitBech32.encode(hrp: prefix, version: versionByte, program: keyHash)
+        let bech32 = try SegWitBech32.encode(hrp: prefix, version: versionByte, program: keyHash, encoding: .bech32)
         return SegWitAddress(type: addressType, keyHash: keyHash, bech32: bech32, version: versionByte)
     }
 
