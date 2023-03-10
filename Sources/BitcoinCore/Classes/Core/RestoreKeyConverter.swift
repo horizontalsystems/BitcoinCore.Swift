@@ -100,6 +100,30 @@ extension Bip84RestoreKeyConverter : IRestoreKeyConverter {
 
 }
 
+public class Bip86RestoreKeyConverter {
+    
+    let addressConverter: IAddressConverter
+    
+    public init(addressConverter: IAddressConverter) {
+        self.addressConverter = addressConverter
+    }
+    
+}
+
+extension Bip86RestoreKeyConverter : IRestoreKeyConverter {
+    
+    public func keysForApiRestore(publicKey: PublicKey) -> [String] {
+        let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2tr).stringValue
+        
+        return [taprootAddress].compactMap { $0 }
+    }
+    
+    public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
+        [publicKey.keyHash]
+    }
+    
+}
+
 public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
 
     public init() {}
