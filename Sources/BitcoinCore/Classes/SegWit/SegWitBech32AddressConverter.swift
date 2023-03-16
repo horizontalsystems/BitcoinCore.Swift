@@ -1,4 +1,5 @@
 import Foundation
+import HsCryptoKit
 
 public class SegWitBech32AddressConverter: IAddressConverter {
     private let prefix: String
@@ -62,7 +63,8 @@ public class SegWitBech32AddressConverter: IAddressConverter {
             case .p2wpkh, .p2wsh:
                 return try convert(keyHash:  OpCode.segWitOutputScript(publicKey.keyHash, versionByte: 0), type: type)
             case .p2tr:
-                return try convert(keyHash:  OpCode.segWitOutputScript(publicKey.raw, versionByte: 1), type: type)
+                let pK = try SchnorrHelper.tweakedOutputKey(publicKey: publicKey.raw, format: .compressed)
+                return try convert(keyHash:  OpCode.segWitOutputScript(pK, versionByte: 1), type: type)
             default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
         }
     }
