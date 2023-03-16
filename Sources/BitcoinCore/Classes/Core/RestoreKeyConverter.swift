@@ -119,7 +119,11 @@ extension Bip86RestoreKeyConverter : IRestoreKeyConverter {
     }
     
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.keyHash]
+        guard let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2tr) else {
+            return []
+        }
+        
+        return [taprootAddress.keyHash]
     }
     
 }
