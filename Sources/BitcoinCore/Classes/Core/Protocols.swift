@@ -138,8 +138,10 @@ public protocol IStorage: IOutputStorage {
     func add(sentTransaction: SentTransaction)
 
     func publicKeys() -> [PublicKey]
-    func publicKey(byScriptHashForP2WPKH: Data) -> PublicKey?
-    func publicKey(byRawOrKeyHash: Data) -> PublicKey?
+    func publicKey(raw: Data) -> PublicKey?
+    func publicKey(hashP2pkh: Data) -> PublicKey?
+    func publicKey(hashP2wpkhWrappedInP2sh: Data) -> PublicKey?
+    func publicKey(convertedForP2tr: Data) -> PublicKey?
     func add(publicKeys: [PublicKey])
     func publicKeysWithUsedState() -> [PublicKeyWithUsedState]
     func publicKey(byPath: String) -> PublicKey?
@@ -312,7 +314,7 @@ protocol IPaymentAddressParser {
 
 public protocol IAddressConverter {
     func convert(address: String) throws -> Address
-    func convert(keyHash: Data, type: ScriptType) throws -> Address
+    func convert(lockingScriptPayload: Data, type: ScriptType) throws -> Address
     func convert(publicKey: PublicKey, type: ScriptType) throws -> Address
 }
 
@@ -360,10 +362,6 @@ protocol ITransactionExtractor {
 
 protocol ITransactionLinker {
     func handle(transaction: FullTransaction)
-}
-
-protocol ITransactionPublicKeySetter {
-    func set(output: Output)
 }
 
 public protocol ITransactionSyncer: AnyObject {

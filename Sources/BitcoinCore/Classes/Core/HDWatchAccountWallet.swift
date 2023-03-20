@@ -4,7 +4,7 @@ import HdWalletKit
 extension HDWatchAccountWallet: IHDAccountWallet {
 
     func publicKey(index: Int, external: Bool) throws -> PublicKey {
-        PublicKey(withAccount: 0, index: index, external: external, hdPublicKeyData: try publicKey(index: index, chain: external ? .external : .internal).raw)
+        try PublicKey(withAccount: 0, index: index, external: external, hdPublicKeyData: try publicKey(index: index, chain: external ? .external : .internal).raw)
     }
 
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
@@ -14,9 +14,9 @@ extension HDWatchAccountWallet: IHDAccountWallet {
             throw HDWallet.HDWalletError.publicKeysDerivationFailed
         }
 
-        return indices.map { index in
+        return try indices.map { index in
             let key = hdPublicKeys[Int(index - indices.lowerBound)]
-            return PublicKey(withAccount: 0, index: Int(index), external: external, hdPublicKeyData: key.raw)
+            return try PublicKey(withAccount: 0, index: Int(index), external: external, hdPublicKeyData: key.raw)
         }
     }
 

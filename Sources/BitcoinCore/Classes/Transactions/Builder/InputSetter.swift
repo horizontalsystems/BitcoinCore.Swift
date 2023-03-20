@@ -30,13 +30,6 @@ class InputSetter {
     }
 
     private func input(fromUnspentOutput unspentOutput: UnspentOutput) throws -> InputToSign {
-        if unspentOutput.output.scriptType == .p2wpkh {
-            // todo: refactoring version byte!
-            // witness key hashes stored with program byte and push code to determine
-            // version (current only 0), but for sign we need only public kee hash
-            unspentOutput.output.keyHash?.removeFirst(2)
-        }
-
         // Maximum nSequence value (0xFFFFFFFF) disables nLockTime.
         // According to BIP-125, any value less than 0xFFFFFFFE makes a Replace-by-Fee(RBF) opted in.
         let sequence = 0xFFFFFFFE

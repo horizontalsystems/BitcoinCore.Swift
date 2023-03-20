@@ -57,7 +57,7 @@ public class TransactionSerializer {
                 data += scriptLength.serialized()
                 data += script
             default:
-                data += OpCode.push(OpCode.p2pkhStart + OpCode.push(inputToSign.previousOutput.keyHash!) + OpCode.p2pkhFinish)
+                data += OpCode.push(OpCode.p2pkhStart + OpCode.push(inputToSign.previousOutput.lockingScriptPayload!) + OpCode.p2pkhFinish)
             }
 
             data += inputToSign.previousOutput.value

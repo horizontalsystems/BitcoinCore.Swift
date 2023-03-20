@@ -1,18 +1,17 @@
 import Foundation
 
 public class TaprootAddress: Address, Equatable {
-    public let keyHash: Data
+    public let lockingScriptPayload: Data
     public let stringValue: String
     public let version: UInt8
     public var scriptType = ScriptType.p2tr
     
     public var lockingScript: Data {
-        // Data[0] - version byte, Data[1] - push keyHash
-        OpCode.push(Int(version)) + OpCode.push(keyHash)
+        OpCode.segWitOutputScript(lockingScriptPayload, versionByte: Int(version))
     }
     
-    public init(keyHash: Data, bech32m: String, version: UInt8) {
-        self.keyHash = keyHash
+    public init(payload: Data, bech32m: String, version: UInt8) {
+        self.lockingScriptPayload = payload
         self.stringValue = bech32m
         self.version = version
     }
@@ -21,6 +20,6 @@ public class TaprootAddress: Address, Equatable {
         guard let rhs = rhs as? TaprootAddress else {
             return false
         }
-        return lhs.keyHash == rhs.keyHash && lhs.version == rhs.version
+        return lhs.lockingScriptPayload == rhs.lockingScriptPayload && lhs.version == rhs.version
     }
 }
