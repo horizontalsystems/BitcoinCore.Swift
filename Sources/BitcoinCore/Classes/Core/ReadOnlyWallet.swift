@@ -34,9 +34,9 @@ extension ReadOnlyWallet: IHDWallet {
             throw ReadOnlyWalletError.publicKeysDerivationFailed
         }
 
-        return indices.map { index in
+        return try indices.map { index in
             let key = hdPublicKeys[Int(index - indices.lowerBound)]
-            return PublicKey(withAccount: account, index: Int(index), external: external, hdPublicKeyData: key.raw)
+            return try PublicKey(withAccount: account, index: Int(index), external: external, hdPublicKeyData: key.raw)
         }
     }
 

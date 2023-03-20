@@ -8,25 +8,33 @@ class TransactionPublicKeySetter {
     }
 }
 
-extension TransactionPublicKeySetter: ITransactionPublicKeySetter {
+extension TransactionPublicKeySetter: ITransactionExtractor {
 
-    public func set(output: Output) {
-        if let key = output.keyHash {
-            var correctKey = key
-            if output.scriptType == .p2wpkh, key.count > 2 {
-                correctKey = key.dropFirst(2)
-            }
-            if output.scriptType == .p2sh {
-                if let publicKey = storage.publicKey(byScriptHashForP2WPKH: correctKey) {
-                    output.set(publicKey: publicKey)
-                    output.keyHash = publicKey.keyHash
-                    output.scriptType = .p2wpkhSh
-                    return
+    public func extract(transaction: FullTransaction) {
+        for output in transaction.outputs {
+            if let payload = output.lockingScriptPayload {
+                var publicKey: PublicKey? = nil
+                
+                switch output.scriptType {
+                    case .p2pk:
+                        publicKey = storage.publicKey(raw: payload)
+                    case .p2pkh:
+                        publicKey = storage.publicKey(hashP2pkh: payload)
+                    case .p2sh:
+                        if let _publicKey = storage.publicKey(hashP2wpkhWrappedInP2sh: payload) {
+                            publicKey = _publicKey
+                            output.scriptType = .p2wpkhSh
+                        }
+                    case .p2wpkh:
+                        publicKey = storage.publicKey(hashP2pkh: payload)
+                    case .p2tr:
+                        publicKey = storage.publicKey(convertedForP2tr: payload)
+                    default: ()
                 }
-            }
-            if let publicKey = storage.publicKey(byRawOrKeyHash: correctKey) {
-                output.set(publicKey: publicKey)
-                return
+                
+                if let publicKey = publicKey {
+                    output.set(publicKey: publicKey)
+                }
             }
         }
     }

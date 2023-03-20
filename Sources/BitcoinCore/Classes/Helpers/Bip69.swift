@@ -7,14 +7,14 @@ class Bip69 {
             return o.value < o1.value
         }
 
-        guard let keyHash1 = o.keyHash else {
+        guard let lsp1 = o.lockingScriptPayload else {
             return false
         }
-        guard let keyHash2 = o1.keyHash else {
+        guard let lsp2 = o1.lockingScriptPayload else {
             return true
         }
 
-        return compare(data: keyHash1, data2: keyHash2)
+        return compare(data: lsp1, data2: lsp2)
     }
 
     static var inputComparator: ((UnspentOutput, UnspentOutput) -> Bool) = { o, o1 in

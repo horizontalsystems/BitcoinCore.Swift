@@ -25,7 +25,7 @@ class WatchedTransactionManager {
     private func scan(transaction: FullTransaction) {
         for filter in p2ShOutputFilters {
             for output in transaction.outputs {
-                if output.scriptType == .p2sh && output.keyHash == filter.hash {
+                if output.scriptType == .p2sh && output.lockingScriptPayload == filter.hash {
                     filter.delegate.transactionReceived(transaction: transaction, outputIndex: output.index)
                     return
                 }

@@ -8,7 +8,7 @@ public class Input: Record {
     public var signatureScript: Data
     var sequence: Int
     var transactionHash = Data()
-    var keyHash: Data? = nil
+    var lockingScriptPayload: Data? = nil
     var address: String? = nil
     var witnessData = [Data]()
 
@@ -43,7 +43,7 @@ public class Input: Record {
         signatureScript = row[Columns.signatureScript]
         sequence = row[Columns.sequence]
         transactionHash = row[Columns.transactionHash]
-        keyHash = row[Columns.keyHash]
+        lockingScriptPayload = row[Columns.keyHash]
         address = row[Columns.address]
         witnessData = row[Columns.witnessData]
 
@@ -56,7 +56,7 @@ public class Input: Record {
         container[Columns.signatureScript] = signatureScript
         container[Columns.sequence] = sequence
         container[Columns.transactionHash] = transactionHash
-        container[Columns.keyHash] = keyHash
+        container[Columns.keyHash] = lockingScriptPayload
         container[Columns.address] = address
         container[Columns.witnessData] = witnessData
     }

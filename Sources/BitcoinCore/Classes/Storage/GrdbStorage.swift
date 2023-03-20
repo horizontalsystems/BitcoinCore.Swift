@@ -132,7 +132,7 @@ open class GrdbStorage {
                 t.column(Output.Columns.publicKeyPath.name, .text)
                 t.column(Output.Columns.changeOutput.name, .boolean)
                 t.column(Output.Columns.scriptType.name, .integer)
-                t.column(Output.Columns.keyHash.name, .blob)
+                t.column(Output.Columns.lockingScriptPayload.name, .blob)
                 t.column(Output.Columns.address.name, .text)
 
                 t.primaryKey([Output.Columns.transactionHash.name, Output.Columns.index.name], onConflict: .abort)
@@ -276,6 +276,32 @@ open class GrdbStorage {
             let hashes = blockHashes.map { $0.headerHash }
 
             try Block.filter(hashes.contains(Block.Columns.headerHash)).updateAll(db, Block.Columns.partial.set(to: true))
+        }
+        
+        migrator.registerMigration("addConvertedForP2trToPublicKey") { db in
+            try db.alter(table: PublicKey.databaseTableName) { t in
+                t.add(column: PublicKey.Columns.convertedForP2tr.name, .blob).notNull().defaults(to: Data())
+            }
+            
+            let publicKeys = try PublicKey.fetchAll(db)
+            for pk in publicKeys {
+                let updatedPK = try PublicKey(withAccount: pk.account, index: pk.index, external: pk.external, hdPublicKeyData: pk.raw)
+                try updatedPK.update(db)
+            }
+        }
+        
+        migrator.registerMigration("addLockingScriptPayloadToOutput") { db in
+            try db.alter(table: Output.databaseTableName) { t in
+                t.add(column: Output.Columns.lockingScriptPayload.name, .blob).notNull().defaults(to: Data())
+            }
+            
+            let outputScriptTypeParser = OutputScriptTypeParser()
+            
+            let outputs = try Output.fetchAll(db)
+            for output in outputs {
+                outputScriptTypeParser.parseScriptType(output: output)
+                try output.update(db)
+            }
         }
 
         return migrator
@@ -1046,6 +1072,30 @@ extension GrdbStorage: IStorage {
     public func publicKeys() -> [PublicKey] {
         try! dbPool.read { db in
             try PublicKey.fetchAll(db)
+        }
+    }
+
+    public func publicKey(raw: Data) -> PublicKey? {
+        try! dbPool.read { db in
+            try PublicKey.filter(PublicKey.Columns.raw == raw).fetchOne(db)
+        }
+    }
+
+    public func publicKey(hashP2pkh: Data) -> PublicKey? {
+        try! dbPool.read { db in
+            try PublicKey.filter(PublicKey.Columns.keyHash == hashP2pkh).fetchOne(db)
+        }
+    }
+
+    public func publicKey(hashP2wpkhWrappedInP2sh: Data) -> PublicKey? {
+        try! dbPool.read { db in
+            try PublicKey.filter(PublicKey.Columns.scriptHashForP2WPKH == hashP2wpkhWrappedInP2sh).fetchOne(db)
+        }
+    }
+
+    public func publicKey(convertedForP2tr: Data) -> PublicKey? {
+        try! dbPool.read { db in
+            try PublicKey.filter(PublicKey.Columns.convertedForP2tr == convertedForP2tr).fetchOne(db)
         }
     }
 

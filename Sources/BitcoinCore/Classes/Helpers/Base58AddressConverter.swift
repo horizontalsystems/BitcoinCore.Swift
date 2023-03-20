@@ -37,10 +37,10 @@ public class Base58AddressConverter: IAddressConverter {
         }
 
         let keyHash = hex.dropFirst().dropLast(4)
-        return LegacyAddress(type: type, keyHash: keyHash, base58: address)
+        return LegacyAddress(type: type, payload: keyHash, base58: address)
     }
 
-    public func convert(keyHash: Data, type: ScriptType) throws -> Address {
+    public func convert(lockingScriptPayload: Data, type: ScriptType) throws -> Address {
         let version: UInt8
         let addressType: AddressType
 
@@ -54,17 +54,17 @@ public class Base58AddressConverter: IAddressConverter {
             default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
         }
 
-        var withVersion = (Data([version])) + keyHash
+        var withVersion = (Data([version])) + lockingScriptPayload
         let doubleSHA256 = Crypto.doubleSha256(withVersion)
         let checksum = doubleSHA256.prefix(4)
         withVersion += checksum
         let base58 = Base58.encode(withVersion)
-        return LegacyAddress(type: addressType, keyHash: keyHash, base58: base58)
+        return LegacyAddress(type: addressType, payload: lockingScriptPayload, base58: base58)
     }
 
     public func convert(publicKey: PublicKey, type: ScriptType) throws -> Address {
-        let keyHash = type == .p2wpkhSh ? publicKey.scriptHashForP2WPKH : publicKey.keyHash
-        return try convert(keyHash: keyHash, type: type)
+        let keyHash = type == .p2wpkhSh ? publicKey.hashP2wpkhWrappedInP2sh : publicKey.hashP2pkh
+        return try convert(lockingScriptPayload: keyHash, type: type)
     }
 
 }

@@ -47,7 +47,7 @@ extension Bip44RestoreKeyConverter : IRestoreKeyConverter {
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.keyHash, publicKey.raw]
+        [publicKey.hashP2pkh, publicKey.raw]
     }
 
 }
@@ -71,7 +71,7 @@ extension Bip49RestoreKeyConverter : IRestoreKeyConverter {
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.scriptHashForP2WPKH]
+        [publicKey.hashP2wpkhWrappedInP2sh]
     }
 
 }
@@ -95,7 +95,7 @@ extension Bip84RestoreKeyConverter : IRestoreKeyConverter {
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.keyHash]
+        [publicKey.hashP2pkh]
     }
 
 }
@@ -119,11 +119,7 @@ extension Bip86RestoreKeyConverter : IRestoreKeyConverter {
     }
     
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        guard let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2tr) else {
-            return []
-        }
-        
-        return [taprootAddress.keyHash]
+        return [publicKey.convertedForP2tr]
     }
     
 }
@@ -133,11 +129,11 @@ public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
     public init() {}
 
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        [publicKey.keyHash.hs.hex]
+        [publicKey.hashP2pkh.hs.hex]
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.keyHash]
+        [publicKey.hashP2pkh]
     }
 
 }

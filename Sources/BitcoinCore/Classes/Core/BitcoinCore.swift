@@ -167,7 +167,7 @@ extension BitcoinCore {
             throw CoreError.readOnlyCore
         }
 
-        let toAddress = try addressConverter.convert(keyHash: hash, type: scriptType)
+        let toAddress = try addressConverter.convert(lockingScriptPayload: hash, type: scriptType)
         return try transactionCreator.create(to: toAddress.stringValue, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, pluginData: [:])
     }
 

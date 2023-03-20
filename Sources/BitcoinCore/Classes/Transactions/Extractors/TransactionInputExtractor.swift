@@ -27,9 +27,10 @@ extension TransactionInputExtractor: ITransactionExtractor {
         for input in transaction.inputs {
             if let previousOutput = storage.previousOutput(ofInput: input) {
                 input.address = previousOutput.address
-                input.keyHash = previousOutput.keyHash
+                input.lockingScriptPayload = previousOutput.lockingScriptPayload
                 continue
             }
+
             var payload: Data?
             var validScriptType: ScriptType = ScriptType.unknown
             let signatureScript = input.signatureScript
@@ -52,6 +53,7 @@ extension TransactionInputExtractor: ITransactionExtractor {
                     validScriptType = .p2sh
                 }
             }
+
             if payload == nil, sigScriptCount >= 106, signatureScript[0] >= 71, signatureScript[0] <= 74 {
                 // parse PFromPKH transaction input
                 let signatureOffset = signatureScript[0]
@@ -62,6 +64,7 @@ extension TransactionInputExtractor: ITransactionExtractor {
                     validScriptType = .p2pkh
                 }
             }
+
             if payload == nil, sigScriptCount == ScriptType.p2wpkhSh.size,
                signatureScript[0] == 0x16,
                (signatureScript[1] == 0 || (signatureScript[1] > 0x50 && signatureScript[1] < 0x61)),
@@ -70,10 +73,11 @@ extension TransactionInputExtractor: ITransactionExtractor {
                 payload = signatureScript.subdata(in: 1..<sigScriptCount)      // 0014{20-byte-key-hash}
                 validScriptType = .p2wpkhSh
             }
+
             if let payload = payload {
                 let keyHash = Crypto.ripeMd160Sha256(payload)
-                if let address = try? addressConverter.convert(keyHash: keyHash, type: validScriptType) {
-                    input.keyHash = address.keyHash
+                if let address = try? addressConverter.convert(lockingScriptPayload: keyHash, type: validScriptType) {
+                    input.lockingScriptPayload = address.lockingScriptPayload
                     input.address = address.stringValue
                 }
             }

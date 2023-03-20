@@ -12,6 +12,7 @@ public enum ScriptType: Int, DatabaseValueConvertible {
         case .p2wsh: return 34
         case .p2wpkh: return 22
         case .p2wpkhSh: return 23
+        case .p2tr: return 34
         default: return 0
         }
     }
@@ -36,7 +37,7 @@ public class Output: Record {
     private(set) var changeOutput: Bool = false
     public var scriptType: ScriptType = .unknown
     public var redeemScript: Data? = nil
-    public var keyHash: Data? = nil
+    public var lockingScriptPayload: Data? = nil
     var address: String? = nil
     var failedToSpend: Bool = false
 
@@ -49,7 +50,7 @@ public class Output: Record {
         self.changeOutput = !publicKey.external
     }
 
-    public init(withValue value: Int, index: Int, lockingScript script: Data, transactionHash: Data = Data(), type: ScriptType = .unknown, redeemScript: Data? = nil, address: String? = nil, keyHash: Data? = nil, publicKey: PublicKey? = nil) {
+    public init(withValue value: Int, index: Int, lockingScript script: Data, transactionHash: Data = Data(), type: ScriptType = .unknown, redeemScript: Data? = nil, address: String? = nil, lockingScriptPayload: Data? = nil, publicKey: PublicKey? = nil) {
         self.value = value
         self.lockingScript = script
         self.index = index
@@ -57,7 +58,7 @@ public class Output: Record {
         self.scriptType = type
         self.redeemScript = redeemScript
         self.address = address
-        self.keyHash = keyHash
+        self.lockingScriptPayload = lockingScriptPayload
 
         super.init()
 
@@ -79,7 +80,7 @@ public class Output: Record {
         case changeOutput
         case scriptType
         case redeemScript
-        case keyHash
+        case lockingScriptPayload
         case address
         case pluginId
         case pluginData
@@ -95,7 +96,7 @@ public class Output: Record {
         changeOutput = row[Columns.changeOutput]
         scriptType = row[Columns.scriptType]
         redeemScript = row[Columns.redeemScript]
-        keyHash = row[Columns.keyHash]
+        lockingScriptPayload = row[Columns.lockingScriptPayload]
         address = row[Columns.address]
         pluginId = row[Columns.pluginId]
         pluginData = row[Columns.pluginData]
@@ -113,7 +114,7 @@ public class Output: Record {
         container[Columns.changeOutput] = changeOutput
         container[Columns.scriptType] = scriptType
         container[Columns.redeemScript] = redeemScript
-        container[Columns.keyHash] = keyHash
+        container[Columns.lockingScriptPayload] = lockingScriptPayload
         container[Columns.address] = address
         container[Columns.pluginId] = pluginId
         container[Columns.pluginData] = pluginData

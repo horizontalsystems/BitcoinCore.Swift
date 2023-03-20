@@ -24,12 +24,12 @@ public class AddressConverterChain: IAddressConverter {
         throw BitcoinCoreErrors.AddressConversionErrors(errors: errors)
     }
 
-    public func convert(keyHash: Data, type: ScriptType) throws -> Address {
+    public func convert(lockingScriptPayload: Data, type: ScriptType) throws -> Address {
         var errors = [Error]()
 
         for converter in concreteConverters {
             do {
-                let converted = try converter.convert(keyHash: keyHash, type: type)
+                let converted = try converter.convert(lockingScriptPayload: lockingScriptPayload, type: type)
                 return converted
             } catch {
                 errors.append(error)
