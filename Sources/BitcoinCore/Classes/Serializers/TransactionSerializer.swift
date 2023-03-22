@@ -80,6 +80,48 @@ public class TransactionSerializer {
         return data
     }
 
+    static public func serializedForTaprootSignature(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], inputIndex: Int) throws -> Data {
+        var data = Data()
+
+        data += UInt8(0)
+        data += UInt8(0)   // SIGHASH_DEFAULT
+        data += UInt32(transaction.version)
+        data += UInt32(transaction.lockTime)
+
+        // Input outputs
+        let hashPrevouts = try inputsToSign.flatMap { input in
+            try TransactionInputSerializer.serializedOutPoint(input: input)
+        }
+        data += Crypto.sha256(Data(hashPrevouts))
+
+        // Output values
+        var outputValues = Data()
+        for input in inputsToSign {
+            outputValues += UInt64(input.previousOutput.value)
+        }
+        data += Crypto.sha256(outputValues)
+
+        // Output scriptPubKeys
+        let outputLockingScripts = Data(inputsToSign.flatMap { OpCode.push($0.previousOutput.lockingScript) })
+        data += Crypto.sha256(outputLockingScripts)
+
+        // Input sequences
+        var sequences = Data()
+        for input in inputsToSign {
+            sequences += UInt32(input.input.sequence)
+        }
+        data += Crypto.sha256(sequences)
+
+        // Outputs
+        let hashOutputs = outputs.flatMap { TransactionOutputSerializer.serialize(output: $0) }
+        data += Crypto.sha256(Data(hashOutputs))
+
+        data += UInt8(0)   // spendType (no annex, no scriptPath)
+        data += UInt32(inputIndex)
+
+        return data
+    }
+
     static public func deserialize(data: Data) -> FullTransaction {
         return deserialize(byteStream: ByteStream(data))
     }

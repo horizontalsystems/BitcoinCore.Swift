@@ -19,9 +19,12 @@ extension DustCalculator: IDustCalculator {
 
         var size = sizeCalculator.outputSize(type: type)
 
-        if type.nativeSegwit {
+        switch type {
+        case .p2wpkh, .p2wsh:
             size += sizeCalculator.inputSize(type: .p2wpkh) + sizeCalculator.witnessSize(type: .p2wpkh) / 4
-        } else {
+        case .p2tr:
+            size += sizeCalculator.inputSize(type: .p2tr) + sizeCalculator.witnessSize(type: .p2tr) / 4
+        default:
             size += sizeCalculator.inputSize(type: .p2pkh)
         }
 

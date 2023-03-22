@@ -3,7 +3,7 @@ import HsCryptoKit
 import HsExtensions
 import HdWalletKit
 
-class InputSigner {
+class EcdsaInputSigner {
     enum SignError: Error {
         case noPreviousOutput
         case noPreviousOutputAddress
@@ -20,7 +20,7 @@ class InputSigner {
 
 }
 
-extension InputSigner: IInputSigner {
+extension EcdsaInputSigner: IInputSigner {
 
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data] {
         let input = inputsToSign[index]
