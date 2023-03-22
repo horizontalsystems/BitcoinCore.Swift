@@ -237,14 +237,15 @@ public class BitcoinCoreBuilder {
         var transactionCreator: TransactionCreator?
 
         if let hdWallet = hdWallet {
-            let inputSigner = InputSigner(hdWallet: hdWallet, network: network)
+            let ecdsaInputSigner = EcdsaInputSigner(hdWallet: hdWallet, network: network)
+            let schnorrInputSigner = SchnorrInputSigner(hdWallet: hdWallet)
             let transactionSizeCalculatorInstance = TransactionSizeCalculator()
             let dustCalculatorInstance = DustCalculator(dustRelayTxFee: network.dustRelayTxFee, sizeCalculator: transactionSizeCalculatorInstance)
             let recipientSetter = RecipientSetter(addressConverter: addressConverter, pluginManager: pluginManager)
             let outputSetter = OutputSetter(outputSorterFactory: transactionDataSorterFactory, factory: factory)
             let inputSetter = InputSetter(unspentOutputSelector: unspentOutputSelector, transactionSizeCalculator: transactionSizeCalculatorInstance, addressConverter: addressConverter, publicKeyManager: publicKeyManager, factory: factory, pluginManager: pluginManager, dustCalculator: dustCalculatorInstance, changeScriptType: purpose.scriptType, inputSorterFactory: transactionDataSorterFactory)
             let lockTimeSetter = LockTimeSetter(storage: storage)
-            let transactionSigner = TransactionSigner(inputSigner: inputSigner)
+            let transactionSigner = TransactionSigner(ecdsaInputSigner: ecdsaInputSigner, schnorrInputSigner: schnorrInputSigner)
             let transactionBuilder = TransactionBuilder(recipientSetter: recipientSetter, inputSetter: inputSetter, lockTimeSetter: lockTimeSetter, outputSetter: outputSetter, signer: transactionSigner)
             transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: purpose.scriptType)
             let transactionSendTimer = TransactionSendTimer(interval: 60)

@@ -6,10 +6,12 @@ class TransactionSigner {
         case noRedeemScript
     }
 
-    private let inputSigner: IInputSigner
+    private let ecdsaInputSigner: IInputSigner
+    private let schnorrInputSigner: IInputSigner
 
-    init(inputSigner: IInputSigner) {
-        self.inputSigner = inputSigner
+    init(ecdsaInputSigner: IInputSigner, schnorrInputSigner: IInputSigner) {
+        self.ecdsaInputSigner = ecdsaInputSigner
+        self.schnorrInputSigner = schnorrInputSigner
     }
 
     private func signatureScript(from sigScriptData: [Data]) -> Data {
@@ -18,23 +20,18 @@ class TransactionSigner {
         }
     }
 
-}
+    private func ecdsaSign(index: Int, mutableTransaction: MutableTransaction) throws {
+        let inputToSign = mutableTransaction.inputsToSign[index]
+        let previousOutput = inputToSign.previousOutput
+        let publicKey = inputToSign.previousOutputPublicKey
+        var sigScriptData = try ecdsaInputSigner.sigScriptData(
+            transaction: mutableTransaction.transaction,
+            inputsToSign: mutableTransaction.inputsToSign,
+            outputs: mutableTransaction.outputs,
+            index: index
+        )
 
-extension TransactionSigner: ITransactionSigner {
-
-    func sign(mutableTransaction: MutableTransaction) throws {
-        for (index, inputToSign) in mutableTransaction.inputsToSign.enumerated() {
-            let previousOutput = inputToSign.previousOutput
-            let publicKey = inputToSign.previousOutputPublicKey
-
-            var sigScriptData = try inputSigner.sigScriptData(
-                    transaction: mutableTransaction.transaction,
-                    inputsToSign: mutableTransaction.inputsToSign,
-                    outputs: mutableTransaction.outputs,
-                    index: index
-            )
-
-            switch previousOutput.scriptType {
+        switch previousOutput.scriptType {
             case .p2pkh:
                 inputToSign.input.signatureScript = signatureScript(from: sigScriptData)
             case .p2wpkh:
@@ -58,6 +55,38 @@ extension TransactionSigner: ITransactionSigner {
                     inputToSign.input.signatureScript = signatureScript(from: sigScriptData)
                 }
             default: throw SignError.notSupportedScriptType
+        }
+    }
+
+    private func schnorrSign(index: Int, mutableTransaction: MutableTransaction) throws {
+        let inputToSign = mutableTransaction.inputsToSign[index]
+        let previousOutput = inputToSign.previousOutput
+
+        guard previousOutput.scriptType == .p2tr else {
+            throw SignError.notSupportedScriptType
+        }
+
+        let witnessData = try schnorrInputSigner.sigScriptData(
+            transaction: mutableTransaction.transaction,
+            inputsToSign: mutableTransaction.inputsToSign,
+            outputs: mutableTransaction.outputs,
+            index: index
+        )
+
+        mutableTransaction.transaction.segWit = true
+        inputToSign.input.witnessData = witnessData
+    }
+
+}
+
+extension TransactionSigner: ITransactionSigner {
+
+    func sign(mutableTransaction: MutableTransaction) throws {
+        for (index, inputToSign) in mutableTransaction.inputsToSign.enumerated() {
+            if inputToSign.previousOutput.scriptType == .p2tr {
+                try schnorrSign(index: index, mutableTransaction: mutableTransaction)
+            } else {
+                try ecdsaSign(index: index, mutableTransaction: mutableTransaction)
             }
         }
     }

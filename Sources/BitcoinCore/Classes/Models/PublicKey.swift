@@ -26,7 +26,7 @@ public class PublicKey: Record {
         raw = data
         hashP2pkh = Crypto.ripeMd160Sha256(data)
         hashP2wpkhWrappedInP2sh = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(hashP2pkh, versionByte: 0))
-        convertedForP2tr = try SchnorrHelper.tweakedOutputKey(publicKey: raw, format: .compressed)
+        convertedForP2tr = try SchnorrHelper.tweakedOutputKey(publicKey: raw)
 
         super.init()
     }

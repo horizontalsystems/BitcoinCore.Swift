@@ -1,14 +1,17 @@
 import Foundation
 
 public class TransactionSizeCalculator {
-    static let legacyTx = 16 + 4 + 4 + 16          //40 Version + number of inputs + number of outputs + locktime
-    static let legacyWitnessData = 1               //1 Only 0x00 for legacy input
-    static let witnessData = 1 + signatureLength + pubKeyLength   //108 Number of stack items for input + Size of stack item 0 + Stack item 0, signature + Size of stack item 1 + Stack item 1, pubkey
-    static let witnessTx = legacyTx + 1 + 1        //42 SegWit marker + SegWit flag
+    static let legacyTx = 16 + 4 + 4 + 16          // 40 Version + number of inputs + number of outputs + locktime
+    static let witnessTx = legacyTx + 1 + 1        // 42 SegWit marker + SegWit flag
+    static let legacyWitnessData = 1               // 1 Only 0x00 for legacy input
+    // P2WPKH or P2WPKH(SH)
+    static let p2wpkhWitnessData = 1 + ecdsaSignatureLength + pubKeyLength   // 108 Number of stack items for input + Size of stack item 0 + Stack item 0, signature + Size of stack item 1 + Stack item 1, pubkey
+    static let p2trWitnessData = 1 + schnorrSignatureLength
 
-    static let signatureLength = 72 + 1     // signature length plus pushByte
-    static let pubKeyLength = 33 + 1         // pubKey length plus pushByte
-    static let p2wpkhShLength = 22 + 1          // 0014<20byte-scriptHash> plus pushByte
+    static let ecdsaSignatureLength = 72 + 1       // signature length plus pushByte
+    static let schnorrSignatureLength = 64 + 1     // signature length plus pushByte
+    static let pubKeyLength = 33 + 1               // ECDSA compressed pubKey length plus pushByte
+    static let p2wpkhShLength = 22 + 1             // 0014<20byte-scriptHash> plus pushByte
 
     public init() {}
 
@@ -22,20 +25,20 @@ public class TransactionSizeCalculator {
 
         let sigScriptLength: Int
         switch output.scriptType {
-        case .p2pkh: sigScriptLength = TransactionSizeCalculator.signatureLength + TransactionSizeCalculator.pubKeyLength
-        case .p2pk: sigScriptLength = TransactionSizeCalculator.signatureLength
+        case .p2pkh: sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength + TransactionSizeCalculator.pubKeyLength
+        case .p2pk: sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength
         case .p2wpkhSh: sigScriptLength = TransactionSizeCalculator.p2wpkhShLength
         case .p2sh:
             if let redeemScript = output.redeemScript {
                 if let signatureScriptFunction = output.signatureScriptFunction {
                     // non-standard P2SH signature script
-                    let emptySignature = Data(repeating: 0, count: TransactionSizeCalculator.signatureLength)
+                    let emptySignature = Data(repeating: 0, count: TransactionSizeCalculator.ecdsaSignatureLength)
                     let emptyPublicKey = Data(repeating: 0, count: TransactionSizeCalculator.pubKeyLength)
 
                     sigScriptLength = signatureScriptFunction([emptySignature, emptyPublicKey]).count
                 } else {
                     // standard (signature, publicKey, redeemScript) signature script
-                    sigScriptLength = TransactionSizeCalculator.signatureLength + TransactionSizeCalculator.pubKeyLength + OpCode.push(redeemScript).count
+                    sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength + TransactionSizeCalculator.pubKeyLength + OpCode.push(redeemScript).count
                 }
             } else {
                 sigScriptLength = 0
@@ -87,22 +90,26 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
     public func inputSize(type: ScriptType) -> Int {              // in real bytes
         let sigScriptLength: Int
         switch type {
-        case .p2pkh: sigScriptLength = TransactionSizeCalculator.signatureLength + TransactionSizeCalculator.pubKeyLength
-        case .p2pk: sigScriptLength = TransactionSizeCalculator.signatureLength
+        case .p2pkh: sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength + TransactionSizeCalculator.pubKeyLength
+        case .p2pk: sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength
         case .p2wpkhSh: sigScriptLength = TransactionSizeCalculator.p2wpkhShLength
         default: sigScriptLength = 0
         }
-        let inputTxSize: Int = 32 + 4 + 1 + sigScriptLength + 4 // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
+        let inputTxSize: Int = 32 + 4 + 1 + sigScriptLength + 4  // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
         return inputTxSize
     }
 
     public func witnessSize(type: ScriptType) -> Int {             // in vbytes
-        // We assume that only P2WPKH or P2WPKH(SH) outputs can be here
+        // We assume that only single-key outputs can be here (P2PKH, P2PKH(SH), P2TR)
 
-        if type.witness {
-            return TransactionSizeCalculator.witnessData
+        switch type {
+        case .p2wpkh, .p2wpkhSh:
+            return TransactionSizeCalculator.p2wpkhWitnessData
+        case .p2tr:
+            return TransactionSizeCalculator.p2trWitnessData
+        default:
+            return TransactionSizeCalculator.legacyWitnessData
         }
-        return TransactionSizeCalculator.legacyWitnessData
     }
 
     public func toBytes(fee: Int) -> Int {
