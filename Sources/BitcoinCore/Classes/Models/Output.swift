@@ -76,7 +76,7 @@ public class Output: Record {
         case changeOutput
         case scriptType
         case redeemScript
-        case lockingScriptPayload
+        case keyHash
         case address
         case pluginId
         case pluginData
@@ -92,7 +92,7 @@ public class Output: Record {
         changeOutput = row[Columns.changeOutput]
         scriptType = row[Columns.scriptType]
         redeemScript = row[Columns.redeemScript]
-        lockingScriptPayload = row[Columns.lockingScriptPayload]
+        lockingScriptPayload = row[Columns.keyHash]
         address = row[Columns.address]
         pluginId = row[Columns.pluginId]
         pluginData = row[Columns.pluginData]
@@ -110,7 +110,7 @@ public class Output: Record {
         container[Columns.changeOutput] = changeOutput
         container[Columns.scriptType] = scriptType
         container[Columns.redeemScript] = redeemScript
-        container[Columns.lockingScriptPayload] = lockingScriptPayload
+        container[Columns.keyHash] = lockingScriptPayload
         container[Columns.address] = address
         container[Columns.pluginId] = pluginId
         container[Columns.pluginData] = pluginData

@@ -125,15 +125,24 @@ extension Bip86RestoreKeyConverter : IRestoreKeyConverter {
 }
 
 public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
+    let scriptType: ScriptType
 
-    public init() {}
+    public init(scriptType: ScriptType) {
+        self.scriptType = scriptType
+    }
 
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        [publicKey.hashP2pkh.hs.hex]
+        switch scriptType {
+        case .p2tr: return [publicKey.convertedForP2tr.hs.hex]
+        default: return [publicKey.hashP2pkh.hs.hex]
+        }
     }
 
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        [publicKey.hashP2pkh]
+        switch scriptType {
+        case .p2tr: return [publicKey.convertedForP2tr]
+        default: return [publicKey.hashP2pkh]
+        }
     }
 
 }
