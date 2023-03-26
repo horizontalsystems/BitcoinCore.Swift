@@ -132,7 +132,7 @@ open class GrdbStorage {
                 t.column(Output.Columns.publicKeyPath.name, .text)
                 t.column(Output.Columns.changeOutput.name, .boolean)
                 t.column(Output.Columns.scriptType.name, .integer)
-                t.column(Output.Columns.lockingScriptPayload.name, .blob)
+                t.column(Output.Columns.keyHash.name, .blob)
                 t.column(Output.Columns.address.name, .text)
 
                 t.primaryKey([Output.Columns.transactionHash.name, Output.Columns.index.name], onConflict: .abort)
@@ -291,12 +291,7 @@ open class GrdbStorage {
         }
         
         migrator.registerMigration("addLockingScriptPayloadToOutput") { db in
-            try db.alter(table: Output.databaseTableName) { t in
-                t.add(column: Output.Columns.lockingScriptPayload.name, .blob).notNull().defaults(to: Data())
-            }
-            
             let outputScriptTypeParser = OutputScriptTypeParser()
-            
             let outputs = try Output.fetchAll(db)
             for output in outputs {
                 outputScriptTypeParser.parseScriptType(output: output)
@@ -1096,18 +1091,6 @@ extension GrdbStorage: IStorage {
     public func publicKey(convertedForP2tr: Data) -> PublicKey? {
         try! dbPool.read { db in
             try PublicKey.filter(PublicKey.Columns.convertedForP2tr == convertedForP2tr).fetchOne(db)
-        }
-    }
-
-    public func publicKey(byScriptHashForP2WPKH hash: Data) -> PublicKey? {
-        try! dbPool.read { db in
-            try PublicKey.filter(PublicKey.Columns.scriptHashForP2WPKH == hash).fetchOne(db)
-        }
-    }
-
-    public func publicKey(byRawOrKeyHash hash: Data) -> PublicKey? {
-        try! dbPool.read { db in
-            try PublicKey.filter(PublicKey.Columns.raw == hash || PublicKey.Columns.keyHash == hash).fetchOne(db)
         }
     }
 
