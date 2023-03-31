@@ -24,6 +24,7 @@ class Peer {
     private let logger: Logger?
 
     var tasks: [PeerTask] = []
+    var subVersion = ""
     var announcedLastBlockHeight: Int32 = 0
     var localBestBlockHeight: Int32 = 0
     // TODO seems like property connected is not needed. It is always true in PeerManager. Need to check it and remove
@@ -116,6 +117,7 @@ class Peer {
         }
 
         self.announcedLastBlockHeight = message.startHeight ?? 0
+        subVersion = message.userAgent?.value ?? ""
 
         sendVerack()
         handleCompletedHandshake()
