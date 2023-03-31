@@ -267,6 +267,7 @@ extension BitcoinCore {
                 peerStatus.append(("status", initialBlockDownload.isSynced(peer: peer) ? "synced" : "not synced"))
                 peerStatus.append(("host", peer.host))
                 peerStatus.append(("best block", peer.announcedLastBlockHeight))
+                peerStatus.append(("user agent", peer.announcedLastBlockHeight))
 
                 let tasks = peer.tasks
                 if tasks.isEmpty {
