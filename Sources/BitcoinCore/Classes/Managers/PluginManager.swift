@@ -112,15 +112,3 @@ extension PluginManager: IPluginManager {
     }
 
 }
-
-extension PluginManager: IRestoreKeyConverter {
-
-    public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        (try? plugins.flatMap({ try $0.value.keysForApiRestore(publicKey: publicKey) })) ?? []
-    }
-
-    public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        []
-    }
-
-}

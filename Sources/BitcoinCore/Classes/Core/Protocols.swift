@@ -597,7 +597,7 @@ protocol IIrregularOutputFinder {
     func hasIrregularOutput(outputs: [Output]) -> Bool
 }
 
-public protocol IPlugin {
+public protocol IPlugin : IRestoreKeyConverter {
     var id: UInt8 { get }
     var maxSpendLimit: Int? { get }
     func validate(address: Address) throws
@@ -606,7 +606,10 @@ public protocol IPlugin {
     func isSpendable(unspentOutput: UnspentOutput) throws -> Bool
     func inputSequenceNumber(output: Output) throws -> Int
     func parsePluginData(from: String, transactionTimestamp: Int) throws -> IPluginOutputData
-    func keysForApiRestore(publicKey: PublicKey) throws -> [String]
+}
+
+extension IPlugin {
+    public func bloomFilterElements(publicKey: PublicKey) -> [Data] { [] }
 }
 
 public protocol IPluginManager {
