@@ -133,7 +133,6 @@ public class BitcoinCoreBuilder {
         let pluginManager = PluginManager(scriptConverter: scriptConverter, logger: logger)
 
         plugins.forEach { pluginManager.add(plugin: $0) }
-        restoreKeyConverterChain.add(converter: pluginManager)
 
         let unspentOutputProvider = UnspentOutputProvider(storage: storage, pluginManager: pluginManager, confirmationsThreshold: confirmationsThreshold)
         var transactionInfoConverter = self.transactionInfoConverter ?? TransactionInfoConverter()
