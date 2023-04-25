@@ -2,7 +2,6 @@ import Foundation
 import HdWalletKit
 import HsToolKit
 import BigInt
-import RxSwift
 
 public class BitcoinCore {
     private let storage: IStorage
@@ -146,7 +145,7 @@ extension BitcoinCore {
         syncManager.syncState
     }
 
-    public func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> Single<[TransactionInfo]> {
+    public func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> [TransactionInfo] {
         dataProvider.transactions(fromUid: fromUid, type: type, limit: limit)
     }
 

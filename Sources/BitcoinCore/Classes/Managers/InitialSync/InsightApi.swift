@@ -1,4 +1,3 @@
-import RxSwift
 import ObjectMapper
 import Alamofire
 import HsToolKit
@@ -19,49 +18,43 @@ public class InsightApi {
 
 extension InsightApi: ISyncTransactionApi {
 
-    public func getTransactions(addresses: [String]) -> Single<[SyncTransactionItem]> {
-        sendAddressesRecursive(addresses: addresses)
+    public func transactions(addresses: [String]) async throws -> [SyncTransactionItem] {
+        try await sendAddressesRecursive(addresses: addresses)
     }
 
-    private func sendAddressesRecursive(addresses: [String], from: Int = 0, transactions: [SyncTransactionItem] = []) -> Single<[SyncTransactionItem]> {
+    private func sendAddressesRecursive(addresses: [String], from: Int = 0, transactions: [SyncTransactionItem] = []) async throws -> [SyncTransactionItem] {
         let last = min(from + InsightApi.addressesLimit, addresses.count)
         let chunk = addresses[from..<last].joined(separator: ",")
 
-        return getTransactionsRecursive(addresses: chunk).flatMap { [weak self] result -> Single<[SyncTransactionItem]> in
-            let resultTransactions = transactions + result
+        let result = try await getTransactionsRecursive(addresses: chunk)
+        let resultTransactions = transactions + result
 
-            let finishSingle = Single.just(resultTransactions)
-            if last >= addresses.count {
-                return finishSingle
-            } else {
-                return self?.sendAddressesRecursive(addresses: addresses, from: from + InsightApi.addressesLimit, transactions: resultTransactions) ?? finishSingle
-            }
+        if last >= addresses.count {
+            return resultTransactions
+        } else {
+            return try await sendAddressesRecursive(addresses: addresses, from: from + InsightApi.addressesLimit, transactions: resultTransactions)
         }
     }
 
-    private func getTransactionsRecursive(addresses: String, from: Int = 0, transactions: [SyncTransactionItem] = []) -> Single<[SyncTransactionItem]> {
-        getTransactions(addresses: addresses, from: from).flatMap { [weak self] result -> Single<[SyncTransactionItem]> in
-            let resultTransactions = transactions + result.transactionItems.map { $0 as SyncTransactionItem }
+    private func getTransactionsRecursive(addresses: String, from: Int = 0, transactions: [SyncTransactionItem] = []) async throws -> [SyncTransactionItem] {
+        let result = try await getTransactions(addresses: addresses, from: from)
+        let resultTransactions = transactions + result.transactionItems.map { $0 as SyncTransactionItem }
 
-            let finishSingle = Single.just(resultTransactions)
-            if result.totalItems <= result.to {
-                return finishSingle
-            } else {
-                return self?.getTransactionsRecursive(addresses: addresses, from: result.to, transactions: resultTransactions) ?? finishSingle
-            }
+        if result.totalItems <= result.to {
+            return resultTransactions
+        } else {
+            return try await getTransactionsRecursive(addresses: addresses, from: result.to, transactions: resultTransactions)
         }
     }
 
-    private func getTransactions(addresses: String, from: Int = 0) -> Single<InsightResponseItem> {
+    private func getTransactions(addresses: String, from: Int = 0) async throws -> InsightResponseItem {
         let parameters: Parameters = [
             "from": from,
             "to": from + InsightApi.paginationLimit
         ]
         let path = "/addrs/\(addresses)/txs"
 
-        let request = networkManager.session.request(url + path, method: .get, parameters: parameters)
-
-        return networkManager.single(request: request)
+        return try await networkManager.fetch(url: url + path, method: .get, parameters: parameters)
     }
 
     class InsightResponseItem: ImmutableMappable {

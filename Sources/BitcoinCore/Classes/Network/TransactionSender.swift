@@ -1,12 +1,12 @@
 import Foundation
+import Combine
 import QuartzCore
-import RxSwift
 import HsToolKit
 
 class TransactionSender {
     static let minConnectedPeersCount = 2
 
-    private let disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
 
     private let transactionSyncer: ITransactionSyncer
     private let initialBlockDownload: IInitialBlockDownload
@@ -155,19 +155,18 @@ extension TransactionSender: ITransactionSender {
         }
     }
 
-    func subscribeTo(observable: Observable<InitialBlockDownloadEvent>) {
-        observable.subscribe(
-                        onNext: { [weak self] in
-                            switch $0 {
-                            case .onAllPeersSynced:
-                                self?.queue.async {
-                                    self?.sendPendingTransactions()
-                                }
-                            default: ()
-                            }
+    func subscribeTo(publisher: AnyPublisher<InitialBlockDownloadEvent, Never>) {
+        publisher
+                .sink { [weak self] event in
+                    switch event {
+                    case .onAllPeersSynced:
+                        self?.queue.async {
+                            self?.sendPendingTransactions()
                         }
-                )
-                .disposed(by: disposeBag)
+                    default: ()
+                    }
+                }
+                .store(in: &cancellables)
     }
 
 }
