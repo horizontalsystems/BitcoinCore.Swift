@@ -1,11 +1,11 @@
-import RxSwift
+import Combine
 import HsToolKit
 
 class SyncManager {
-    private var disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
     weak var delegate: ISyncManagerDelegate?
 
-    private let reachabilityManager: IReachabilityManager
+    private let reachabilityManager: ReachabilityManager
     private let initialSyncer: IInitialSyncer
     private let peerGroup: IPeerGroup
     private let apiSyncStateManager: IApiSyncStateManager
@@ -41,7 +41,7 @@ class SyncManager {
         }
     }
 
-    init(reachabilityManager: IReachabilityManager, initialSyncer: IInitialSyncer, peerGroup: IPeerGroup, apiSyncStateManager: IApiSyncStateManager, bestBlockHeight: Int32) {
+    init(reachabilityManager: ReachabilityManager, initialSyncer: IInitialSyncer, peerGroup: IPeerGroup, apiSyncStateManager: IApiSyncStateManager, bestBlockHeight: Int32) {
         self.reachabilityManager = reachabilityManager
         self.initialSyncer = initialSyncer
         self.peerGroup = peerGroup
@@ -49,30 +49,27 @@ class SyncManager {
         initialBestBlockHeight = bestBlockHeight
         currentBestBlockHeight = bestBlockHeight
 
-        reachabilityManager.reachabilityObservable
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-                .subscribe(onNext: { [weak self] _ in
-                    self?.onReachabilityChanged()
-                })
-                .disposed(by: disposeBag)
+        reachabilityManager.$isReachable
+                .sink { [weak self] in
+                    self?.onChange(isReachable: $0)
+                }
+                .store(in: &cancellables)
 
-        reachabilityManager.connectionTypeUpdatedObservable
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .userInitiated))
-                .subscribe(onNext: { [weak self] _ in
+        reachabilityManager.connectionTypeChangedPublisher
+                .sink { [weak self] _ in
                     self?.onConnectionTypeUpdated()
-                })
-                .disposed(by: disposeBag)
+                }
+                .store(in: &cancellables)
 
-        BackgroundModeObserver.shared.foregroundFromExpiredBackgroundObservable
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .userInitiated))
-                .subscribe(onNext: { [weak self] _ in
+        BackgroundModeObserver.shared.foregroundFromExpiredBackgroundPublisher
+                .sink { [weak self] _ in
                     self?.onEnterForegroundFromExpiredBackground()
-                })
-                .disposed(by: disposeBag)
+                }
+                .store(in: &cancellables)
     }
 
-    private func onReachabilityChanged() {
-        if reachabilityManager.isReachable {
+    private func onChange(isReachable: Bool) {
+        if isReachable {
             onReachable()
         } else {
             onUnreachable()

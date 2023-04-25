@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 
 class BlockTransactionProcessor {
     private let storage: IStorage

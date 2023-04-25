@@ -1,5 +1,5 @@
 import Foundation
-import RxSwift
+import Combine
 import HsToolKit
 import NIO
 
@@ -19,7 +19,7 @@ class PeerGroup {
 
     private let factory: IFactory
 
-    private let reachabilityManager: IReachabilityManager
+    private let reachabilityManager: ReachabilityManager
     private var peerAddressManager: IPeerAddressManager
     private var peerManager: IPeerManager
 
@@ -32,7 +32,6 @@ class PeerGroup {
 
     private let peersQueue: DispatchQueue
     private let inventoryQueue: DispatchQueue
-    private let subjectQueue: DispatchQueue
     private var eventLoopGroup: MultiThreadedEventLoopGroup
 
     private let logger: Logger?
@@ -40,37 +39,36 @@ class PeerGroup {
     weak var inventoryItemsHandler: IInventoryItemsHandler? = nil
     weak var peerTaskHandler: IPeerTaskHandler? = nil
 
-    private let subject = PublishSubject<PeerGroupEvent>()
-    let observable: Observable<PeerGroupEvent>
+    private let subject = PassthroughSubject<PeerGroupEvent, Never>()
 
-    init(factory: IFactory, reachabilityManager: IReachabilityManager,
+    init(factory: IFactory, reachabilityManager: ReachabilityManager,
          peerAddressManager: IPeerAddressManager, peerCount: Int = 10, localDownloadedBestBlockHeight: Int32,
          peerManager: IPeerManager, peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.peers", qos: .userInitiated),
          inventoryQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.inventory", qos: .background),
-         subjectQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.subject", qos: .background),
-         scheduler: SchedulerType = SerialDispatchQueueScheduler(qos: .background),
          logger: Logger? = nil) {
         self.factory = factory
 
         self.reachabilityManager = reachabilityManager
         self.peerAddressManager = peerAddressManager
         self.localDownloadedBestBlockHeight = localDownloadedBestBlockHeight
-        self.peerCountToHold = peerCount
+        peerCountToHold = peerCount
         self.peerManager = peerManager
 
         self.peersQueue = peersQueue
         self.inventoryQueue = inventoryQueue
-        self.subjectQueue = subjectQueue
-        self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: peerCount)
+        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: peerCount)
 
         self.logger = logger
-        self.observable = subject.asObservable().observeOn(scheduler)
 
         self.peerAddressManager.delegate = self
     }
 
     deinit {
         eventLoopGroup.shutdownGracefully { _ in }
+    }
+
+    var publisher: AnyPublisher<PeerGroupEvent, Never> {
+        subject.eraseToAnyPublisher()
     }
 
     private func connectPeersIfRequired() {
@@ -101,9 +99,7 @@ class PeerGroup {
     }
 
     private func onNext(_ event: PeerGroupEvent) {
-        subjectQueue.async {
-            self.subject.onNext(event)
-        }
+        subject.send(event)
     }
 
 }

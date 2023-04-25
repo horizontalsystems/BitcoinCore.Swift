@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 
 open class AbstractKit {
     public var bitcoinCore: BitcoinCore
@@ -34,7 +33,7 @@ open class AbstractKit {
         bitcoinCore.syncState
     }
 
-    open func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> Single<[TransactionInfo]> {
+    open func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> [TransactionInfo] {
         bitcoinCore.transactions(fromUid: fromUid, type: type, limit: limit)
     }
 

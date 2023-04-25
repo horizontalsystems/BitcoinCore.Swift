@@ -333,14 +333,14 @@ public class BitcoinCoreBuilder {
                 .add(messageSerializer: TransactionMessageSerializer())
                 .add(messageSerializer: FilterLoadMessageSerializer())
 
-        bloomFilterLoader.subscribeTo(observable: peerGroup.observable)
-        initialBlockDownload.subscribeTo(observable: peerGroup.observable)
-        mempoolTransactions.subscribeTo(observable: peerGroup.observable)
+        bloomFilterLoader.subscribeTo(publisher: peerGroup.publisher)
+        initialBlockDownload.subscribeTo(publisher: peerGroup.publisher)
+        mempoolTransactions.subscribeTo(publisher: peerGroup.publisher)
 
         bitcoinCore.add(peerTaskHandler: initialBlockDownload)
         bitcoinCore.add(inventoryItemsHandler: initialBlockDownload)
 
-        transactionSender?.subscribeTo(observable: initialBlockDownload.observable)
+        transactionSender?.subscribeTo(publisher: initialBlockDownload.publisher)
 
         if let transactionSender = transactionSender {
             bitcoinCore.add(peerTaskHandler: transactionSender)

@@ -1,6 +1,6 @@
 import HdWalletKit
-import RxSwift
 import HsToolKit
+import HsExtensions
 
 protocol IPublicKeyFetcher {
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey]
@@ -14,7 +14,7 @@ protocol IMultiAccountPublicKeyFetcher {
 class InitialSyncer {
     weak var delegate: IInitialSyncerDelegate?
 
-    private var disposeBag = DisposeBag()
+    private var tasks = Set<AnyTask>()
 
     private let storage: IStorage
     private let blockDiscovery: IBlockDiscovery
@@ -32,21 +32,21 @@ class InitialSyncer {
         self.logger = logger
     }
 
+    private func _sync() async {
+        do {
+            let array = try await blockDiscovery.discoverBlockHashes()
+
+            let (keys, blockHashes) = array
+            let sortedUniqueBlockHashes = blockHashes.unique.sorted { a, b in a.height < b.height }
+
+            handle(keys: keys, blockHashes: sortedUniqueBlockHashes)
+        } catch {
+            handle(error: error)
+        }
+    }
+
     func sync() {
-        let single = blockDiscovery.discoverBlockHashes()
-                .map { array -> ([PublicKey], [BlockHash]) in
-                    let (keys, blockHashes) = array
-                    let sortedUniqueBlockHashes = blockHashes.unique.sorted { a, b in a.height < b.height }
-
-                    return (keys, sortedUniqueBlockHashes)
-                }
-
-        single.subscribe(onSuccess: { [weak self] keys, responses in
-                    self?.handle(keys: keys, blockHashes: responses)
-                }, onError: { [weak self] error in
-                    self?.handle(error: error)
-                })
-                .disposed(by: disposeBag)
+        Task { [weak self] in await self?._sync() }.store(in: &tasks)
     }
 
     private func handle(keys: [PublicKey], blockHashes: [BlockHash]) {
@@ -91,7 +91,7 @@ class InitialSyncer {
 extension InitialSyncer: IInitialSyncer {
 
     func terminate() {
-        disposeBag = DisposeBag()
+        tasks = Set()
     }
 
 }

@@ -1,6 +1,6 @@
 import Foundation
+import Combine
 import BigInt
-import RxSwift
 import HsToolKit
 import NIO
 
@@ -54,7 +54,7 @@ protocol IApiSyncStateManager: AnyObject {
 }
 
 protocol IBlockDiscovery {
-    func discoverBlockHashes() -> Single<([PublicKey], [BlockHash])>
+    func discoverBlockHashes() async throws -> ([PublicKey], [BlockHash])
 }
 
 public protocol IOutputStorage {
@@ -173,7 +173,7 @@ public protocol IBloomFilterManager: AnyObject {
 
 
 public protocol IPeerGroup: AnyObject {
-    var observable: Observable<PeerGroupEvent> { get }
+    var publisher: AnyPublisher<PeerGroupEvent, Never> { get }
 
     func start()
     func stop()
@@ -277,7 +277,7 @@ protocol IFactory {
 }
 
 public protocol ISyncTransactionApi {
-    func getTransactions(addresses: [String]) -> Single<[SyncTransactionItem]>
+    func transactions(addresses: [String]) async throws -> [SyncTransactionItem]
 }
 
 protocol ISyncManager {
@@ -296,7 +296,7 @@ public protocol IHasher {
 }
 
 protocol IBlockHashFetcher {
-    func getBlockHashes(externalKeys: [PublicKey], internalKeys: [PublicKey]) -> Single<BlockHashesResponse>
+    func getBlockHashes(externalKeys: [PublicKey], internalKeys: [PublicKey]) async throws -> BlockHashesResponse
 }
 
 protocol IBlockHashFetcherHelper {
@@ -465,7 +465,7 @@ protocol IDataProvider {
     var lastBlockInfo: BlockInfo? { get }
     var balance: BalanceInfo { get }
     func debugInfo(network: INetwork, scriptType: ScriptType, addressConverter: IAddressConverter) -> String
-    func transactions(fromUid: String?, type: TransactionFilterType?, limit: Int?) -> Single<[TransactionInfo]>
+    func transactions(fromUid: String?, type: TransactionFilterType?, limit: Int?) -> [TransactionInfo]
     func transaction(hash: String) -> TransactionInfo?
 
     func rawTransaction(transactionHash: String) -> String?
@@ -537,15 +537,15 @@ public protocol IMessageSerializer {
 public protocol IInitialBlockDownload {
     var syncPeer: IPeer? { get }
     var hasSyncedPeer: Bool { get }
-    var observable: Observable<InitialBlockDownloadEvent> { get }
+    var publisher: AnyPublisher<InitialBlockDownloadEvent, Never> { get }
     var syncedPeers: [IPeer] { get }
     func isSynced(peer: IPeer) -> Bool
 }
 
-public protocol ISyncedReadyPeerManager {
-    var peers: [IPeer] { get }
-    var observable: Observable<Void> { get }
-}
+//public protocol ISyncedReadyPeerManager {
+//    var peers: [IPeer] { get }
+//    var observable: Observable<Void> { get }
+//}
 
 public protocol IInventoryItemsHandler: AnyObject {
     func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem])

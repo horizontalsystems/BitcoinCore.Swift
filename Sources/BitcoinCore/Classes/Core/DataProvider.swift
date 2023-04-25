@@ -1,17 +1,17 @@
 import Foundation
+import Combine
 import HdWalletKit
 import HsExtensions
-import RxSwift
 import BigInt
 
 class DataProvider {
-    private let disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
 
     private let storage: IStorage
     private let balanceProvider: IBalanceProvider
     private let transactionInfoConverter: ITransactionInfoConverter
 
-    private let balanceUpdateSubject = PublishSubject<Void>()
+    private let balanceUpdateSubject = PassthroughSubject<Void, Never>()
 
     public var balance: BalanceInfo {
         didSet {
@@ -28,12 +28,15 @@ class DataProvider {
         self.storage = storage
         self.balanceProvider = balanceProvider
         self.transactionInfoConverter = transactionInfoConverter
-        self.balance = balanceProvider.balanceInfo
-        self.lastBlockInfo = storage.lastBlock.map { blockInfo(fromBlock: $0) }
+        balance = balanceProvider.balanceInfo
+        lastBlockInfo = storage.lastBlock.map { blockInfo(fromBlock: $0) }
 
-        balanceUpdateSubject.throttle(DispatchTimeInterval.milliseconds(throttleTimeMilliseconds), scheduler: ConcurrentDispatchQueueScheduler(qos: .background)).subscribe(onNext: { [weak self] in
-            self?.balance = balanceProvider.balanceInfo
-        }).disposed(by: disposeBag)
+        balanceUpdateSubject
+                .throttle(for: .milliseconds(throttleTimeMilliseconds), scheduler: DispatchQueue.global(qos: .background), latest: true)
+                .sink { [weak self] in
+                    self?.balance = balanceProvider.balanceInfo
+                }
+                .store(in: &cancellables)
     }
 
     private func blockInfo(fromBlock block: Block) -> BlockInfo {
@@ -54,13 +57,13 @@ extension DataProvider: IBlockchainDataListener {
                 updated: storage.fullInfo(forTransactions: updated.map { TransactionWithBlock(transaction: $0, blockHeight: block?.height) }).map { transactionInfoConverter.transactionInfo(fromTransaction: $0) }
         )
 
-        balanceUpdateSubject.onNext(())
+        balanceUpdateSubject.send()
     }
 
     func onDelete(transactionHashes: [String]) {
         delegate?.transactionsDeleted(hashes: transactionHashes)
 
-        balanceUpdateSubject.onNext(())
+        balanceUpdateSubject.send()
     }
 
     func onInsert(block: Block) {
@@ -69,7 +72,7 @@ extension DataProvider: IBlockchainDataListener {
             self.lastBlockInfo = lastBlockInfo
             delegate?.lastBlockInfoUpdated(lastBlockInfo: lastBlockInfo)
 
-            balanceUpdateSubject.onNext(())
+            balanceUpdateSubject.send()
         }
     }
 
@@ -77,21 +80,18 @@ extension DataProvider: IBlockchainDataListener {
 
 extension DataProvider: IDataProvider {
 
-    func transactions(fromUid: String?, type: TransactionFilterType?, limit: Int?) -> Single<[TransactionInfo]> {
-        Single.create { observer in
-            var resolvedTimestamp: Int? = nil
-            var resolvedOrder: Int? = nil
+    func transactions(fromUid: String?, type: TransactionFilterType?, limit: Int?) -> [TransactionInfo] {
+        var resolvedTimestamp: Int? = nil
+        var resolvedOrder: Int? = nil
 
-            if let fromUid = fromUid, let transaction = self.storage.validOrInvalidTransaction(byUid: fromUid) {
-                resolvedTimestamp = transaction.timestamp
-                resolvedOrder = transaction.order
-            }
-
-            let transactions = self.storage.validOrInvalidTransactionsFullInfo(fromTimestamp: resolvedTimestamp, fromOrder: resolvedOrder, type: type, limit: limit)
-
-            observer(.success(transactions.map() { self.transactionInfoConverter.transactionInfo(fromTransaction: $0) }))
-            return Disposables.create()
+        if let fromUid = fromUid, let transaction = storage.validOrInvalidTransaction(byUid: fromUid) {
+            resolvedTimestamp = transaction.timestamp
+            resolvedOrder = transaction.order
         }
+
+        let transactions = storage.validOrInvalidTransactionsFullInfo(fromTimestamp: resolvedTimestamp, fromOrder: resolvedOrder, type: type, limit: limit)
+
+        return transactions.map { transactionInfoConverter.transactionInfo(fromTransaction: $0) }
     }
 
     func transaction(hash: String) -> TransactionInfo? {
