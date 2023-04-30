@@ -298,6 +298,18 @@ open class GrdbStorage {
             }
         }
 
+        migrator.registerMigration("setScriptTypeForP2WPKHSH") { db in
+            let outputs = try Output.fetchAll(db)
+            for output in outputs {
+                if output.scriptType == .p2sh,
+                   let publicKey = try PublicKey.filter(PublicKey.Columns.scriptHashForP2WPKH == output.lockingScriptPayload).fetchOne(db) {
+                    output.set(publicKey: publicKey)
+                    output.scriptType = .p2wpkhSh
+                    try output.update(db)
+                }
+            }
+        }
+
         return migrator
     }
 
