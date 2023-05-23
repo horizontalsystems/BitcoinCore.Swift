@@ -20,7 +20,9 @@ class DataProvider {
             }
         }
     }
-    public var lastBlockInfo: BlockInfo? = nil
+
+    private let lastBlockInfoQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.data-provider.last-block-info", qos: .utility)
+    private var _lastBlockInfo: BlockInfo? = nil
 
     weak var delegate: IDataProviderDelegate?
 
@@ -29,7 +31,7 @@ class DataProvider {
         self.balanceProvider = balanceProvider
         self.transactionInfoConverter = transactionInfoConverter
         balance = balanceProvider.balanceInfo
-        lastBlockInfo = storage.lastBlock.map { blockInfo(fromBlock: $0) }
+        _lastBlockInfo = storage.lastBlock.map { blockInfo(fromBlock: $0) }
 
         balanceUpdateSubject
                 .throttle(for: .milliseconds(throttleTimeMilliseconds), scheduler: DispatchQueue.global(qos: .background), latest: true)
@@ -69,7 +71,11 @@ extension DataProvider: IBlockchainDataListener {
     func onInsert(block: Block) {
         if block.height > (lastBlockInfo?.height ?? 0) {
             let lastBlockInfo = blockInfo(fromBlock: block)
-            self.lastBlockInfo = lastBlockInfo
+
+            lastBlockInfoQueue.async {
+                self._lastBlockInfo = lastBlockInfo
+            }
+
             delegate?.lastBlockInfoUpdated(lastBlockInfo: lastBlockInfo)
 
             balanceUpdateSubject.send()
@@ -79,6 +85,12 @@ extension DataProvider: IBlockchainDataListener {
 }
 
 extension DataProvider: IDataProvider {
+
+    var lastBlockInfo: BlockInfo? {
+        lastBlockInfoQueue.sync {
+            _lastBlockInfo
+        }
+    }
 
     func transactions(fromUid: String?, type: TransactionFilterType?, limit: Int?) -> [TransactionInfo] {
         var resolvedTimestamp: Int? = nil
