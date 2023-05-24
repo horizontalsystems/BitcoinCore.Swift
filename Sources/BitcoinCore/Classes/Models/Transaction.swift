@@ -52,7 +52,7 @@ public class Transaction: Record {
         case rawTransaction
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         uid = row[Columns.uid]
         dataHash = row[Columns.dataHash]
         version = row[Columns.version]
@@ -68,10 +68,10 @@ public class Transaction: Record {
         transactionInfoJson = row[Columns.transactionInfoJson]
         rawTransaction = row[Columns.rawTransaction]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override open func encode(to container: inout PersistenceContainer) {
+    override open func encode(to container: inout PersistenceContainer) throws {
         container[Columns.uid] = uid
         container[Columns.dataHash] = dataHash
         container[Columns.version] = version
