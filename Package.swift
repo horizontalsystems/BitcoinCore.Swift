@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/attaswift/BigInt.git", .upToNextMajor(from: "5.0.0")),
         .package(url: "https://github.com/Brightify/Cuckoo.git", .upToNextMajor(from: "1.5.0")),
-        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "5.0.0")),
+        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "6.0.0")),
         .package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
         .package(url: "https://github.com/Quick/Quick.git", .upToNextMajor(from: "5.0.1")),
 

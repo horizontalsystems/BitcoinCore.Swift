@@ -37,7 +37,7 @@ public class Input: Record {
         case witnessData
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         previousOutputTxHash = row[Columns.previousOutputTxHash]
         previousOutputIndex = row[Columns.previousOutputIndex]
         signatureScript = row[Columns.signatureScript]
@@ -47,10 +47,10 @@ public class Input: Record {
         address = row[Columns.address]
         witnessData = row[Columns.witnessData]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override open func encode(to container: inout PersistenceContainer) {
+    override open func encode(to container: inout PersistenceContainer) throws {
         container[Columns.previousOutputTxHash] = previousOutputTxHash
         container[Columns.previousOutputIndex] = previousOutputIndex
         container[Columns.signatureScript] = signatureScript

@@ -23,8 +23,8 @@ public class InvalidTransaction: Transaction {
         self.rawTransaction = rawTransaction
     }
 
-    required init(row: Row) {
-        super.init(row: row)
+    required init(row: Row) throws {
+        try super.init(row: row)
     }
 
 

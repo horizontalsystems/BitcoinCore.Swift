@@ -22,15 +22,15 @@ public class PeerAddress: Record {
         case connectionTime
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         ip = row[Columns.ip]
         score = row[Columns.score]
         connectionTime = row[Columns.connectionTime]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override open func encode(to container: inout PersistenceContainer) {
+    override open func encode(to container: inout PersistenceContainer) throws {
         container[Columns.ip] = ip
         container[Columns.score] = score
         container[Columns.connectionTime] = connectionTime

@@ -46,7 +46,7 @@ public class PublicKey: Record {
         case convertedForP2tr
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         path = row[Columns.path]
         account = row[Columns.account]
         index = row[Columns.index]
@@ -56,10 +56,10 @@ public class PublicKey: Record {
         hashP2wpkhWrappedInP2sh = row[Columns.scriptHashForP2WPKH]
         convertedForP2tr = row[Columns.convertedForP2tr]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override open func encode(to container: inout PersistenceContainer) {
+    override open func encode(to container: inout PersistenceContainer) throws {
         container[Columns.path] = path
         container[Columns.account] = account
         container[Columns.index] = index
