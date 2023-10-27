@@ -9,7 +9,7 @@ class TransactionSender {
     private var cancellables = Set<AnyCancellable>()
 
     private let transactionSyncer: ITransactionSyncer
-    private let initialBlockDownload: IInitialBlockDownload
+    private let initialBlockDownload: IInitialDownload
     private let peerManager: IPeerManager
     private let storage: IStorage
     private let timer: ITransactionSendTimer
@@ -19,7 +19,7 @@ class TransactionSender {
     private let maxRetriesCount: Int
     private let retriesPeriod: Double // seconds
 
-    init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialBlockDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer,
+    init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer,
          logger: Logger? = nil, queue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.transaction-sender", qos: .background),
          maxRetriesCount: Int = 3, retriesPeriod: Double = 60) {
         self.transactionSyncer = transactionSyncer
@@ -155,7 +155,7 @@ extension TransactionSender: ITransactionSender {
         }
     }
 
-    func subscribeTo(publisher: AnyPublisher<InitialBlockDownloadEvent, Never>) {
+    func subscribeTo(publisher: AnyPublisher<InitialDownloadEvent, Never>) {
         publisher
                 .sink { [weak self] event in
                     switch event {

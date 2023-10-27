@@ -1,10 +1,14 @@
-import Foundation
-import Combine
 import BigInt
+import Combine
+import Foundation
 import HsToolKit
 import NIO
 
 enum BlockValidatorType { case header, bits, legacy, testNet, EDA, DAA, DGW }
+
+protocol IPublicKeyFetcher {
+    func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey]
+}
 
 public protocol IDifficultyEncoder {
     func compactFrom(hash: Data) -> Int
@@ -53,10 +57,6 @@ protocol IApiSyncStateManager: AnyObject {
     var restored: Bool { get set }
 }
 
-protocol IBlockDiscovery {
-    func discoverBlockHashes() async throws -> ([PublicKey], [BlockHash])
-}
-
 public protocol IOutputStorage {
     func previousOutput(ofInput: Input) -> Output?
     func outputsWithPublicKeys() -> [OutputWithPublicKey]
@@ -72,14 +72,15 @@ public protocol IStorage: IOutputStorage {
     func deletePeerAddress(byIp ip: String)
     func set(connectionTime: Double, toPeerAddress: String)
 
-
     var blockchainBlockHashes: [BlockHash] { get }
     var lastBlockchainBlockHash: BlockHash? { get }
     func blockHashHeaderHashes(except: [Data]) -> [Data]
     var blockHashHeaderHashes: [Data] { get }
     var lastBlockHash: BlockHash? { get }
+    var blockHashPublicKeys: [BlockHashPublicKey] { get }
     func blockHashesSortedBySequenceAndHeight(limit: Int) -> [BlockHash]
     func add(blockHashes: [BlockHash])
+    func add(blockHashPublicKeys: [BlockHashPublicKey])
     func deleteBlockHash(byHash: Data)
     func deleteBlockchainBlockHashes()
     func deleteUselessBlocks(before: Int)
@@ -87,6 +88,7 @@ public protocol IStorage: IOutputStorage {
 
     var blocksCount: Int { get }
     var lastBlock: Block? { get }
+    var downloadedTransactionsBestBlockHeight: Int { get }
     func blocksCount(headerHashes: [Data]) -> Int
     func update(block: Block)
     func save(block: Block)
@@ -171,12 +173,13 @@ public protocol IBloomFilterManager: AnyObject {
     func regenerateBloomFilter()
 }
 
-
 public protocol IPeerGroup: AnyObject {
     var publisher: AnyPublisher<PeerGroupEvent, Never> { get }
+    var started: Bool { get }
 
     func start()
     func stop()
+    func refresh()
     func reconnectPeers()
 
     func isReady(peer: IPeer) -> Bool
@@ -246,13 +249,18 @@ protocol IConnectionTimeoutManager: AnyObject {
     func timePeriodPassed(peer: IPeer)
 }
 
-protocol IApiSyncListener: AnyObject {
-    func transactionsFound(count: Int)
-}
-
 public protocol IBlockSyncListener: AnyObject {
     func blocksSyncFinished()
     func currentBestBlockHeightUpdated(height: Int32, maxBlockHeight: Int32)
+}
+
+public protocol ITransactionSyncListener: AnyObject {
+    func transactionSyncFinished()
+    func transactionsDownloaded(downloaded: Int, all: Int)
+}
+
+public protocol IBlockHashFetcher {
+    func fetch(heights: [Int]) async throws -> [Int: String]
 }
 
 protocol IPeerAddressManagerDelegate: AnyObject {
@@ -276,8 +284,8 @@ protocol IFactory {
     func bloomFilter(withElements: [Data]) -> BloomFilter
 }
 
-public protocol ISyncTransactionApi {
-    func transactions(addresses: [String]) async throws -> [SyncTransactionItem]
+public protocol IApiTransactionProvider {
+    func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem]
 }
 
 protocol ISyncManager {
@@ -285,8 +293,9 @@ protocol ISyncManager {
     func stop()
 }
 
-protocol IInitialSyncer {
-    var delegate: IInitialSyncerDelegate? { get set }
+protocol IApiSyncer {
+    var listener: IApiSyncerListener? { get set }
+    var willSync: Bool { get }
     func sync()
     func terminate()
 }
@@ -295,16 +304,9 @@ public protocol IHasher {
     func hash(data: Data) -> Data
 }
 
-protocol IBlockHashFetcher {
-    func getBlockHashes(externalKeys: [PublicKey], internalKeys: [PublicKey]) async throws -> BlockHashesResponse
-}
-
-protocol IBlockHashFetcherHelper {
-    func lastUsedIndex(addresses: [[String]], outputs: [SyncTransactionOutputItem]) -> Int
-}
-
-protocol IInitialSyncerDelegate: AnyObject {
+protocol IApiSyncerListener: AnyObject {
     func onSyncSuccess()
+    func transactionsFound(count: Int)
     func onSyncFailed(error: Error)
 }
 
@@ -401,7 +403,6 @@ public protocol IBlockchainDataListener: AnyObject {
     func onInsert(block: Block)
 }
 
-
 protocol IInputSigner {
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data]
 }
@@ -497,6 +498,7 @@ public protocol INetwork: AnyObject {
     var coinType: UInt32 { get }
     var sigHash: SigHashType { get }
     var syncableFromApi: Bool { get }
+    var blockchairChainId: String { get }
 }
 
 protocol IMerkleBlockValidator: AnyObject {
@@ -534,18 +536,15 @@ public protocol IMessageSerializer {
     func serialize(message: IMessage) -> Data?
 }
 
-public protocol IInitialBlockDownload {
+public protocol IInitialDownload: IPeerTaskHandler, IInventoryItemsHandler {
+    var listener: IBlockSyncListener? { get set }
     var syncPeer: IPeer? { get }
     var hasSyncedPeer: Bool { get }
-    var publisher: AnyPublisher<InitialBlockDownloadEvent, Never> { get }
+    var publisher: AnyPublisher<InitialDownloadEvent, Never> { get }
     var syncedPeers: [IPeer] { get }
     func isSynced(peer: IPeer) -> Bool
+    func subscribeTo(publisher: AnyPublisher<PeerGroupEvent, Never>)
 }
-
-//public protocol ISyncedReadyPeerManager {
-//    var peers: [IPeer] { get }
-//    var observable: Observable<Void> { get }
-//}
 
 public protocol IInventoryItemsHandler: AnyObject {
     func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem])
@@ -575,6 +574,10 @@ protocol IMerkleBlockHandler: AnyObject {
     func handle(merkleBlock: MerkleBlock) throws
 }
 
+//protocol ITransactionHandler: AnyObject {
+//    func handle(transaction: FullTransaction, transactionHash: TransactionHash) throws
+//}
+
 protocol ITransactionListener: AnyObject {
     func onReceive(transaction: FullTransaction)
 }
@@ -597,7 +600,7 @@ protocol IIrregularOutputFinder {
     func hasIrregularOutput(outputs: [Output]) -> Bool
 }
 
-public protocol IPlugin : IRestoreKeyConverter {
+public protocol IPlugin: IRestoreKeyConverter {
     var id: UInt8 { get }
     var maxSpendLimit: Int? { get }
     func validate(address: Address) throws
@@ -608,8 +611,8 @@ public protocol IPlugin : IRestoreKeyConverter {
     func parsePluginData(from: String, transactionTimestamp: Int) throws -> IPluginOutputData
 }
 
-extension IPlugin {
-    public func bloomFilterElements(publicKey: PublicKey) -> [Data] { [] }
+public extension IPlugin {
+    func bloomFilterElements(publicKey: PublicKey) -> [Data] { [] }
 }
 
 public protocol IPluginManager {
@@ -649,11 +652,9 @@ protocol ITransactionSigner {
     func sign(mutableTransaction: MutableTransaction) throws
 }
 
-public protocol IPluginData {
-}
+public protocol IPluginData {}
 
-public protocol IPluginOutputData {
-}
+public protocol IPluginOutputData {}
 
 protocol ITransactionDataSorterFactory {
     func sorter(for type: TransactionDataSortType) -> ITransactionDataSorter

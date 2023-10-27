@@ -1,12 +1,12 @@
-class BlockHashFetcherHelper: IBlockHashFetcherHelper {
+class BlockHashScanHelper {
 
-    func lastUsedIndex(addresses: [[String]], outputs: [SyncTransactionOutputItem]) -> Int {
+    func lastUsedIndex(addresses: [[String]], items: [ApiAddressItem]) -> Int {
         guard addresses.count > 0 else {
             return -1
         }
 
-        let searchAddressStrings = outputs.map { $0.address }
-        let searchScriptStrings = outputs.map { $0.script }
+        let searchAddressStrings = items.map { $0.address }
+        let searchScriptStrings = items.map { $0.script }
 
         let lastIndex = addresses.count - 1
         for i in 0...lastIndex {

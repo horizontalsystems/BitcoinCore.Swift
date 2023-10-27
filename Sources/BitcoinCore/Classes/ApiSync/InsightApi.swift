@@ -1,6 +1,6 @@
-import ObjectMapper
 import Alamofire
 import HsToolKit
+import ObjectMapper
 
 public class InsightApi {
     private static let paginationLimit = 50
@@ -13,18 +13,29 @@ public class InsightApi {
         self.url = url
         networkManager = NetworkManager(logger: logger)
     }
-
 }
 
-extension InsightApi: ISyncTransactionApi {
+extension InsightApi: IApiTransactionProvider {
+    public func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem] {
+        let items: [InsightTransactionItem] = try await sendAddressesRecursive(addresses: addresses)
 
-    public func transactions(addresses: [String]) async throws -> [SyncTransactionItem] {
-        try await sendAddressesRecursive(addresses: addresses)
+        return items.compactMap { item -> ApiTransactionItem? in
+            guard let blockHash = item.blockHash, let blockHeight = item.blockHeight else {
+                return nil
+            }
+
+            return ApiTransactionItem(
+                blockHash: blockHash, blockHeight: blockHeight,
+                apiAddressItems: item.txOutputs.map { outputItem in
+                    ApiAddressItem(script: outputItem.script, address: outputItem.address)
+                }
+            )
+        }
     }
 
-    private func sendAddressesRecursive(addresses: [String], from: Int = 0, transactions: [SyncTransactionItem] = []) async throws -> [SyncTransactionItem] {
+    private func sendAddressesRecursive(addresses: [String], from: Int = 0, transactions: [InsightTransactionItem] = []) async throws -> [InsightTransactionItem] {
         let last = min(from + InsightApi.addressesLimit, addresses.count)
-        let chunk = addresses[from..<last].joined(separator: ",")
+        let chunk = addresses[from ..< last].joined(separator: ",")
 
         let result = try await getTransactionsRecursive(addresses: chunk)
         let resultTransactions = transactions + result
@@ -36,9 +47,9 @@ extension InsightApi: ISyncTransactionApi {
         }
     }
 
-    private func getTransactionsRecursive(addresses: String, from: Int = 0, transactions: [SyncTransactionItem] = []) async throws -> [SyncTransactionItem] {
+    private func getTransactionsRecursive(addresses: String, from: Int = 0, transactions: [InsightTransactionItem] = []) async throws -> [InsightTransactionItem] {
         let result = try await getTransactions(addresses: addresses, from: from)
-        let resultTransactions = transactions + result.transactionItems.map { $0 as SyncTransactionItem }
+        let resultTransactions = transactions + result.transactionItems.map { $0 as InsightTransactionItem }
 
         if result.totalItems <= result.to {
             return resultTransactions
@@ -70,7 +81,7 @@ extension InsightApi: ISyncTransactionApi {
             self.transactionItems = transactionItems
         }
 
-        required public init(map: Map) throws {
+        public required init(map: Map) throws {
             totalItems = try map.value("totalItems")
             var fromInt: Int?
             if let fromString: String = try? map.value("from") {
@@ -85,27 +96,22 @@ extension InsightApi: ISyncTransactionApi {
             to = try map.value("to")
             transactionItems = try map.value("items")
         }
-
     }
 
-    class InsightTransactionItem: SyncTransactionItem {
-
+    class InsightTransactionItem: BCoinTransactionItem {
         required init(map: Map) throws {
             let blockHash: String? = try? map.value("blockhash")
             let blockHeight: Int? = try? map.value("blockheight")
             let txOutputs: [InsightTransactionOutputItem] = (try? map.value("vout")) ?? []
-            super.init(hash: blockHash, height: blockHeight, txOutputs: txOutputs.map { $0 as SyncTransactionOutputItem })
+            super.init(hash: blockHash, height: blockHeight, txOutputs: txOutputs.map { $0 as BCoinTransactionOutputItem })
         }
-
     }
 
-    class InsightTransactionOutputItem: SyncTransactionOutputItem {
+    class InsightTransactionOutputItem: BCoinTransactionOutputItem {
         required init(map: Map) throws {
             let script: String = (try? map.value("scriptPubKey.hex")) ?? ""
             let address: [String] = (try? map.value("scriptPubKey.addresses")) ?? []
             super.init(script: script, address: address.joined())
         }
-
     }
-
 }

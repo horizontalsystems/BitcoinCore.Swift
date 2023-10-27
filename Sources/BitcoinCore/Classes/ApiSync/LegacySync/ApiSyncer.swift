@@ -1,33 +1,31 @@
 import HdWalletKit
-import HsToolKit
 import HsExtensions
-
-protocol IPublicKeyFetcher {
-    func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey]
-}
+import HsToolKit
 
 protocol IMultiAccountPublicKeyFetcher {
     var currentAccount: Int { get }
     func increaseAccount()
 }
 
-class InitialSyncer {
-    weak var delegate: IInitialSyncerDelegate?
+class ApiSyncer {
+    weak var listener: IApiSyncerListener?
 
     private var tasks = Set<AnyTask>()
 
     private let storage: IStorage
-    private let blockDiscovery: IBlockDiscovery
+    private let blockDiscovery: BlockDiscoveryBatch
     private let publicKeyManager: IPublicKeyManager
     private let multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?
+    private let apiSyncStateManager: ApiSyncStateManager
 
     private let logger: Logger?
 
-    init(storage: IStorage, blockDiscovery: IBlockDiscovery, publicKeyManager: IPublicKeyManager, multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?, logger: Logger? = nil) {
+    init(storage: IStorage, blockDiscovery: BlockDiscoveryBatch, publicKeyManager: IPublicKeyManager, multiAccountPublicKeyFetcher: IMultiAccountPublicKeyFetcher?, apiSyncStateManager: ApiSyncStateManager, logger: Logger? = nil) {
         self.storage = storage
         self.blockDiscovery = blockDiscovery
         self.publicKeyManager = publicKeyManager
         self.multiAccountPublicKeyFetcher = multiAccountPublicKeyFetcher
+        self.apiSyncStateManager = apiSyncStateManager
 
         self.logger = logger
     }
@@ -78,20 +76,22 @@ class InitialSyncer {
     }
 
     private func handleSuccess() {
-        delegate?.onSyncSuccess()
+        apiSyncStateManager.restored = true
+        listener?.onSyncSuccess()
     }
 
     private func handle(error: Error) {
         logger?.error(error, context: ["apiSync"], save: true)
-        delegate?.onSyncFailed(error: error)
+        listener?.onSyncFailed(error: error)
     }
-
 }
 
-extension InitialSyncer: IInitialSyncer {
+extension ApiSyncer: IApiSyncer {
+    var willSync: Bool {
+        !apiSyncStateManager.restored
+    }
 
     func terminate() {
         tasks = Set()
     }
-
 }

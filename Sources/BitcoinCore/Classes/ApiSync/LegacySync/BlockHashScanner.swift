@@ -1,19 +1,15 @@
-class BlockHashFetcher {
-    weak var listener: IApiSyncListener?
+class BlockHashScanner {
+    weak var listener: IApiSyncerListener?
 
     private let restoreKeyConverter: IRestoreKeyConverter
-    private let apiManager: ISyncTransactionApi
-    private let helper: IBlockHashFetcherHelper
+    private let provider: IApiTransactionProvider
+    private let helper: BlockHashScanHelper
 
-    init(restoreKeyConverter: IRestoreKeyConverter, apiManager: ISyncTransactionApi, helper: IBlockHashFetcherHelper) {
+    init(restoreKeyConverter: IRestoreKeyConverter, provider: IApiTransactionProvider, helper: BlockHashScanHelper) {
         self.restoreKeyConverter = restoreKeyConverter
-        self.apiManager = apiManager
+        self.provider = provider
         self.helper = helper
     }
-
-}
-
-extension BlockHashFetcher: IBlockHashFetcher {
 
     func getBlockHashes(externalKeys: [PublicKey], internalKeys: [PublicKey]) async throws -> BlockHashesResponse {
         let externalAddresses = externalKeys.map {
@@ -25,7 +21,7 @@ extension BlockHashFetcher: IBlockHashFetcher {
         }
 
         let allAddresses = externalAddresses.flatMap { $0 } + internalAddresses.flatMap { $0 }
-        let transactionResponses = try await apiManager.transactions(addresses: allAddresses)
+        let transactionResponses = try await provider.transactions(addresses: allAddresses, stopHeight: nil)
 
         if transactionResponses.isEmpty {
             return BlockHashesResponse(blockHashes: [], externalLastUsedIndex: -1, internalLastUsedIndex: -1)
@@ -33,9 +29,9 @@ extension BlockHashFetcher: IBlockHashFetcher {
 
         listener?.transactionsFound(count: transactionResponses.count)
 
-        let outputs = transactionResponses.flatMap { $0.txOutputs }
-        let externalLastUsedIndex = helper.lastUsedIndex(addresses: externalAddresses, outputs: outputs)
-        let internalLastUsedIndex = helper.lastUsedIndex(addresses: internalAddresses, outputs: outputs)
+        let outputs = transactionResponses.flatMap { $0.apiAddressItems }
+        let externalLastUsedIndex = helper.lastUsedIndex(addresses: externalAddresses, items: outputs)
+        let internalLastUsedIndex = helper.lastUsedIndex(addresses: internalAddresses, items: outputs)
 
         let blockHashes: [BlockHash] = transactionResponses.compactMap {
             BlockHash(headerHashReversedHex: $0.blockHash, height: $0.blockHeight, sequence: 0)
@@ -43,7 +39,6 @@ extension BlockHashFetcher: IBlockHashFetcher {
 
         return BlockHashesResponse(blockHashes: blockHashes, externalLastUsedIndex: externalLastUsedIndex, internalLastUsedIndex: internalLastUsedIndex)
     }
-
 }
 
 struct BlockHashesResponse {

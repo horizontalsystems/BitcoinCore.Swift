@@ -71,3 +71,17 @@ public class PublicKey: Record {
     }
 
 }
+
+extension PublicKey: Hashable {
+    public static func == (lhs: PublicKey, rhs: PublicKey) -> Bool {
+        lhs.path == rhs.path
+    }
+
+    public var hashValue: Int {
+        path.hashValue
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(path)
+    }
+}
