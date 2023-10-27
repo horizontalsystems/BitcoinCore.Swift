@@ -58,6 +58,17 @@ extension Blockchain: IBlockchain {
         return block
     }
 
+    func insertLastBlock(header: BlockHeader, height: Int) throws {
+        guard storage.block(byHash: header.headerHash) == nil else {
+            return
+        }
+
+        let block = factory.block(withHeader: header, height: height)
+        try storage.add(block: block)
+
+        listener?.onInsert(block: block)
+    }
+
     func handleFork() throws {
         guard let firstStaleHeight = storage.block(stale: true, sortedHeight: "ASC")?.height else {
             return

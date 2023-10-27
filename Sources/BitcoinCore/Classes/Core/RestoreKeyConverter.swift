@@ -146,3 +146,32 @@ public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
     }
 
 }
+
+public class BlockchairCashRestoreKeyConverter {
+
+    let addressConverter: IAddressConverter
+    private let prefixCount: Int
+
+    public init(addressConverter: IAddressConverter, prefix: String) {
+        self.addressConverter = addressConverter
+        self.prefixCount = prefix.count + 1
+    }
+
+}
+
+extension BlockchairCashRestoreKeyConverter : IRestoreKeyConverter {
+
+    public func keysForApiRestore(publicKey: PublicKey) -> [String] {
+        let legacyAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2pkh).stringValue
+
+        return [legacyAddress].compactMap { $0 }.map { a in
+            let index = a.index(a.startIndex, offsetBy: prefixCount)
+            return String(a[index...])
+        }
+    }
+
+    public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
+        [publicKey.hashP2pkh, publicKey.raw]
+    }
+
+}

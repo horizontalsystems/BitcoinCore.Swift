@@ -7,15 +7,12 @@ class PublicKeyFetcher {
     init(hdAccountWallet: HDAccountWallet) {
         self.hdAccountWallet = hdAccountWallet
     }
-
 }
 
 extension PublicKeyFetcher: IPublicKeyFetcher {
-
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
         try hdAccountWallet.publicKeys(indices: indices, external: external)
     }
-
 }
 
 class WatchPublicKeyFetcher {
@@ -24,15 +21,12 @@ class WatchPublicKeyFetcher {
     init(hdWatchAccountWallet: HDWatchAccountWallet) {
         self.hdWatchAccountWallet = hdWatchAccountWallet
     }
-
 }
 
 extension WatchPublicKeyFetcher: IPublicKeyFetcher {
-
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
         try hdWatchAccountWallet.publicKeys(indices: indices, external: external)
     }
-
 }
 
 class MultiAccountPublicKeyFetcher {
@@ -42,11 +36,9 @@ class MultiAccountPublicKeyFetcher {
     init(hdWallet: HDWallet) {
         self.hdWallet = hdWallet
     }
-
 }
 
 extension MultiAccountPublicKeyFetcher: IPublicKeyFetcher, IMultiAccountPublicKeyFetcher {
-
     func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
         try hdWallet.publicKeys(account: currentAccount, indices: indices, external: external)
     }
@@ -54,5 +46,4 @@ extension MultiAccountPublicKeyFetcher: IPublicKeyFetcher, IMultiAccountPublicKe
     func increaseAccount() {
         currentAccount += 1
     }
-
 }

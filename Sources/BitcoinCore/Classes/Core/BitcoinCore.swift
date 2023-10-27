@@ -29,7 +29,7 @@ public class BitcoinCore {
     // START: Extending
 
     public let peerGroup: IPeerGroup
-    public let initialBlockDownload: IInitialBlockDownload
+    public let initialDownload: IInitialDownload
     public let transactionSyncer: ITransactionSyncer
 
     let bloomFilterLoader: BloomFilterLoader
@@ -80,7 +80,7 @@ public class BitcoinCore {
     public weak var delegate: BitcoinCoreDelegate?
 
     init(storage: IStorage, dataProvider: IDataProvider,
-         peerGroup: IPeerGroup, initialBlockDownload: IInitialBlockDownload, bloomFilterLoader: BloomFilterLoader, transactionSyncer: ITransactionSyncer,
+         peerGroup: IPeerGroup, initialDownload: IInitialDownload, bloomFilterLoader: BloomFilterLoader, transactionSyncer: ITransactionSyncer,
          publicKeyManager: IPublicKeyManager, addressConverter: AddressConverterChain, restoreKeyConverterChain: RestoreKeyConverterChain,
          unspentOutputSelector: UnspentOutputSelectorChain,
          transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, dustCalculator: IDustCalculator?,
@@ -90,7 +90,7 @@ public class BitcoinCore {
         self.storage = storage
         self.dataProvider = dataProvider
         self.peerGroup = peerGroup
-        self.initialBlockDownload = initialBlockDownload
+        self.initialDownload = initialDownload
         self.bloomFilterLoader = bloomFilterLoader
         self.transactionSyncer = transactionSyncer
         self.publicKeyManager = publicKeyManager
@@ -257,13 +257,13 @@ extension BitcoinCore {
         var status = [(String, Any)]()
         status.append(("state", syncManager.syncState.toString()))
         status.append(("synced until", ((lastBlockInfo?.timestamp.map { Double($0) })?.map { Date(timeIntervalSince1970: $0) }) ?? "n/a"))
-        status.append(("syncing peer", initialBlockDownload.syncPeer?.host ?? "n/a"))
+        status.append(("syncing peer", initialDownload.syncPeer?.host ?? "n/a"))
         status.append(("derivation", purpose.description))
 
         status.append(contentsOf:
             peerManager.connected.enumerated().map { (index, peer) in
                 var peerStatus = [(String, Any)]()
-                peerStatus.append(("status", initialBlockDownload.isSynced(peer: peer) ? "synced" : "not synced"))
+                peerStatus.append(("status", initialDownload.isSynced(peer: peer) ? "synced" : "not synced"))
                 peerStatus.append(("host", peer.host))
                 peerStatus.append(("best block", peer.announcedLastBlockHeight))
                 peerStatus.append(("user agent", peer.announcedLastBlockHeight))
@@ -369,10 +369,9 @@ extension BitcoinCore {
     }
 
     public enum SyncMode: Equatable {
+        case blockchair(key: String)        // Restore and sync from Blockchair API.
+        case api                            // Restore and sync from API.
         case full                           // Sync from bip44Checkpoint. Api restore disabled
-        case fromDate(date: TimeInterval)   // Sync from given date. Api restore disable
-        case api                            // Sync from lastCheckpoint. Api restore enabled
-        case newWallet                      // Sync from lastCheckpoint. Api restore enabled
     }
 
     public enum TransactionFilter {

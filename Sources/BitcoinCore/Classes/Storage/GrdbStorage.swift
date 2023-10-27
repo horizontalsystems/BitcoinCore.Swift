@@ -310,6 +310,17 @@ open class GrdbStorage {
             }
         }
 
+        migrator.registerMigration("createBlockHashPublicKeys") { db in
+            try db.create(table: BlockHashPublicKey.databaseTableName) { t in
+                t.column(BlockHashPublicKey.Columns.blockHash.name, .text).notNull()
+                t.column(BlockHashPublicKey.Columns.publicKeyPath.name, .integer).notNull()
+
+                t.primaryKey([BlockHashPublicKey.Columns.blockHash.name, BlockHashPublicKey.Columns.publicKeyPath.name], onConflict: .ignore)
+                t.foreignKey([BlockHashPublicKey.Columns.blockHash.name], references: BlockHash.databaseTableName, columns: [BlockHash.Columns.headerHash.name], onDelete: .cascade)
+                t.foreignKey([BlockHashPublicKey.Columns.publicKeyPath.name], references: PublicKey.databaseTableName, columns: [PublicKey.Columns.path.name], onDelete: .cascade)
+            }
+        }
+
         return migrator
     }
 
@@ -510,6 +521,12 @@ extension GrdbStorage: IStorage {
         }
     }
 
+    public var blockHashPublicKeys: [BlockHashPublicKey] {
+        try! dbPool.read { db in
+            try BlockHashPublicKey.fetchAll(db)
+        }
+    }
+
     public func blockHashHeaderHashes(except excludedHashes: [Data]) -> [Data] {
         try! dbPool.read { db in
             let hashesExpression = excludedHashes.map { _ in "?" }.joined(separator: ",")
@@ -535,6 +552,14 @@ extension GrdbStorage: IStorage {
         _ = try! dbPool.write { db in
             for blockHash in blockHashes {
                 try blockHash.insert(db)
+            }
+        }
+    }
+
+    public func add(blockHashPublicKeys: [BlockHashPublicKey]) {
+        _ = try! dbPool.write { db in
+            for entity in blockHashPublicKeys {
+                try entity.insert(db)
             }
         }
     }
@@ -699,6 +724,20 @@ extension GrdbStorage: IStorage {
     }
 
     // Transaction
+    public var downloadedTransactionsBestBlockHeight: Int {
+        try! dbPool.read { db in
+            let maxDownloadedHeight = try Block
+                .filter(Block.Columns.height != nil && Block.Columns.hasTransactions)
+                .order(Block.Columns.height.desc)
+                .fetchOne(db)?.height ?? 0
+            let maxDiscoveredHeight = try BlockHash
+                .order(BlockHash.Columns.height.desc)
+                .fetchOne(db)?.height ?? 0
+
+            return max(maxDownloadedHeight, maxDiscoveredHeight)
+        }
+    }
+
     public func fullTransaction(byHash hash: Data) -> FullTransaction? {
         try! dbPool.read { db in
             try Transaction.filter(Transaction.Columns.dataHash == hash).fetchOne(db)
@@ -1122,16 +1161,17 @@ extension GrdbStorage: IStorage {
             ])
 
             let sql = """
-                      SELECT publicKeys.*, outputs.transactionHash
+                      SELECT publicKeys.*, outputs.transactionHash AS outputTxHash, blockHashPublicKeys.blockHash AS blockHash
                       FROM publicKeys
                       LEFT JOIN outputs ON publicKeys.path = outputs.publicKeyPath
-                      GROUP BY publicKeys.path 
+                      LEFT JOIN blockHashPublicKeys ON publicKeys.path = blockHashPublicKeys.publicKeyPath
+                      GROUP BY publicKeys.path
                       """
 
             let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
             var publicKeys = [PublicKeyWithUsedState]()
             while let row = try rows.next() {
-                publicKeys.append(PublicKeyWithUsedState(publicKey: row["publicKey"], used: row["transactionHash"] != nil))
+                publicKeys.append(PublicKeyWithUsedState(publicKey: row["publicKey"], used: row["outputTxHash"] != nil || row["blockHash"] != nil))
             }
 
             return publicKeys

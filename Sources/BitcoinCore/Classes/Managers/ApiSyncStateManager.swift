@@ -1,8 +1,8 @@
-class ApiSyncStateManager {
+public class ApiSyncStateManager {
     private let storage: IStorage
     private let restoreFromApi: Bool
 
-    init(storage: IStorage, restoreFromApi: Bool) {
+    public init(storage: IStorage, restoreFromApi: Bool) {
         self.storage = storage
         self.restoreFromApi = restoreFromApi
     }

@@ -6,6 +6,7 @@ import NIO
 public enum PeerGroupEvent {
     case onStart
     case onStop
+    case onRefresh
     case onPeerCreate(peer: IPeer)
     case onPeerConnect(peer: IPeer)
     case onPeerDisconnect(peer: IPeer, error: Error?)
@@ -28,7 +29,7 @@ class PeerGroup {
     private var peerCountToConnect: Int?        // number of peers to connect to
     private var peerCountConnected = 0          // number of peers connected to
 
-    private var started: Bool = false
+    private(set) var started: Bool = false
 
     private let peersQueue: DispatchQueue
     private let inventoryQueue: DispatchQueue
@@ -107,7 +108,7 @@ class PeerGroup {
 extension PeerGroup: IPeerGroup {
 
     func start() {
-        guard started == false else {
+        guard !started else {
             return
         }
 
@@ -123,6 +124,14 @@ extension PeerGroup: IPeerGroup {
 
         peerManager.disconnectAll()
         onNext(.onStop)
+    }
+
+    func refresh() {
+        guard started else {
+            return
+        }
+
+        onNext(.onRefresh)
     }
 
     func reconnectPeers() {

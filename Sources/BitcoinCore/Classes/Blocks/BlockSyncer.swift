@@ -146,7 +146,7 @@ extension BlockSyncer: IBlockSyncer {
         }
 
         do {
-            try transactionProcessor.processReceived(transactions: merkleBlock.transactions, inBlock: block, skipCheckBloomFilter: self.state.iterationHasPartialBlocks)
+            try transactionProcessor.processReceived(transactions: merkleBlock.transactions, inBlock: block, skipCheckBloomFilter: state.iterationHasPartialBlocks)
         } catch _ as BloomFilterManager.BloomFilterExpired {
             state.iteration(hasPartialBlocks: true)
         }
@@ -176,36 +176,6 @@ extension BlockSyncer {
                 blockchain: blockchain, publicKeyManager: publicKeyManager, hashCheckpointThreshold: hashCheckpointThreshold, logger: logger, state: state)
 
         return syncer
-    }
-
-    public static func resolveCheckpoint(network: INetwork, syncMode: BitcoinCore.SyncMode, storage: IStorage) -> Checkpoint {
-        let lastBlock = storage.lastBlock
-        let checkpoint: Checkpoint
-
-        if syncMode == .full {
-            checkpoint = network.bip44Checkpoint
-        } else {
-            let lastCheckpoint = network.lastCheckpoint
-
-            if let block = lastBlock, block.height < lastCheckpoint.block.height {
-                // When app is updated there may be case when the last block in DB is earlier than new checkpoint block.
-                // In this case we set the very first checkpoint block for bip44,
-                // since it surely will be earlier than the last block in DB
-                checkpoint = network.bip44Checkpoint
-            } else {
-                checkpoint = lastCheckpoint
-            }
-        }
-
-        if lastBlock == nil {
-            storage.save(block: checkpoint.block)
-
-            for block in checkpoint.additionalBlocks {
-                storage.save(block: block)
-            }
-        }
-
-        return checkpoint
     }
 
 }
