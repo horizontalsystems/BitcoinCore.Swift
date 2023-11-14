@@ -88,7 +88,7 @@ public class InitialBlockDownload {
             return
         }
 
-        let blockHashes = blockSyncer.getBlockHashes()
+        let blockHashes = blockSyncer.getBlockHashes(limit: 500)
         if blockHashes.isEmpty {
             syncedStates[syncPeer.host] = blockHashesSyncedStates[syncPeer.host]
         } else {

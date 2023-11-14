@@ -96,20 +96,16 @@ public class BlockchairApi {
                     continue
                 }
 
-                var transactionItem: ApiTransactionItem
-                if let existingItem = transactionItemsMap[transaction.hash] {
-                    transactionItem = existingItem
-                } else {
-                    transactionItem = ApiTransactionItem(
+                if transactionItemsMap[transaction.hash] == nil {
+                    transactionItemsMap[transaction.hash] = ApiTransactionItem(
                         blockHash: "",
                         blockHeight: blockHeight,
                         apiAddressItems: []
                     )
-                    transactionItemsMap[transaction.hash] = transactionItem
                 }
 
                 if let addressItem = addressItems.first(where: { transaction.address == $0.address }) {
-                    transactionItem.apiAddressItems.append(addressItem)
+                    transactionItemsMap[transaction.hash]?.apiAddressItems.append(addressItem)
                 }
             }
         }

@@ -258,7 +258,7 @@ public class BitcoinCoreBuilder {
         }
 
         let peerGroup = PeerGroup(factory: factory, reachabilityManager: reachabilityManager, peerAddressManager: peerAddressManager, peerCount: peerCount, localDownloadedBestBlockHeight: blockSyncer.localDownloadedBestBlockHeight, peerManager: peerManager, logger: logger)
-        let syncManager = SyncManager(reachabilityManager: reachabilityManager, apiSyncer: apiSyncer, peerGroup: peerGroup, syncMode: syncMode, bestBlockHeight: blockSyncer.localDownloadedBestBlockHeight)
+        let syncManager = SyncManager(reachabilityManager: reachabilityManager, apiSyncer: apiSyncer, peerGroup: peerGroup, storage: storage, syncMode: syncMode, bestBlockHeight: blockSyncer.localDownloadedBestBlockHeight)
 
         bloomFilterLoader.subscribeTo(publisher: peerGroup.publisher)
         blockSyncer.listener = syncManager

@@ -95,8 +95,8 @@ extension BlockSyncer: IBlockSyncer {
         prepareForDownload()
     }
 
-    func getBlockHashes() -> [BlockHash] {
-        storage.blockHashesSortedBySequenceAndHeight(limit: 500)
+    func getBlockHashes(limit: Int) -> [BlockHash] {
+        storage.blockHashesSortedBySequenceAndHeight(limit: limit)
     }
 
     func getBlockLocatorHashes(peerLastBlockHeight: Int32) -> [Data] {
@@ -157,11 +157,11 @@ extension BlockSyncer: IBlockSyncer {
             storage.deleteBlockHash(byHash: block.headerHash)
         }
 
-        listener?.currentBestBlockHeightUpdated(height: Int32(block.height), maxBlockHeight: maxBlockHeight)
-    }
-
-    func shouldRequestBlock(withHash hash: Data) -> Bool {
-        storage.block(byHash: hash) == nil
+        if merkleBlock.height != nil {
+            listener?.blockForceAdded()
+        } else {
+            listener?.currentBestBlockHeightUpdated(height: Int32(block.height), maxBlockHeight: maxBlockHeight)
+        }
     }
 
 }
