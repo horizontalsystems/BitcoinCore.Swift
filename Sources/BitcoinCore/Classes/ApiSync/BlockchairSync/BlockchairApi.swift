@@ -6,7 +6,7 @@ import ObjectMapper
 public class BlockchairApi {
     private let baseUrl = "https://api.blockchair.com/"
     private let chainId: String
-    private let limit = 100
+    private let limit = 10000
     private let secretKey: String
     private let networkManager: NetworkManager
 
