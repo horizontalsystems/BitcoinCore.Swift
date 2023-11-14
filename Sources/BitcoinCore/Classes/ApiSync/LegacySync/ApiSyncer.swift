@@ -43,10 +43,6 @@ class ApiSyncer {
         }
     }
 
-    func sync() {
-        Task { [weak self] in await self?._sync() }.store(in: &tasks)
-    }
-
     private func handle(keys: [PublicKey], blockHashes: [BlockHash]) {
         var log = ""
         if let account = multiAccountPublicKeyFetcher?.currentAccount {
@@ -90,6 +86,12 @@ extension ApiSyncer: IApiSyncer {
     var willSync: Bool {
         !apiSyncStateManager.restored
     }
+
+    func sync() {
+        Task { [weak self] in await self?._sync() }.store(in: &tasks)
+    }
+
+    func syncLastBlock() {}
 
     func terminate() {
         tasks = Set()

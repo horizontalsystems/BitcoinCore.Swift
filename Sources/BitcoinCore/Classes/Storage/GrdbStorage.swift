@@ -490,6 +490,12 @@ extension GrdbStorage: IStorage {
 
     // BlockHash
 
+    public var apiBlockHashesCount: Int {
+        try! dbPool.read { db in
+            try BlockHash.filter(BlockHash.Columns.height > 0).fetchCount(db)
+        }
+    }
+
     public var blockchainBlockHashes: [BlockHash] {
         try! dbPool.read { db in
             try BlockHash.filter(BlockHash.Columns.height == 0).fetchAll(db)

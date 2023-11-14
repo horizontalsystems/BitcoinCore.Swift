@@ -35,7 +35,8 @@ class BlockchairApiSyncer {
     private func scan() async throws {
         let allKeys = storage.publicKeys()
         try await fetchRecursive(keys: allKeys, allKeys: allKeys, stopHeight: storage.downloadedTransactionsBestBlockHeight)
-        handleSuccess()
+        apiSyncStateManager.restored = true
+        listener?.onSyncSuccess()
     }
 
     private func fetchRecursive(keys: [PublicKey], allKeys: [PublicKey], stopHeight: Int) async throws {
@@ -93,7 +94,7 @@ class BlockchairApiSyncer {
         }
     }
 
-    private func syncLastBlock() async throws {
+    private func _syncLastBlock() async throws {
         let blockHeaderItem = try await lastBlockProvider.lastBlockHeader()
         let header = BlockHeader(
             version: 0,
@@ -106,11 +107,6 @@ class BlockchairApiSyncer {
         )
 
         try blockchain.insertLastBlock(header: header, height: blockHeaderItem.height)
-    }
-
-    private func handleSuccess() {
-        apiSyncStateManager.restored = true
-        listener?.onSyncSuccess()
     }
 
     private func handle(error: Error) {
@@ -127,7 +123,17 @@ extension BlockchairApiSyncer: IApiSyncer {
         Task { [weak self] in
             do {
                 try await self?.scan()
-                try await self?.syncLastBlock()
+            } catch {
+                self?.handle(error: error)
+            }
+        }
+        .store(in: &tasks)
+    }
+
+    func syncLastBlock() {
+        Task { [weak self] in
+            do {
+                try await self?._syncLastBlock()
             } catch {
                 self?.handle(error: error)
             }

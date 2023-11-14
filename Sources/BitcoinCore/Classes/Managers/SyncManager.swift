@@ -8,11 +8,13 @@ class SyncManager {
     private let reachabilityManager: ReachabilityManager
     private let apiSyncer: IApiSyncer
     private let peerGroup: IPeerGroup
+    private let storage: IStorage
     private let syncMode: BitcoinCore.SyncMode
 
     private var initialBestBlockHeight: Int32
     private var currentBestBlockHeight: Int32
     private var foundTransactionsCount: Int = 0
+    private var forceAddedBlocksTotal: Int = 0
 
     private(set) var syncState: BitcoinCore.KitState = .notSynced(error: BitcoinCore.StateError.notStarted) {
         didSet {
@@ -41,10 +43,11 @@ class SyncManager {
         }
     }
 
-    init(reachabilityManager: ReachabilityManager, apiSyncer: IApiSyncer, peerGroup: IPeerGroup, syncMode: BitcoinCore.SyncMode, bestBlockHeight: Int32) {
+    init(reachabilityManager: ReachabilityManager, apiSyncer: IApiSyncer, peerGroup: IPeerGroup, storage: IStorage, syncMode: BitcoinCore.SyncMode, bestBlockHeight: Int32) {
         self.reachabilityManager = reachabilityManager
         self.apiSyncer = apiSyncer
         self.peerGroup = peerGroup
+        self.storage = storage
         self.syncMode = syncMode
         initialBestBlockHeight = bestBlockHeight
         currentBestBlockHeight = bestBlockHeight
@@ -156,6 +159,8 @@ extension SyncManager: ISyncManager {
 
 extension SyncManager: IApiSyncerListener {
     func onSyncSuccess() {
+        forceAddedBlocksTotal = storage.apiBlockHashesCount
+
         if peerGroup.started {
             if foundTransactionsCount > 0 {
                 foundTransactionsCount = 0
@@ -198,18 +203,20 @@ extension SyncManager: IBlockSyncListener {
             syncState = .syncing(progress: Double(blocksDownloaded) / Double(allBlocksToDownload))
         }
     }
-}
 
-extension SyncManager: ITransactionSyncListener {
-    func transactionSyncFinished() {
-        syncState = .synced
-    }
+    func blockForceAdded() {
+        guard case .blockchair = syncMode else {
+            syncState = .syncing(progress: 0)
+            return
+        }
 
-    func transactionsDownloaded(downloaded: Int, all: Int) {
-        if downloaded >= all {
+        let forceAddedBlocks = forceAddedBlocksTotal - storage.apiBlockHashesCount
+
+        if forceAddedBlocks >= forceAddedBlocksTotal {
+            apiSyncer.syncLastBlock()
             syncState = .synced
         } else {
-            syncState = .syncing(progress: Double(downloaded) / Double(all))
+            syncState = .syncing(progress: Double(forceAddedBlocks) / Double(forceAddedBlocksTotal))
         }
     }
 }

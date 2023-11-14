@@ -72,6 +72,7 @@ public protocol IStorage: IOutputStorage {
     func deletePeerAddress(byIp ip: String)
     func set(connectionTime: Double, toPeerAddress: String)
 
+    var apiBlockHashesCount: Int { get }
     var blockchainBlockHashes: [BlockHash] { get }
     var lastBlockchainBlockHash: BlockHash? { get }
     func blockHashHeaderHashes(except: [Data]) -> [Data]
@@ -252,11 +253,7 @@ protocol IConnectionTimeoutManager: AnyObject {
 public protocol IBlockSyncListener: AnyObject {
     func blocksSyncFinished()
     func currentBestBlockHeightUpdated(height: Int32, maxBlockHeight: Int32)
-}
-
-public protocol ITransactionSyncListener: AnyObject {
-    func transactionSyncFinished()
-    func transactionsDownloaded(downloaded: Int, all: Int)
+    func blockForceAdded()
 }
 
 public protocol IBlockHashFetcher {
@@ -297,6 +294,7 @@ protocol IApiSyncer {
     var listener: IApiSyncerListener? { get set }
     var willSync: Bool { get }
     func sync()
+    func syncLastBlock()
     func terminate()
 }
 
@@ -440,11 +438,10 @@ public protocol IBlockSyncer: AnyObject {
     func downloadIterationCompleted()
     func downloadCompleted()
     func downloadFailed()
-    func getBlockHashes() -> [BlockHash]
+    func getBlockHashes(limit: Int) -> [BlockHash]
     func getBlockLocatorHashes(peerLastBlockHeight: Int32) -> [Data]
     func add(blockHashes: [Data])
     func handle(merkleBlock: MerkleBlock, maxBlockHeight: Int32) throws
-    func shouldRequestBlock(withHash hash: Data) -> Bool
 }
 
 protocol ISyncManagerDelegate: AnyObject {

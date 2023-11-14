@@ -77,7 +77,7 @@ public class BlockDownload {
             return
         }
 
-        let blockHashes = blockSyncer.getBlockHashes()
+        let blockHashes = blockSyncer.getBlockHashes(limit: 50)
         if blockHashes.isEmpty {
             syncedStates[syncPeer.host] = true
         } else {
