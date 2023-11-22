@@ -33,7 +33,7 @@ class PeerGroup {
 
     private let peersQueue: DispatchQueue
     private let inventoryQueue: DispatchQueue
-    private var eventLoopGroup: MultiThreadedEventLoopGroup
+    private var eventLoopGroup: MultiThreadedEventLoopGroup?
 
     private let logger: Logger?
 
@@ -44,7 +44,7 @@ class PeerGroup {
 
     init(factory: IFactory, reachabilityManager: ReachabilityManager,
          peerAddressManager: IPeerAddressManager, peerCount: Int = 10, localDownloadedBestBlockHeight: Int32,
-         peerManager: IPeerManager, peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.peers", qos: .userInitiated),
+         peerManager: IPeerManager, peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.peers", qos: .background),
          inventoryQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.inventory", qos: .background),
          logger: Logger? = nil) {
         self.factory = factory
@@ -57,15 +57,13 @@ class PeerGroup {
 
         self.peersQueue = peersQueue
         self.inventoryQueue = inventoryQueue
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: peerCount)
-
         self.logger = logger
 
         self.peerAddressManager.delegate = self
     }
 
     deinit {
-        eventLoopGroup.shutdownGracefully { _ in }
+        eventLoopGroup?.shutdownGracefully { _ in }
     }
 
     var publisher: AnyPublisher<PeerGroupEvent, Never> {
@@ -78,11 +76,19 @@ class PeerGroup {
                 return
             }
 
+            let _eventLoopGroup: MultiThreadedEventLoopGroup
+            if let existing = self.eventLoopGroup {
+                _eventLoopGroup = existing
+            } else {
+                _eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: self.peerCountToHold)
+                self.eventLoopGroup = _eventLoopGroup
+            }
+
             var peersToConnect = [IPeer]()
 
             for _ in self.peerManager.totalPeersCount..<self.peerCountToHold {
                 if let host = self.peerAddressManager.ip {
-                    let peer = self.factory.peer(withHost: host, eventLoopGroup: self.eventLoopGroup, logger: self.logger)
+                    let peer = self.factory.peer(withHost: host, eventLoopGroup: _eventLoopGroup, logger: self.logger)
                     peer.delegate = self
                     peersToConnect.append(peer)
                 } else {
