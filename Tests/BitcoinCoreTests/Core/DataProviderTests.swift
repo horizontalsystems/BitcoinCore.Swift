@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// @testable import BitcoinCore
 //
-//class DataProviderTests: XCTestCase {
+// class DataProviderTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //    private var mockAddressManager: MockIPublicKeyManager!
 //    private var mockAddressConverter: MockIAddressConverter!
@@ -268,4 +268,4 @@
 //        return transactions
 //    }
 //
-//}
+// }

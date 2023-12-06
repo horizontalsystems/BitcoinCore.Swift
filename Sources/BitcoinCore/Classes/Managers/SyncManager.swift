@@ -25,7 +25,7 @@ class SyncManager {
     }
 
     private var syncIdle: Bool {
-        guard case .notSynced(error: let error) = syncState else {
+        guard case let .notSynced(error: error) = syncState else {
             return false
         }
 

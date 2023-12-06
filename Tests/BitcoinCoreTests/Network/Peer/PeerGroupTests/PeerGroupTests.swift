@@ -1,11 +1,11 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//import Alamofire
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// import Alamofire
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class PeerGroupTests: XCTestCase {
+// class PeerGroupTests: XCTestCase {
 //
 //    internal var mockFactory: MockIFactory!
 //    internal var mockNetwork: MockINetwork!
@@ -161,4 +161,4 @@
 //        }
 //    }
 //
-//}
+// }

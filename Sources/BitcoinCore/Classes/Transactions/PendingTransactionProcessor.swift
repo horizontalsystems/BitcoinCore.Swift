@@ -15,7 +15,8 @@ class PendingTransactionProcessor {
     private var notMineTransactions = Set<Data>()
 
     init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder, conflictsResolver: ITransactionConflictsResolver,
-         listener: IBlockchainDataListener? = nil, queue: DispatchQueue) {
+         listener: IBlockchainDataListener? = nil, queue: DispatchQueue)
+    {
         self.storage = storage
         self.extractor = extractor
         self.publicKeyManager = publicKeyManager
@@ -29,11 +30,9 @@ class PendingTransactionProcessor {
         transaction.status = .relayed
         transaction.order = order
     }
-
 }
 
 extension PendingTransactionProcessor: IPendingTransactionProcessor {
-
     func processReceived(transactions: [FullTransaction], skipCheckBloomFilter: Bool) throws {
         var needToUpdateBloomFilter = false
 
@@ -100,9 +99,9 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
                 let needToCheckDoubleSpend = !transaction.header.isOutgoing
                 if !skipCheckBloomFilter {
                     needToUpdateBloomFilter = needToUpdateBloomFilter ||
-                            needToCheckDoubleSpend ||
-                            publicKeyManager.gapShifts() ||
-                            irregularOutputFinder.hasIrregularOutput(outputs: transaction.outputs)
+                        needToCheckDoubleSpend ||
+                        publicKeyManager.gapShifts() ||
+                        irregularOutputFinder.hasIrregularOutput(outputs: transaction.outputs)
                 }
             }
         }
@@ -129,5 +128,4 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
             throw BloomFilterManager.BloomFilterExpired()
         }
     }
-
 }

@@ -13,5 +13,4 @@ class PeerTaskHandlerChain: IPeerTaskHandler {
     func add(handler: IPeerTaskHandler) {
         concreteHandlers.append(handler)
     }
-
 }

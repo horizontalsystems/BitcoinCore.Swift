@@ -1,7 +1,6 @@
 import HdWalletKit
 
 extension Purpose: CustomStringConvertible {
-
     public var scriptType: ScriptType {
         switch self {
         case .bip44: return .p2pkh
@@ -19,5 +18,4 @@ extension Purpose: CustomStringConvertible {
         case .bip86: return "bip86"
         }
     }
-
 }

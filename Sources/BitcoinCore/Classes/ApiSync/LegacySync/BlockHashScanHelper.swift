@@ -8,8 +8,8 @@ class BlockHashScanHelper: IBlockHashScanHelper {
             return -1
         }
 
-        let searchAddressStrings = items.map { $0.address }
-        let searchScriptStrings = items.map { $0.script }
+        let searchAddressStrings = items.map(\.address)
+        let searchScriptStrings = items.map(\.script)
 
         let lastIndex = addresses.count - 1
         for i in 0 ... lastIndex {
@@ -26,5 +26,5 @@ class BlockHashScanHelper: IBlockHashScanHelper {
 }
 
 class WatchAddressBlockHashScanHelper: IBlockHashScanHelper {
-    func lastUsedIndex(addresses: [[String]], items: [ApiAddressItem]) -> Int { -1 }
+    func lastUsedIndex(addresses _: [[String]], items _: [ApiAddressItem]) -> Int { -1 }
 }

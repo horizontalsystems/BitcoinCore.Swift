@@ -22,9 +22,9 @@ public class LegacyDifficultyAdjustmentValidator: IBlockChainedValidator {
             throw BitcoinCoreErrors.BlockValidation.noPreviousBlock
         }
         var timespan = previousBlock.timestamp - firstBlock.timestamp
-        if (timespan < targetTimespan / 4) {
+        if timespan < targetTimespan / 4 {
             timespan = targetTimespan / 4
-        } else if (timespan > targetTimespan * 4) {
+        } else if timespan > targetTimespan * 4 {
             timespan = targetTimespan * 4
         }
 
@@ -43,8 +43,7 @@ public class LegacyDifficultyAdjustmentValidator: IBlockChainedValidator {
         }
     }
 
-    public func isBlockValidatable(block: Block, previousBlock: Block) -> Bool {
+    public func isBlockValidatable(block: Block, previousBlock _: Block) -> Bool {
         block.height % heightInterval == 0
     }
-
 }

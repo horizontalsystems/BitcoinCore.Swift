@@ -18,11 +18,11 @@ public class SegWitV0Address: Address, Equatable {
 
     public init(type: AddressType, payload: Data, bech32: String) {
         self.type = type
-        self.lockingScriptPayload = payload
-        self.stringValue = bech32
+        lockingScriptPayload = payload
+        stringValue = bech32
     }
 
-    static public func ==<T: Address>(lhs: SegWitV0Address, rhs: T) -> Bool {
+    public static func == (lhs: SegWitV0Address, rhs: some Address) -> Bool {
         guard let rhs = rhs as? SegWitV0Address else {
             return false
         }

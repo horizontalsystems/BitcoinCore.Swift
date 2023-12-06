@@ -17,7 +17,8 @@ class InputSetter {
     private let inputSorterFactory: ITransactionDataSorterFactory
 
     init(unspentOutputSelector: IUnspentOutputSelector, transactionSizeCalculator: ITransactionSizeCalculator, addressConverter: IAddressConverter, publicKeyManager: IPublicKeyManager,
-         factory: IFactory, pluginManager: IPluginManager, dustCalculator: IDustCalculator, changeScriptType: ScriptType, inputSorterFactory: ITransactionDataSorterFactory) {
+         factory: IFactory, pluginManager: IPluginManager, dustCalculator: IDustCalculator, changeScriptType: ScriptType, inputSorterFactory: ITransactionDataSorterFactory)
+    {
         self.unspentOutputSelector = unspentOutputSelector
         self.transactionSizeCalculator = transactionSizeCalculator
         self.addressConverter = addressConverter
@@ -32,26 +33,24 @@ class InputSetter {
     private func input(fromUnspentOutput unspentOutput: UnspentOutput) throws -> InputToSign {
         // Maximum nSequence value (0xFFFFFFFF) disables nLockTime.
         // According to BIP-125, any value less than 0xFFFFFFFE makes a Replace-by-Fee(RBF) opted in.
-        let sequence = 0xFFFFFFFE
+        let sequence = 0xFFFF_FFFE
 
         return factory.inputToSign(withPreviousOutput: unspentOutput, script: Data(), sequence: sequence)
     }
-
 }
 
 extension InputSetter: IInputSetter {
-
     func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws {
         let value = mutableTransaction.recipientValue
         let unspentOutputInfo = try unspentOutputSelector.select(
-                value: value, feeRate: feeRate,
-                outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
-                senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+            value: value, feeRate: feeRate,
+            outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
+            senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
         )
         let unspentOutputs = inputSorterFactory.sorter(for: sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
 
         for unspentOutput in unspentOutputs {
-            mutableTransaction.add(inputToSign: try input(fromUnspentOutput: unspentOutput))
+            try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput))
         }
 
         mutableTransaction.recipientValue = unspentOutputInfo.recipientValue
@@ -82,8 +81,7 @@ extension InputSetter: IInputSetter {
         }
 
         // Add to mutable transaction
-        mutableTransaction.add(inputToSign: try input(fromUnspentOutput: unspentOutput))
+        try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput))
         mutableTransaction.recipientValue = unspentOutput.output.value - fee
     }
-
 }

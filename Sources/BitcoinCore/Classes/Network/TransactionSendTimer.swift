@@ -10,11 +10,9 @@ class TransactionSendTimer {
     init(interval: TimeInterval) {
         self.interval = interval
     }
-
 }
 
 extension TransactionSendTimer: ITransactionSendTimer {
-
     func startIfNotRunning() {
         guard runLoop == nil else {
             return
@@ -32,7 +30,7 @@ extension TransactionSendTimer: ITransactionSendTimer {
     }
 
     func stop() {
-        if let runLoop = self.runLoop {
+        if let runLoop {
             timer?.invalidate()
             timer?.invalidate()
 
@@ -41,5 +39,4 @@ extension TransactionSendTimer: ITransactionSendTimer {
             self.runLoop = nil
         }
     }
-
 }

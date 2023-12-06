@@ -9,17 +9,15 @@ class TransactionOutputAddressExtractor {
         self.storage = storage
         self.addressConverter = addressConverter
     }
-
 }
 
 extension TransactionOutputAddressExtractor: ITransactionExtractor {
-
     public func extract(transaction: FullTransaction) {
         for output in transaction.outputs {
             guard let _payload = output.lockingScriptPayload else {
                 continue
             }
-            
+
             let payload: Data
             switch output.scriptType {
             case .p2pk:
@@ -37,5 +35,4 @@ extension TransactionOutputAddressExtractor: ITransactionExtractor {
             }
         }
     }
-
 }

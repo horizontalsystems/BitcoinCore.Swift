@@ -1,8 +1,7 @@
 public class BlockValidatorSet: IBlockValidator {
     private var validators = [IBlockValidator]()
 
-    public init() {
-    }
+    public init() {}
 
     public func validate(block: Block, previousBlock: Block) throws {
         for validator in validators {
@@ -13,5 +12,4 @@ public class BlockValidatorSet: IBlockValidator {
     public func add(blockValidator: IBlockValidator) {
         validators.append(blockValidator)
     }
-
 }

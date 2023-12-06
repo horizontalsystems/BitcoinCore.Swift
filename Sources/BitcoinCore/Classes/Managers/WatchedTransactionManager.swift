@@ -1,13 +1,12 @@
 import Foundation
 
 class WatchedTransactionManager {
-
-    struct P2ShOutputFilter  {
+    struct P2ShOutputFilter {
         let hash: Data
         let delegate: IWatchedTransactionDelegate
     }
 
-    struct OutpointFilter  {
+    struct OutpointFilter {
         let transactionHash: Data
         let outputIndex: Int
         let delegate: IWatchedTransactionDelegate
@@ -25,7 +24,7 @@ class WatchedTransactionManager {
     private func scan(transaction: FullTransaction) {
         for filter in p2ShOutputFilters {
             for output in transaction.outputs {
-                if output.scriptType == .p2sh && output.lockingScriptPayload == filter.hash {
+                if output.scriptType == .p2sh, output.lockingScriptPayload == filter.hash {
                     filter.delegate.transactionReceived(transaction: transaction, outputIndex: output.index)
                     return
                 }
@@ -34,42 +33,36 @@ class WatchedTransactionManager {
 
         for filter in outpointFilters {
             for (index, input) in transaction.inputs.enumerated() {
-                if input.previousOutputTxHash == filter.transactionHash && input.previousOutputIndex == filter.outputIndex {
+                if input.previousOutputTxHash == filter.transactionHash, input.previousOutputIndex == filter.outputIndex {
                     filter.delegate.transactionReceived(transaction: transaction, inputIndex: index)
                     return
                 }
             }
         }
     }
-
 }
 
-extension WatchedTransactionManager : IWatchedTransactionManager {
-
+extension WatchedTransactionManager: IWatchedTransactionManager {
     func add(transactionFilter: BitcoinCore.TransactionFilter, delegatedTo delegate: IWatchedTransactionDelegate) {
         switch transactionFilter {
-        case .p2shOutput(let scriptHash):
+        case let .p2shOutput(scriptHash):
             p2ShOutputFilters.append(P2ShOutputFilter(hash: scriptHash, delegate: delegate))
-        case .outpoint(let transactionHash, let outputIndex):
+        case let .outpoint(transactionHash, outputIndex):
             outpointFilters.append(OutpointFilter(transactionHash: transactionHash, outputIndex: outputIndex, delegate: delegate))
         }
         bloomFilterManager?.regenerateBloomFilter()
     }
-
 }
 
-extension WatchedTransactionManager : ITransactionListener {
-
+extension WatchedTransactionManager: ITransactionListener {
     func onReceive(transaction: FullTransaction) {
         queue.async {
             self.scan(transaction: transaction)
         }
     }
-
 }
 
-extension WatchedTransactionManager : IBloomFilterProvider {
-
+extension WatchedTransactionManager: IBloomFilterProvider {
     func filterElements() -> [Data] {
         var elements = [Data]()
 
@@ -83,5 +76,4 @@ extension WatchedTransactionManager : IBloomFilterProvider {
 
         return elements
     }
-
 }

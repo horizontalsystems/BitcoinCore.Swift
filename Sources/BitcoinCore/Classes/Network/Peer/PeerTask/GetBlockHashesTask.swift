@@ -1,7 +1,6 @@
 import Foundation
 
 class GetBlockHashesTask: PeerTask {
-
     var blockHashes = [Data]()
 
     private let maxAllowedIdleTime = 10.0
@@ -14,7 +13,7 @@ class GetBlockHashesTask: PeerTask {
     private let allowedIdleTime: Double
 
     init(hashes: [Data], expectedHashesMinCount: Int32, dateGenerator: @escaping () -> Date = Date.init) {
-        self.blockLocatorHashes = hashes
+        blockLocatorHashes = hashes
 
         var resolvedExpectedHashesMinCount = expectedHashesMinCount
         if resolvedExpectedHashesMinCount < minExpectedBlockHashesCount {
@@ -30,7 +29,7 @@ class GetBlockHashesTask: PeerTask {
         }
 
         self.expectedHashesMinCount = resolvedExpectedHashesMinCount
-        self.allowedIdleTime = resolvedAllowedIdleTime
+        allowedIdleTime = resolvedAllowedIdleTime
 
         super.init(dateGenerator: dateGenerator)
     }
@@ -40,7 +39,7 @@ class GetBlockHashesTask: PeerTask {
     }
 
     override func start() {
-        if let requester = requester {
+        if let requester {
             requester.send(message: GetBlocksMessage(protocolVersion: requester.protocolVersion, headerHashes: blockLocatorHashes))
         }
 
@@ -56,8 +55,8 @@ class GetBlockHashesTask: PeerTask {
 
     private func handle(items: [InventoryItem]) -> Bool {
         let newHashes = items
-                .filter { item in return item.objectType == .blockMessage }
-                .map { item in return item.hash }
+            .filter { item in item.objectType == .blockMessage }
+            .map { item in item.hash }
 
         guard !newHashes.isEmpty else {
             return false
@@ -85,7 +84,7 @@ class GetBlockHashesTask: PeerTask {
     }
 
     override func checkTimeout() {
-        if let lastActiveTime = lastActiveTime {
+        if let lastActiveTime {
             if dateGenerator().timeIntervalSince1970 - lastActiveTime > allowedIdleTime {
                 delegate?.handle(completedTask: self)
             }
@@ -93,11 +92,10 @@ class GetBlockHashesTask: PeerTask {
     }
 
     func equalTo(_ task: GetBlockHashesTask?) -> Bool {
-        guard let task = task else {
+        guard let task else {
             return false
         }
 
         return blockLocatorHashes == task.blockLocatorHashes && expectedHashesMinCount == task.expectedHashesMinCount
     }
-
 }

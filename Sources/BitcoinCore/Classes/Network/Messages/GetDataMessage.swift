@@ -11,12 +11,11 @@ public struct GetDataMessage: IMessage {
     let inventoryItems: [InventoryItem]
 
     public init(inventoryItems: [InventoryItem]) {
-        self.count = VarInt(inventoryItems.count)
+        count = VarInt(inventoryItems.count)
         self.inventoryItems = inventoryItems
     }
 
     public var description: String {
-        return "\(count) items(s)"
+        "\(count) items(s)"
     }
-
 }

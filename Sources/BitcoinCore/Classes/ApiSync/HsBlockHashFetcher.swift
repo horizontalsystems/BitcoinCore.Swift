@@ -1,5 +1,5 @@
-import Foundation
 import Alamofire
+import Foundation
 import HsToolKit
 import ObjectMapper
 
@@ -16,7 +16,7 @@ public class HsBlockHashFetcher: IBlockHashFetcher {
 
     public func fetch(heights: [Int]) async throws -> [Int: String] {
         let parameters: Parameters = [
-            "numbers": heights.map { String($0) }.joined(separator: ",")
+            "numbers": heights.map { String($0) }.joined(separator: ","),
         ]
 
         let blockResponses: [BlockResponse] = try await networkManager.fetch(url: "\(hsUrl)/hashes", method: .get, parameters: parameters)

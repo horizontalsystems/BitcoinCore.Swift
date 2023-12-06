@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 class MempoolTransactions {
     private var cancellables = Set<AnyCancellable>()
@@ -9,7 +9,8 @@ class MempoolTransactions {
     private let peersQueue: DispatchQueue
 
     init(transactionSyncer: ITransactionSyncer, transactionSender: ITransactionSender?,
-         peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.mempool-transactions", qos: .userInitiated)) {
+         peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.mempool-transactions", qos: .userInitiated))
+    {
         self.transactionSyncer = transactionSyncer
         self.transactionSender = transactionSender
         self.peersQueue = peersQueue
@@ -47,35 +48,31 @@ class MempoolTransactions {
 
     func subscribeTo(publisher: AnyPublisher<PeerGroupEvent, Never>) {
         publisher
-                .sink { [weak self] event in
-                    switch event {
-                    case .onPeerDisconnect(let peer, let error): self?.onPeerDisconnect(peer: peer, error: error)
-                    default: ()
-                    }
+            .sink { [weak self] event in
+                switch event {
+                case let .onPeerDisconnect(peer, error): self?.onPeerDisconnect(peer: peer, error: error)
+                default: ()
                 }
-                .store(in: &cancellables)
+            }
+            .store(in: &cancellables)
     }
-
 }
 
-extension MempoolTransactions : IPeerTaskHandler {
-
+extension MempoolTransactions: IPeerTaskHandler {
     func handleCompletedTask(peer: IPeer, task: PeerTask) -> Bool {
         switch task {
         case let task as RequestTransactionsTask:
             transactionSyncer.handleRelayed(transactions: task.transactions)
-            removeFromRequestedTransactions(peerHost: peer.host, transactionHashes: task.transactions.map { $0.header.dataHash })
+            removeFromRequestedTransactions(peerHost: peer.host, transactionHashes: task.transactions.map(\.header.dataHash))
             transactionSender?.transactionsRelayed(transactions: task.transactions)
             return true
 
         default: return false
         }
     }
-
 }
 
-extension MempoolTransactions : IInventoryItemsHandler {
-
+extension MempoolTransactions: IInventoryItemsHandler {
     func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem]) {
         var transactionHashes = [Data]()
 
@@ -91,15 +88,12 @@ extension MempoolTransactions : IInventoryItemsHandler {
             addToRequestTransactions(peerHost: peer.host, transactionHashes: transactionHashes)
         }
     }
-
 }
 
 extension MempoolTransactions {
-
-    private func onPeerDisconnect(peer: IPeer, error: Error?) {
+    private func onPeerDisconnect(peer: IPeer, error _: Error?) {
         peersQueue.async {
             self.requestedTransactions[peer.host] = nil
         }
     }
-
 }

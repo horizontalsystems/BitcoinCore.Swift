@@ -1,10 +1,10 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class UnspentOutputSelectorSingleNoChangeTests: QuickSpec {
+// class UnspentOutputSelectorSingleNoChangeTests: QuickSpec {
 //
 //    override func spec() {
 //        let feeRate = 1
@@ -142,5 +142,5 @@
 //        }
 //    }
 //
-//}
+// }
 //

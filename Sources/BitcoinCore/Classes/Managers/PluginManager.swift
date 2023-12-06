@@ -15,11 +15,9 @@ class PluginManager {
         self.scriptConverter = scriptConverter
         self.logger = logger
     }
-
 }
 
 extension PluginManager: IPluginManager {
-
     func validate(address: Address, pluginData: [UInt8: IPluginData]) throws {
         for (key, _) in pluginData {
             guard let plugin = plugins[key] else {
@@ -31,13 +29,13 @@ extension PluginManager: IPluginManager {
     }
 
     func maxSpendLimit(pluginData: [UInt8: IPluginData]) throws -> Int? {
-        try pluginData.compactMap({ key, data in
+        try pluginData.compactMap { key, _ in
             guard let plugin = plugins[key] else {
                 throw PluginError.pluginNotFound
             }
 
             return plugin.maxSpendLimit
-        }).min()
+        }.min()
     }
 
     func add(plugin: IPlugin) {
@@ -110,5 +108,4 @@ extension PluginManager: IPluginManager {
 
         return try? plugin.parsePluginData(from: pluginDataString, transactionTimestamp: transactionTimestamp)
     }
-
 }

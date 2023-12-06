@@ -50,18 +50,18 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
         }
 
         return T(
-                uid: transaction.uid,
-                transactionHash: transaction.dataHash.hs.reversedHex,
-                transactionIndex: transaction.order,
-                inputs: inputsInfo,
-                outputs: outputsInfo,
-                amount: transactionForInfo.metaData.amount,
-                type: transactionForInfo.metaData.type,
-                fee: transactionForInfo.metaData.fee,
-                blockHeight: transactionForInfo.transactionWithBlock.blockHeight,
-                timestamp: transactionTimestamp,
-                status: transaction.status,
-                conflictingHash: transaction.conflictingTxHash?.hs.reversedHex
+            uid: transaction.uid,
+            transactionHash: transaction.dataHash.hs.reversedHex,
+            transactionIndex: transaction.order,
+            inputs: inputsInfo,
+            outputs: outputsInfo,
+            amount: transactionForInfo.metaData.amount,
+            type: transactionForInfo.metaData.type,
+            fee: transactionForInfo.metaData.fee,
+            blockHeight: transactionForInfo.transactionWithBlock.blockHeight,
+            timestamp: transactionTimestamp,
+            status: transaction.status,
+            conflictingHash: transaction.conflictingTxHash?.hs.reversedHex
         )
     }
 
@@ -70,7 +70,7 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
             return nil
         }
 
-        guard let transactionInfo: T = try? JSONDecoder.init().decode(T.self, from: invalidTransaction.transactionInfoJson) else {
+        guard let transactionInfo: T = try? JSONDecoder().decode(T.self, from: invalidTransaction.transactionInfoJson) else {
             return nil
         }
 
@@ -82,5 +82,4 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
 
         return transactionInfo
     }
-
 }

@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionPublicKeySetterTests: XCTestCase {
+// class TransactionPublicKeySetterTests: XCTestCase {
 //
 //    private var mockStorage: MockIStorage!
 //    private var publicKey: PublicKey!
@@ -76,4 +76,4 @@
 //        XCTAssertEqual(tx.outputs[0].keyHash, publicKey.keyHash)
 //    }
 //
-//}
+// }

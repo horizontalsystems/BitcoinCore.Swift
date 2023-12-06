@@ -13,7 +13,7 @@ public class PeerAddress: Record {
     }
 
     override open class var databaseTableName: String {
-        return "peerAddresses"
+        "peerAddresses"
     }
 
     enum Columns: String, ColumnExpression {
@@ -35,5 +35,4 @@ public class PeerAddress: Record {
         container[Columns.score] = score
         container[Columns.connectionTime] = connectionTime
     }
-
 }

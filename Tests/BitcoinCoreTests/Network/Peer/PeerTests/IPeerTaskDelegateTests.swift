@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class IPeerTaskDelegateTests: XCTestCase {
+// class IPeerTaskDelegateTests: XCTestCase {
 //
 //    internal var mockNetwork: MockINetwork!
 //    internal var mockConnection: MockIPeerConnection!
@@ -123,4 +123,4 @@
 //        return mockTask
 //    }
 //
-//}
+// }

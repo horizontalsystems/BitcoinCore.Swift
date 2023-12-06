@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// @testable import BitcoinCore
 //
-//class StateManagerTests: XCTestCase {
+// class StateManagerTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //
 //    private var manager: ApiSyncStateManager!
@@ -61,4 +61,4 @@
 //        verify(mockStorage).set(initialRestored: false)
 //    }
 //
-//}
+// }

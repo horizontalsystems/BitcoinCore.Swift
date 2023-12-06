@@ -1,8 +1,8 @@
-import Foundation
+import BigInt
 import Combine
+import Foundation
 import HdWalletKit
 import HsExtensions
-import BigInt
 
 class DataProvider {
     private var cancellables = Set<AnyCancellable>()
@@ -22,7 +22,7 @@ class DataProvider {
     }
 
     private let lastBlockInfoQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.data-provider.last-block-info", qos: .utility)
-    private var _lastBlockInfo: BlockInfo? = nil
+    private var _lastBlockInfo: BlockInfo?
 
     weak var delegate: IDataProviderDelegate?
 
@@ -34,29 +34,27 @@ class DataProvider {
         _lastBlockInfo = storage.lastBlock.map { blockInfo(fromBlock: $0) }
 
         balanceUpdateSubject
-                .throttle(for: .milliseconds(throttleTimeMilliseconds), scheduler: DispatchQueue.global(qos: .background), latest: true)
-                .sink { [weak self] in
-                    self?.balance = balanceProvider.balanceInfo
-                }
-                .store(in: &cancellables)
+            .throttle(for: .milliseconds(throttleTimeMilliseconds), scheduler: DispatchQueue.global(qos: .background), latest: true)
+            .sink { [weak self] in
+                self?.balance = balanceProvider.balanceInfo
+            }
+            .store(in: &cancellables)
     }
 
     private func blockInfo(fromBlock block: Block) -> BlockInfo {
         BlockInfo(
             headerHash: block.headerHash.hs.reversedHex,
-                height: block.height,
-                timestamp: block.timestamp
+            height: block.height,
+            timestamp: block.timestamp
         )
     }
-
 }
 
 extension DataProvider: IBlockchainDataListener {
-
     func onUpdate(updated: [Transaction], inserted: [Transaction], inBlock block: Block?) {
         delegate?.transactionsUpdated(
-                inserted: storage.fullInfo(forTransactions: inserted.map { TransactionWithBlock(transaction: $0, blockHeight: block?.height) }).map { transactionInfoConverter.transactionInfo(fromTransaction: $0) },
-                updated: storage.fullInfo(forTransactions: updated.map { TransactionWithBlock(transaction: $0, blockHeight: block?.height) }).map { transactionInfoConverter.transactionInfo(fromTransaction: $0) }
+            inserted: storage.fullInfo(forTransactions: inserted.map { TransactionWithBlock(transaction: $0, blockHeight: block?.height) }).map { transactionInfoConverter.transactionInfo(fromTransaction: $0) },
+            updated: storage.fullInfo(forTransactions: updated.map { TransactionWithBlock(transaction: $0, blockHeight: block?.height) }).map { transactionInfoConverter.transactionInfo(fromTransaction: $0) }
         )
 
         balanceUpdateSubject.send()
@@ -81,11 +79,9 @@ extension DataProvider: IBlockchainDataListener {
             balanceUpdateSubject.send()
         }
     }
-
 }
 
 extension DataProvider: IDataProvider {
-
     var lastBlockInfo: BlockInfo? {
         lastBlockInfoQueue.sync {
             _lastBlockInfo
@@ -96,7 +92,7 @@ extension DataProvider: IDataProvider {
         var resolvedTimestamp: Int? = nil
         var resolvedOrder: Int? = nil
 
-        if let fromUid = fromUid, let transaction = storage.validOrInvalidTransaction(byUid: fromUid) {
+        if let fromUid, let transaction = storage.validOrInvalidTransaction(byUid: fromUid) {
             resolvedTimestamp = transaction.timestamp
             resolvedOrder = transaction.order
         }
@@ -118,7 +114,7 @@ extension DataProvider: IDataProvider {
         return transactionInfoConverter.transactionInfo(fromTransaction: transactionFullInfo)
     }
 
-    func debugInfo(network: INetwork, scriptType: ScriptType, addressConverter: IAddressConverter) -> String {
+    func debugInfo(network _: INetwork, scriptType: ScriptType, addressConverter: IAddressConverter) -> String {
         var lines = [String]()
 
         let pubKeys = storage.publicKeys().sorted(by: { $0.index < $1.index })
@@ -136,7 +132,6 @@ extension DataProvider: IDataProvider {
         }
 
         return storage.transactionFullInfo(byHash: hash)?.rawTransaction ??
-                storage.invalidTransaction(byHash: hash)?.rawTransaction
+            storage.invalidTransaction(byHash: hash)?.rawTransaction
     }
-
 }

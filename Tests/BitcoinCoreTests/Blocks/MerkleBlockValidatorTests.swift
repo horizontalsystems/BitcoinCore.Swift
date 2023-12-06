@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class MerkleBlockValidatorTests: XCTestCase {
+// class MerkleBlockValidatorTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //    private var validator: MerkleBlockValidator!
 //    private var blockHeader: BlockHeader!
@@ -154,4 +154,4 @@
 //        }
 //    }
 //
-//}
+// }

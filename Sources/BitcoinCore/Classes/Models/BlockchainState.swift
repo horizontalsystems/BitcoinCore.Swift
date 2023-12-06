@@ -8,7 +8,7 @@ class BlockchainState: Record {
     var initialRestored: Bool?
 
     override class var databaseTableName: String {
-        return "blockchainStates"
+        "blockchainStates"
     }
 
     override init() {
@@ -30,5 +30,4 @@ class BlockchainState: Record {
         container[Columns.primaryKey] = primaryKey
         container[Columns.initialRestored] = initialRestored
     }
-
 }

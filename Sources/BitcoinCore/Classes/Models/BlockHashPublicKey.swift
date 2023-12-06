@@ -13,7 +13,7 @@ public class BlockHashPublicKey: Record {
     }
 
     override open class var databaseTableName: String {
-        return "blockHashPublicKeys"
+        "blockHashPublicKeys"
     }
 
     enum Columns: String, ColumnExpression {
@@ -35,14 +35,14 @@ public class BlockHashPublicKey: Record {
 }
 
 extension BlockHashPublicKey: Equatable {
-    public static func ==(lhs: BlockHashPublicKey, rhs: BlockHashPublicKey) -> Bool {
-        return lhs.blockHash == rhs.blockHash && lhs.publicKeyPath == rhs.publicKeyPath
+    public static func == (lhs: BlockHashPublicKey, rhs: BlockHashPublicKey) -> Bool {
+        lhs.blockHash == rhs.blockHash && lhs.publicKeyPath == rhs.publicKeyPath
     }
 }
 
 extension BlockHashPublicKey: Hashable {
     public var hashValue: Int {
-        return blockHash.hashValue ^ publicKeyPath.hashValue
+        blockHash.hashValue ^ publicKeyPath.hashValue
     }
 
     public func hash(into hasher: inout Hasher) {

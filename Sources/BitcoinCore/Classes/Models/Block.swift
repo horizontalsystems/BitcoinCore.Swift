@@ -2,7 +2,6 @@ import Foundation
 import GRDB
 
 public class Block: Record {
-
     public var version: Int
     public var previousBlockHash: Data
     public var merkleRoot: Data
@@ -80,5 +79,4 @@ public class Block: Record {
         container[Columns.hasTransactions] = hasTransactions
         container[Columns.partial] = partial
     }
-
 }

@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionOutputExtractorTests: XCTestCase {
+// class TransactionOutputExtractorTests: XCTestCase {
 //    private var extractor: TransactionOutputExtractor!
 //
 //    private var mockPublicKeySetter: MockITransactionPublicKeySetter!
@@ -96,4 +96,4 @@
 //        verify(mockPluginManager).processTransactionWithNullData(transaction: equal(to: transaction), nullDataOutput: equal(to: transaction.outputs[0]))
 //    }
 //
-//}
+// }

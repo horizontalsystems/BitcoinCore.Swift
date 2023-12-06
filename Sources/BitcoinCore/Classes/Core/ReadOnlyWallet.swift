@@ -1,7 +1,6 @@
 import HdWalletKit
 
 class ReadOnlyWallet {
-
     enum ReadOnlyWalletError: Error {
         case noKeyForGivenAccount
         case publicKeysDerivationFailed
@@ -14,13 +13,11 @@ class ReadOnlyWallet {
         self.keys = keys
         self.gapLimit = gapLimit
     }
-
 }
 
 extension ReadOnlyWallet: IHDWallet {
-
     func publicKey(account: Int, index: Int, external: Bool) throws -> PublicKey {
-        try publicKeys(account: account, indices: UInt32(index)..<UInt32(index + 1), external: external).first!
+        try publicKeys(account: account, indices: UInt32(index) ..< UInt32(index + 1), external: external).first!
     }
 
     func publicKeys(account: Int, indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
@@ -39,5 +36,4 @@ extension ReadOnlyWallet: IHDWallet {
             return try PublicKey(withAccount: account, index: Int(index), external: external, hdPublicKeyData: key.raw)
         }
     }
-
 }

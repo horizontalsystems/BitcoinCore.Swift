@@ -39,11 +39,10 @@ class NetworkMessageParser: INetworkMessageParser {
 
         return NetworkMessage(magic: magic, command: command, length: length, checksum: checksum, message: message)
     }
-
 }
 
 class AddressMessageParser: IMessageParser {
-    var id: String { return "addr" }
+    var id: String { "addr" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
@@ -51,18 +50,17 @@ class AddressMessageParser: IMessageParser {
         let count = byteStream.read(VarInt.self)
 
         var addressList = [NetworkAddress]()
-        for _ in 0..<count.underlyingValue {
+        for _ in 0 ..< count.underlyingValue {
             _ = byteStream.read(UInt32.self) // Timestamp
             addressList.append(NetworkAddress(byteStream: byteStream))
         }
 
         return AddressMessage(addresses: addressList)
     }
-
 }
 
 class GetDataMessageParser: IMessageParser {
-    var id: String { return "getdata" }
+    var id: String { "getdata" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
@@ -70,7 +68,7 @@ class GetDataMessageParser: IMessageParser {
         let count = byteStream.read(VarInt.self)
 
         var inventoryItems = [InventoryItem]()
-        for _ in 0..<count.underlyingValue {
+        for _ in 0 ..< count.underlyingValue {
             let type = byteStream.read(Int32.self)
             let hash = byteStream.read(Data.self, count: 32)
             let item = InventoryItem(type: type, hash: hash)
@@ -79,11 +77,10 @@ class GetDataMessageParser: IMessageParser {
 
         return GetDataMessage(inventoryItems: inventoryItems)
     }
-
 }
 
 class InventoryMessageParser: IMessageParser {
-    var id: String { return "inv" }
+    var id: String { "inv" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
@@ -93,7 +90,7 @@ class InventoryMessageParser: IMessageParser {
         var inventoryItems = [InventoryItem]()
         var seen = Set<String>()
 
-        for _ in 0..<Int(count.underlyingValue) {
+        for _ in 0 ..< Int(count.underlyingValue) {
             let item = InventoryItem(byteStream: byteStream)
 
             guard !seen.contains(item.hash.hs.reversedHex) else {
@@ -105,40 +102,36 @@ class InventoryMessageParser: IMessageParser {
 
         return InventoryMessage(inventoryItems: inventoryItems)
     }
-
 }
 
 class PingMessageParser: IMessageParser {
-    var id: String { return "ping" }
+    var id: String { "ping" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
         return PingMessage(nonce: byteStream.read(UInt64.self))
     }
-
 }
 
 class PongMessageParser: IMessageParser {
-    var id: String { return "pong" }
+    var id: String { "pong" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
         return PongMessage(nonce: byteStream.read(UInt64.self))
     }
-
 }
 
 class VerackMessageParser: IMessageParser {
-    var id: String { return "verack" }
+    var id: String { "verack" }
 
-    func parse(data: Data) -> IMessage {
-        return VerackMessage()
+    func parse(data _: Data) -> IMessage {
+        VerackMessage()
     }
-
 }
 
 class VersionMessageParser: IMessageParser {
-    var id: String { return "version" }
+    var id: String { "version" }
 
     func parse(data: Data) -> IMessage {
         let byteStream = ByteStream(data)
@@ -158,20 +151,18 @@ class VersionMessageParser: IMessageParser {
 
         return VersionMessage(version: version, services: services, timestamp: timestamp, yourAddress: yourAddress, myAddress: myAddress, nonce: nonce, userAgent: userAgent, startHeight: startHeight, relay: relay)
     }
-
 }
 
 class MemPoolMessageParser: IMessageParser {
-    var id: String { return "mempool" }
+    var id: String { "mempool" }
 
-    func parse(data: Data) -> IMessage {
-        return MemPoolMessage()
+    func parse(data _: Data) -> IMessage {
+        MemPoolMessage()
     }
-
 }
 
 class MerkleBlockMessageParser: IMessageParser {
-    var id: String { return  "merkleblock" }
+    var id: String { "merkleblock" }
 
     private let blockHeaderParser: IBlockHeaderParser
 
@@ -188,36 +179,33 @@ class MerkleBlockMessageParser: IMessageParser {
         let numberOfHashes = byteStream.read(VarInt.self)
 
         var hashes = [Data]()
-        for _ in 0..<numberOfHashes.underlyingValue {
+        for _ in 0 ..< numberOfHashes.underlyingValue {
             hashes.append(byteStream.read(Data.self, count: 32))
         }
 
         let numberOfFlags = byteStream.read(VarInt.self)
 
         var flags = [UInt8]()
-        for _ in 0..<numberOfFlags.underlyingValue {
+        for _ in 0 ..< numberOfFlags.underlyingValue {
             flags.append(byteStream.read(UInt8.self))
         }
 
         return MerkleBlockMessage(blockHeader: blockHeader, totalTransactions: totalTransactions, numberOfHashes: numberOfHashes, hashes: hashes, numberOfFlags: numberOfFlags, flags: flags)
     }
-
 }
 
 class TransactionMessageParser: IMessageParser {
-    var id: String { return "tx" }
+    var id: String { "tx" }
 
     func parse(data: Data) -> IMessage {
-        return TransactionMessage(transaction: TransactionSerializer.deserialize(data: data), size: data.count)
+        TransactionMessage(transaction: TransactionSerializer.deserialize(data: data), size: data.count)
     }
-
 }
 
 class UnknownMessageParser: IMessageParser {
-    var id: String { return "unknown" }
+    var id: String { "unknown" }
 
     func parse(data: Data) -> IMessage {
-        return UnknownMessage(data: data)
+        UnknownMessage(data: data)
     }
-
 }

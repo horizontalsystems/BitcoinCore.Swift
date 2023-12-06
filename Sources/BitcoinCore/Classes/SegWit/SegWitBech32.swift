@@ -17,8 +17,8 @@ public class SegWitBech32 {
 
     /// Convert from one power-of-2 number base to another
     private static func convertBits(from: Int, to: Int, pad: Bool, idata: Data) throws -> Data {
-        var acc: Int = 0
-        var bits: Int = 0
+        var acc = 0
+        var bits = 0
         let maxv: Int = (1 << to) - 1
         let maxAcc: Int = (1 << (from + to - 1)) - 1
         var odata = Data()
@@ -34,12 +34,12 @@ public class SegWitBech32 {
             if bits != 0 {
                 odata.append(UInt8((acc << (to - bits)) & maxv))
             }
-        } else if (bits >= from || ((acc << (to - bits)) & maxv) != 0) {
+        } else if bits >= from || ((acc << (to - bits)) & maxv) != 0 {
             throw CoderError.bitsConversionFailed
         }
         return odata
     }
-    
+
     /// Decode segwit address
     public static func decode(hrp: String, addr: String, hasAdvanced: Bool = true) throws -> (version: UInt8, program: Data) {
         let dec = try bech32.decode(addr)
@@ -65,11 +65,11 @@ public class SegWitBech32 {
         }
         return (dec.checksum[0], conv)
     }
-    
+
     /// Encode segwit address
     public static func encode(hrp: String, version: UInt8, program: Data, encoding: Bech32.Encoding) throws -> String {
         var enc = Data([version])
-        enc.append(try convertBits(from: 8, to: 5, pad: true, idata: program))
+        try enc.append(convertBits(from: 8, to: 5, pad: true, idata: program))
         let result = bech32.encode(hrp, values: enc, encoding: encoding)
         guard let _ = try? decode(hrp: hrp, addr: result) else {
             throw CoderError.encodingCheckFailed
@@ -78,37 +78,36 @@ public class SegWitBech32 {
     }
 
     public init() {}
-
 }
 
-extension SegWitBech32 {
-    public enum CoderError: LocalizedError {
+public extension SegWitBech32 {
+    enum CoderError: LocalizedError {
         case bitsConversionFailed
         case hrpMismatch(String, String)
         case checksumSizeTooLow
-        
+
         case dataSizeMismatch(Int)
         case segwitVersionNotSupported(UInt8)
         case segwitV0ProgramSizeMismatch(Int)
         case segwitVersionAndEncodingMismatch
 
         case encodingCheckFailed
-        
+
         public var errorDescription: String? {
             switch self {
             case .bitsConversionFailed:
                 return "Failed to perform bits conversion"
             case .checksumSizeTooLow:
                 return "Checksum size is too low"
-            case .dataSizeMismatch(let size):
+            case let .dataSizeMismatch(size):
                 return "Program size \(size) does not meet required range 2...40"
             case .encodingCheckFailed:
                 return "Failed to check result after encoding"
-            case .hrpMismatch(let got, let expected):
+            case let .hrpMismatch(got, expected):
                 return "Human-readable-part \"\(got)\" does not match requested \"\(expected)\""
-            case .segwitV0ProgramSizeMismatch(let size):
+            case let .segwitV0ProgramSizeMismatch(size):
                 return "Segwit program size \(size) does not meet version 0 requirements"
-            case .segwitVersionNotSupported(let version):
+            case let .segwitVersionNotSupported(version):
                 return "Segwit version \(version) is not supported by this decoder"
             case .segwitVersionAndEncodingMismatch:
                 return "Wrong encoding is used for the Segwit version being used"

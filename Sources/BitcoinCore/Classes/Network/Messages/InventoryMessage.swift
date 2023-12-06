@@ -8,7 +8,7 @@ struct InventoryMessage: IMessage {
     let inventoryItems: [InventoryItem]
 
     init(inventoryItems: [InventoryItem]) {
-        self.count = VarInt(inventoryItems.count)
+        count = VarInt(inventoryItems.count)
         self.inventoryItems = inventoryItems
     }
 
@@ -20,9 +20,9 @@ struct InventoryMessage: IMessage {
             } else {
                 objectTypeString = "\(item.objectType)"
             }
-            return "[\(objectTypeString): \(item.hash.hs.reversedHex)]" }.joined(separator: ", ")
+            return "[\(objectTypeString): \(item.hash.hs.reversedHex)]"
+        }.joined(separator: ", ")
 
         return "\(items)"
     }
-
 }

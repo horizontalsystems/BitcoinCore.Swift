@@ -6,7 +6,6 @@ struct FilterLoadMessage: IMessage {
     }
 
     var description: String {
-        return "\(bloomFilter.elementsCount) item(s)"
+        "\(bloomFilter.elementsCount) item(s)"
     }
-
 }

@@ -1,6 +1,6 @@
 import Foundation
-import QuartzCore
 import GRDB
+import QuartzCore
 
 public class SentTransaction: Record {
     let dataHash: Data
@@ -47,5 +47,4 @@ public class SentTransaction: Record {
         container[Columns.retriesCount] = retriesCount
         container[Columns.sendSuccess] = sendSuccess
     }
-
 }

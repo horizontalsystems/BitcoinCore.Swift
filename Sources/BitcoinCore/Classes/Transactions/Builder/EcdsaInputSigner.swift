@@ -1,7 +1,7 @@
 import Foundation
+import HdWalletKit
 import HsCryptoKit
 import HsExtensions
-import HdWalletKit
 
 class EcdsaInputSigner {
     enum SignError: Error {
@@ -17,11 +17,9 @@ class EcdsaInputSigner {
         self.hdWallet = hdWallet
         self.network = network
     }
-
 }
 
 extension EcdsaInputSigner: IInputSigner {
-
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data] {
         let input = inputsToSign[index]
         let previousOutput = input.previousOutput
@@ -43,5 +41,4 @@ extension EcdsaInputSigner: IInputSigner {
         default: return [signature, publicKey]
         }
     }
-
 }

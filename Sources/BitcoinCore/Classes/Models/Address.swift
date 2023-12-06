@@ -16,11 +16,11 @@ public class LegacyAddress: Address, Equatable {
 
     public var scriptType: ScriptType {
         switch type {
-            case .pubKeyHash: return .p2pkh
-            case .scriptHash: return .p2sh
+        case .pubKeyHash: return .p2pkh
+        case .scriptHash: return .p2sh
         }
     }
-    
+
     public var lockingScript: Data {
         switch type {
         case .pubKeyHash: return OpCode.p2pkhStart + OpCode.push(lockingScriptPayload) + OpCode.p2pkhFinish
@@ -30,11 +30,11 @@ public class LegacyAddress: Address, Equatable {
 
     public init(type: AddressType, payload: Data, base58: String) {
         self.type = type
-        self.lockingScriptPayload = payload
-        self.stringValue = base58
+        lockingScriptPayload = payload
+        stringValue = base58
     }
 
-    public static func ==<T: Address>(lhs: LegacyAddress, rhs: T) -> Bool {
+    public static func == (lhs: LegacyAddress, rhs: some Address) -> Bool {
         guard let rhs = rhs as? LegacyAddress else {
             return false
         }

@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class IPeerTaskRequesterTests: XCTestCase {
+// class IPeerTaskRequesterTests: XCTestCase {
 //
 //    internal var mockNetwork: MockINetwork!
 //    internal var mockConnection: MockIPeerConnection!
@@ -97,4 +97,4 @@
 //        verify(mockConnection).send(message: equal(to: message, equalWhen: { ($0 as! PingMessage).serialized() == ($1 as! PingMessage).serialized() }))
 //    }
 //
-//}
+// }

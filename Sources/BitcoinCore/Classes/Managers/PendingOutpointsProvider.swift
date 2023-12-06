@@ -8,11 +8,9 @@ class PendingOutpointsProvider {
     init(storage: IStorage) {
         self.storage = storage
     }
-
 }
 
 extension PendingOutpointsProvider: IBloomFilterProvider {
-
     func filterElements() -> [Data] {
         let hashes = storage.incomingPendingTransactionHashes()
 
@@ -20,5 +18,4 @@ extension PendingOutpointsProvider: IBloomFilterProvider {
             $0.previousOutputTxHash + byteArrayLittleEndian(int: $0.previousOutputIndex)
         }
     }
-
 }

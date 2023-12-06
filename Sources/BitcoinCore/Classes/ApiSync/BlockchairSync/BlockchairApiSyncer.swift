@@ -20,7 +20,7 @@ class BlockchairApiSyncer {
     init(storage: IStorage, gapLimit: Int, restoreKeyConverter: IRestoreKeyConverter,
          transactionProvider: IApiTransactionProvider, lastBlockProvider: BlockchairLastBlockProvider,
          publicKeyManager: IPublicKeyManager, blockchain: Blockchain,
-         apiSyncStateManager: ApiSyncStateManager, logger: Logger? = nil)
+         apiSyncStateManager: ApiSyncStateManager, logger _: Logger? = nil)
     {
         self.storage = storage
         self.gapLimit = gapLimit

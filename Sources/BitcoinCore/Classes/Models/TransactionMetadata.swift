@@ -59,5 +59,4 @@ public class TransactionMetadata: Record {
         container[Columns.type] = type
         container[Columns.fee] = fee
     }
-
 }

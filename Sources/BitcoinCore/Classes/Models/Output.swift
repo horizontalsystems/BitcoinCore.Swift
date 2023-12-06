@@ -20,11 +20,9 @@ public enum ScriptType: Int, DatabaseValueConvertible {
     var witness: Bool {
         self == .p2wpkh || self == .p2wpkhSh || self == .p2wsh || self == .p2tr
     }
-
 }
 
 public class Output: Record {
-
     public var value: Int
     public var lockingScript: Data
     public var index: Int
@@ -42,23 +40,23 @@ public class Output: Record {
     public var signatureScriptFunction: (([Data]) -> Data)? = nil
 
     public func set(publicKey: PublicKey) {
-        self.publicKeyPath = publicKey.path
-        self.changeOutput = !publicKey.external
+        publicKeyPath = publicKey.path
+        changeOutput = !publicKey.external
     }
 
     public init(withValue value: Int, index: Int, lockingScript script: Data, transactionHash: Data = Data(), type: ScriptType = .unknown, redeemScript: Data? = nil, address: String? = nil, lockingScriptPayload: Data? = nil, publicKey: PublicKey? = nil) {
         self.value = value
-        self.lockingScript = script
+        lockingScript = script
         self.index = index
         self.transactionHash = transactionHash
-        self.scriptType = type
+        scriptType = type
         self.redeemScript = redeemScript
         self.address = address
         self.lockingScriptPayload = lockingScriptPayload
 
         super.init()
 
-        if let publicKey = publicKey {
+        if let publicKey {
             set(publicKey: publicKey)
         }
     }
@@ -116,5 +114,4 @@ public class Output: Record {
         container[Columns.pluginData] = pluginData
         container[Columns.failedToSpend] = failedToSpend
     }
-
 }

@@ -10,13 +10,13 @@ public class BlockHash: Record {
     public init(headerHash: Data, height: Int, order: Int) {
         self.headerHash = headerHash
         self.height = height
-        self.sequence = order
+        sequence = order
 
         super.init()
     }
 
     init?(headerHashReversedHex: String?, height: Int?, sequence: Int) {
-        guard let hex = headerHashReversedHex, let height = height, let headerHash = hex.hs.hexData else {
+        guard let hex = headerHashReversedHex, let height, let headerHash = hex.hs.hexData else {
             return nil
         }
 
@@ -28,7 +28,7 @@ public class BlockHash: Record {
     }
 
     override open class var databaseTableName: String {
-        return "blockHashes"
+        "blockHashes"
     }
 
     enum Columns: String, ColumnExpression {
@@ -50,26 +50,21 @@ public class BlockHash: Record {
         container[Columns.height] = height
         container[Columns.sequence] = sequence
     }
-
 }
 
 extension BlockHash: Equatable {
-
-    public static func ==(lhs: BlockHash, rhs: BlockHash) -> Bool {
-        return lhs.headerHash == rhs.headerHash
+    public static func == (lhs: BlockHash, rhs: BlockHash) -> Bool {
+        lhs.headerHash == rhs.headerHash
     }
-
 }
 
 extension BlockHash: Hashable {
-
     public var hashValue: Int {
-        return headerHash.hashValue ^ height.hashValue
+        headerHash.hashValue ^ height.hashValue
     }
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(headerHash)
         hasher.combine(height)
     }
-
 }

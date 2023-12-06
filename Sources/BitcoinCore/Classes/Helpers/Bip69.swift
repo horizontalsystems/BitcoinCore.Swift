@@ -1,7 +1,6 @@
 import Foundation
 
-class Bip69 {
-
+enum Bip69 {
     static var outputComparator: ((Output, Output) -> Bool) = { o, o1 in
         if o.value != o1.value {
             return o.value < o1.value
@@ -29,7 +28,7 @@ class Bip69 {
         }
 
         let count = data.count
-        for index in 0..<count {
+        for index in 0 ..< count {
             if data[index] == data2[index] {
                 continue
             } else {
@@ -38,5 +37,4 @@ class Bip69 {
         }
         return false
     }
-
 }

@@ -44,7 +44,7 @@ public class PublicKey: Record {
     }
 
     override open class var databaseTableName: String {
-        return "publicKeys"
+        "publicKeys"
     }
 
     enum Columns: String, ColumnExpression, CaseIterable {

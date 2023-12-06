@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
-//import BigInt
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
+// import BigInt
 //
-//class ProofOfWorkValidatorTests: XCTestCase {
+// class ProofOfWorkValidatorTests: XCTestCase {
 //
 //    private var validator: ProofOfWorkValidator!
 //
@@ -48,4 +48,4 @@
 //        }
 //    }
 //
-//}
+// }

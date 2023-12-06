@@ -1,10 +1,10 @@
-//import Quick
-//import Nimble
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import Quick
+// import Nimble
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class UnspentOutputProviderTests: QuickSpec {
+// class UnspentOutputProviderTests: QuickSpec {
 //    override func spec() {
 //        let mockStorage = MockIStorage()
 //
@@ -114,4 +114,4 @@
 //            }
 //        }
 //    }
-//}
+// }

@@ -8,7 +8,7 @@ public class BlockchairTransactionProvider: IApiTransactionProvider {
     }
 
     private func fillBlockHashes(items: [ApiTransactionItem]) async throws -> [ApiTransactionItem] {
-        let hashesMap = try await blockHashFetcher.fetch(heights: items.map { $0.blockHeight })
+        let hashesMap = try await blockHashFetcher.fetch(heights: items.map(\.blockHeight))
 
         return items.compactMap { item -> ApiTransactionItem? in
             guard let blockHash = hashesMap[item.blockHeight] else {

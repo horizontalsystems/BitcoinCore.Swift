@@ -27,7 +27,7 @@ extension BlockMedianTimeHelper: IBlockMedianTimeHelper {
         let startIndex = block.height - medianTimeSpan + 1
         let median = storage.timestamps(from: startIndex, to: block.height)
 
-        if block.height >= medianTimeSpan && median.count < medianTimeSpan {
+        if block.height >= medianTimeSpan, median.count < medianTimeSpan {
             return nil
         }
 

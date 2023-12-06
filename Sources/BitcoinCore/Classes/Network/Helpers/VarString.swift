@@ -20,8 +20,8 @@ public struct VarString {
     }
 }
 
-extension VarString : CustomStringConvertible {
+extension VarString: CustomStringConvertible {
     public var description: String {
-        return "\(value)"
+        "\(value)"
     }
 }

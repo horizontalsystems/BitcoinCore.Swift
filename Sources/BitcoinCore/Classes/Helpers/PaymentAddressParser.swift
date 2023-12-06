@@ -70,5 +70,4 @@ public class PaymentAddressParser: IPaymentAddressParser {
 
         return BitcoinPaymentData(address: address, version: version, amount: amount, label: label, message: message, parameters: parameters.isEmpty ? nil : parameters)
     }
-
 }

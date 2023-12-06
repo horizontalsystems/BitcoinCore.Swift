@@ -1,25 +1,25 @@
 import Foundation
 
 public class TransactionSizeCalculator {
-    static let legacyTx = 16 + 4 + 4 + 16          // 40 Version + number of inputs + number of outputs + locktime
-    static let witnessTx = legacyTx + 1 + 1        // 42 SegWit marker + SegWit flag
-    static let legacyWitnessData = 1               // 1 Only 0x00 for legacy input
+    static let legacyTx = 16 + 4 + 4 + 16 // 40 Version + number of inputs + number of outputs + locktime
+    static let witnessTx = legacyTx + 1 + 1 // 42 SegWit marker + SegWit flag
+    static let legacyWitnessData = 1 // 1 Only 0x00 for legacy input
     // P2WPKH or P2WPKH(SH)
-    static let p2wpkhWitnessData = 1 + ecdsaSignatureLength + pubKeyLength   // 108 Number of stack items for input + Size of stack item 0 + Stack item 0, signature + Size of stack item 1 + Stack item 1, pubkey
+    static let p2wpkhWitnessData = 1 + ecdsaSignatureLength + pubKeyLength // 108 Number of stack items for input + Size of stack item 0 + Stack item 0, signature + Size of stack item 1 + Stack item 1, pubkey
     static let p2trWitnessData = 1 + schnorrSignatureLength
 
-    static let ecdsaSignatureLength = 72 + 1       // signature length plus pushByte
-    static let schnorrSignatureLength = 64 + 1     // signature length plus pushByte
-    static let pubKeyLength = 33 + 1               // ECDSA compressed pubKey length plus pushByte
-    static let p2wpkhShLength = 22 + 1             // 0014<20byte-scriptHash> plus pushByte
+    static let ecdsaSignatureLength = 72 + 1 // signature length plus pushByte
+    static let schnorrSignatureLength = 64 + 1 // signature length plus pushByte
+    static let pubKeyLength = 33 + 1 // ECDSA compressed pubKey length plus pushByte
+    static let p2wpkhShLength = 22 + 1 // 0014<20byte-scriptHash> plus pushByte
 
     public init() {}
 
     private func outputSize(lockingScriptSize: Int) -> Int {
-        8 + 1 + lockingScriptSize            // spentValue + scriptLength + script
+        8 + 1 + lockingScriptSize // spentValue + scriptLength + script
     }
 
-    private func inputSize(output: Output) -> Int {              // in real bytes
+    private func inputSize(output: Output) -> Int { // in real bytes
         // Here we calculate size for only those inputs, which we can sign later in TransactionSigner.swift
         // Any other inputs will fail to sign later, so no need to calculate size here
 
@@ -45,18 +45,17 @@ public class TransactionSizeCalculator {
             }
         default: sigScriptLength = 0
         }
-        let inputTxSize: Int = 32 + 4 + 1 + sigScriptLength + 4 // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
+        let inputTxSize = 32 + 4 + 1 + sigScriptLength + 4 // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
         return inputTxSize
     }
 }
 
 extension TransactionSizeCalculator: ITransactionSizeCalculator {
-
-    public func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType]) -> Int {      // in real bytes upped to int
+    public func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType]) -> Int { // in real bytes upped to int
         transactionSize(previousOutputs: previousOutputs, outputScriptTypes: outputScriptTypes, pluginDataOutputSize: 0)
     }
 
-    public func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType], pluginDataOutputSize: Int) -> Int {      // in real bytes upped to int
+    public func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType], pluginDataOutputSize: Int) -> Int { // in real bytes upped to int
         var segWit = false
         var inputWeight = 0
 
@@ -68,7 +67,7 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
         }
 
         previousOutputs.forEach { previousOutput in
-            inputWeight += inputSize(output: previousOutput) * 4      // to vbytes
+            inputWeight += inputSize(output: previousOutput) * 4 // to vbytes
             if segWit {
                 inputWeight += witnessSize(type: previousOutput.scriptType)
             }
@@ -83,11 +82,11 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
         return toBytes(fee: txWeight + inputWeight + outputWeight)
     }
 
-    public func outputSize(type: ScriptType) -> Int {              // in real bytes
+    public func outputSize(type: ScriptType) -> Int { // in real bytes
         outputSize(lockingScriptSize: Int(type.size))
     }
 
-    public func inputSize(type: ScriptType) -> Int {              // in real bytes
+    public func inputSize(type: ScriptType) -> Int { // in real bytes
         let sigScriptLength: Int
         switch type {
         case .p2pkh: sigScriptLength = TransactionSizeCalculator.ecdsaSignatureLength + TransactionSizeCalculator.pubKeyLength
@@ -95,11 +94,11 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
         case .p2wpkhSh: sigScriptLength = TransactionSizeCalculator.p2wpkhShLength
         default: sigScriptLength = 0
         }
-        let inputTxSize: Int = 32 + 4 + 1 + sigScriptLength + 4  // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
+        let inputTxSize = 32 + 4 + 1 + sigScriptLength + 4 // PreviousOutputHex + InputIndex + sigLength + sigScript + sequence
         return inputTxSize
     }
 
-    public func witnessSize(type: ScriptType) -> Int {             // in vbytes
+    public func witnessSize(type: ScriptType) -> Int { // in vbytes
         // We assume that only single-key outputs can be here (P2PKH, P2PKH(SH), P2TR)
 
         switch type {
@@ -115,5 +114,4 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
     public func toBytes(fee: Int) -> Int {
         fee / 4 + (fee % 4 == 0 ? 0 : 1)
     }
-
 }

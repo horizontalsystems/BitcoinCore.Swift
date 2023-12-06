@@ -1,10 +1,10 @@
-//import Quick
-//import Nimble
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import Quick
+// import Nimble
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BlockchainTest: QuickSpec {
+// class BlockchainTest: QuickSpec {
 //    override func spec() {
 //        let mockStorage = MockIStorage()
 //        let mockBlockValidator = MockIBlockValidator()
@@ -388,4 +388,4 @@
 //        var blocksInChainTransactionHashes = [Data]()
 //    }
 //
-//}
+// }

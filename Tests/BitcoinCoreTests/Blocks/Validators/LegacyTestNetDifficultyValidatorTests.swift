@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import BigInt
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import BigInt
+// @testable import BitcoinCore
 //
-//class LegacyTestNetDifficultyValidatorTests: XCTestCase {
+// class LegacyTestNetDifficultyValidatorTests: XCTestCase {
 //    let maxDifficulty = 0x1d00ffff
 //    let targetSpacing = 600
 //    let heightInterval = 2016
@@ -134,4 +134,4 @@
 //        }
 //    }
 //
-//}
+// }

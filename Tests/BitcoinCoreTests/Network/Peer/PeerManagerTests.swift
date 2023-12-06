@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class PeerManagerTests:XCTestCase {
+// class PeerManagerTests:XCTestCase {
 //
 //    private var manager: PeerManager!
 //
@@ -131,4 +131,4 @@
 //        return peer
 //    }
 //
-//}
+// }

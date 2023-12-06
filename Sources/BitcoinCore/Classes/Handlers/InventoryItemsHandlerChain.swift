@@ -10,5 +10,4 @@ class InventoryItemsHandlerChain: IInventoryItemsHandler {
     func add(handler: IInventoryItemsHandler) {
         concreteHandlers.append(handler)
     }
-
 }

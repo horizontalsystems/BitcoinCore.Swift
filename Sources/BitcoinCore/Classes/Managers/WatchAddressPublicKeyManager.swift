@@ -11,7 +11,7 @@ class WatchAddressPublicKeyManager: IPublicKeyFetcher, IPublicKeyManager, IBloom
         self.restoreKeyConverter = restoreKeyConverter
     }
 
-    func publicKeys(indices: Range<UInt32>, external: Bool) throws -> [PublicKey] {
+    func publicKeys(indices _: Range<UInt32>, external _: Bool) throws -> [PublicKey] {
         [publicKey]
     }
 
@@ -27,13 +27,13 @@ class WatchAddressPublicKeyManager: IPublicKeyFetcher, IPublicKeyManager, IBloom
         bloomFilterManager?.regenerateBloomFilter()
     }
 
-    func addKeys(keys: [PublicKey]) {}
+    func addKeys(keys _: [PublicKey]) {}
 
     func gapShifts() -> Bool {
         false
     }
 
-    func publicKey(byPath: String) throws -> PublicKey {
+    func publicKey(byPath _: String) throws -> PublicKey {
         throw PublicKeyManager.PublicKeyManagerError.invalidPath
     }
 

@@ -1,7 +1,6 @@
 import Foundation
 
 public class BitsValidator: IBlockChainedValidator {
-
     public init() {}
 
     public func validate(block: Block, previousBlock: Block) throws {
@@ -10,8 +9,7 @@ public class BitsValidator: IBlockChainedValidator {
         }
     }
 
-    public func isBlockValidatable(block: Block, previousBlock: Block) -> Bool {
-        return true
+    public func isBlockValidatable(block _: Block, previousBlock _: Block) -> Bool {
+        true
     }
-
 }

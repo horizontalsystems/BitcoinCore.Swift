@@ -1,10 +1,10 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class Bip69Tests: QuickSpec {
+// class Bip69Tests: QuickSpec {
 //
 //    override func spec() {
 //        describe("sort two outputs") {
@@ -55,7 +55,7 @@
 //
 //            it("sort by hash") {
 //                let unspentOutput1 = UnspentOutput(
-//                        output: Output(withValue: 0, index: 0, lockingScript: Data(), transactionHash: "76a9144a5fba237213a062f6f57978f796390bdcf8d01588ac".data(using: .utf8) ?? Data()), 
+//                        output: Output(withValue: 0, index: 0, lockingScript: Data(), transactionHash: "76a9144a5fba237213a062f6f57978f796390bdcf8d01588ac".data(using: .utf8) ?? Data()),
 //                        publicKey: PublicKey(withAccount: 0, index: 0, external: false, hdPublicKeyData: Data()),
 //                        transaction: Transaction())
 //                let unspentOutput2 = UnspentOutput(
@@ -141,4 +141,4 @@
 ////        XCTAssertEqual(bitcoinPaymentData, paymentData)
 ////    }
 //
-//}
+// }

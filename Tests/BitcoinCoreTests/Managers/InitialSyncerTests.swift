@@ -1,11 +1,11 @@
-//import Quick
-//import Nimble
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//@testable import BitcoinCore
+// import Quick
+// import Nimble
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// @testable import BitcoinCore
 //
-//class InitialSyncerTests: QuickSpec {
+// class InitialSyncerTests: QuickSpec {
 //    override func spec() {
 //        let mockStorage = MockIStorage()
 //        let mockBlockDiscovery = MockIBlockDiscovery()
@@ -104,4 +104,4 @@
 //        describe("#stop") {
 //        }
 //    }
-//}
+// }

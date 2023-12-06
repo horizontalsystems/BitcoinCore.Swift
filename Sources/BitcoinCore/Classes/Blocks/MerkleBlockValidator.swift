@@ -1,7 +1,6 @@
 import Foundation
 
 class MerkleBlockValidator: IMerkleBlockValidator {
-
     private let maxBlockSize: UInt32
     private var merkleBranch: IMerkleBranch?
 
@@ -34,7 +33,7 @@ class MerkleBlockValidator: IMerkleBlockValidator {
             throw BitcoinCoreErrors.MerkleBlockValidation.matchedBitsFewerThanHashes
         }
 
-        guard let merkleBranch = merkleBranch else {
+        guard let merkleBranch else {
             throw BitcoinCoreErrors.MerkleBlockValidation.noMerkleBranch
         }
         let merkleRootData = try merkleBranch.calculateMerkleRoot(txCount: Int(message.totalTransactions), hashes: message.hashes, flags: message.flags)
@@ -45,5 +44,4 @@ class MerkleBlockValidator: IMerkleBlockValidator {
 
         return MerkleBlock(header: message.blockHeader, transactionHashes: merkleRootData.matchedHashes, transactions: [FullTransaction]())
     }
-
 }

@@ -21,7 +21,7 @@ public class BlockchairApi {
             "transaction_details": true,
             "limit": "\(limit),0",
             "offset": "\(receivedTransactions.count),0",
-            "key": secretKey
+            "key": secretKey,
         ]
         let url = "\(baseUrl)\(chainId)/dashboards/addresses/\(addresses.joined(separator: ","))"
 
@@ -29,7 +29,7 @@ public class BlockchairApi {
             let response: BlockchairTransactionsReponse = try await networkManager.fetch(url: url, method: .get, parameters: parameters)
             let scriptsSlice = response.data.addresses.map { ApiAddressItem(script: $0.value.script, address: $0.key) }
             let filteredTransactions = response.data.transactions.filter { transaction in
-                if let height = transaction.blockId, let stopHeight = stopHeight {
+                if let height = transaction.blockId, let stopHeight {
                     return stopHeight < height
                 } else {
                     return true
@@ -58,7 +58,7 @@ public class BlockchairApi {
     private func _blockHashes(heights: [Int]) async throws -> [Int: String] {
         let parameters: Parameters = [
             "limit": "0",
-            "key": secretKey
+            "key": secretKey,
         ]
         let heightsStr = heights.map { "\($0)" }.joined(separator: ",")
         let url = "\(baseUrl)\(chainId)/dashboards/blocks/\(heightsStr)"
@@ -116,7 +116,7 @@ public class BlockchairApi {
     func lastBlockHeader() async throws -> ApiBlockHeaderItem {
         let parameters: Parameters = [
             "limit": "0",
-            "key": secretKey
+            "key": secretKey,
         ]
         let url = "\(baseUrl)\(chainId)/stats"
         let response: BlockchairStatsReponse = try await networkManager.fetch(url: url, method: .get, parameters: parameters)

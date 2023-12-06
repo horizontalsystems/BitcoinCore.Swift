@@ -17,8 +17,8 @@ class BlockSyncer {
     private let logger: Logger?
 
     init(storage: IStorage, checkpoint: Checkpoint, factory: IFactory, transactionProcessor: IBlockTransactionProcessor,
-         blockchain: IBlockchain, publicKeyManager: IPublicKeyManager, hashCheckpointThreshold: Int, logger: Logger?, state: BlockSyncerState
-    ) {
+         blockchain: IBlockchain, publicKeyManager: IPublicKeyManager, hashCheckpointThreshold: Int, logger: Logger?, state: BlockSyncerState)
+    {
         self.storage = storage
         self.checkpoint = checkpoint
         self.factory = factory
@@ -37,7 +37,7 @@ class BlockSyncer {
 
     var localKnownBestBlockHeight: Int32 {
         let blockchainHashes = storage.blockchainBlockHashes
-        let existingHashesCount = storage.blocksCount(headerHashes: blockchainHashes.map { $0.headerHash })
+        let existingHashesCount = storage.blocksCount(headerHashes: blockchainHashes.map(\.headerHash))
         return localDownloadedBestBlockHeight + Int32(blockchainHashes.count - existingHashesCount)
     }
 
@@ -52,7 +52,7 @@ class BlockSyncer {
 
         let blockHashes = storage.blockHashHeaderHashes(except: excludedHashes)
         let blocksToDelete = storage.blocks(byHexes: blockHashes)
-        let partialBlocksToDelete = blocksToDelete.filter { $0.partial }
+        let partialBlocksToDelete = blocksToDelete.filter(\.partial)
 
         try blockchain.deleteBlocks(blocks: partialBlocksToDelete)
     }
@@ -61,11 +61,9 @@ class BlockSyncer {
         try publicKeyManager.fillGap()
         state.iteration(hasPartialBlocks: false)
     }
-
 }
 
 extension BlockSyncer: IBlockSyncer {
-
     func prepareForDownload() {
         do {
             try handlePartialBlocks()
@@ -78,8 +76,7 @@ extension BlockSyncer: IBlockSyncer {
         }
     }
 
-    func downloadStarted() {
-    }
+    func downloadStarted() {}
 
     func downloadIterationCompleted() {
         if state.iterationHasPartialBlocks {
@@ -126,12 +123,12 @@ extension BlockSyncer: IBlockSyncer {
         let existingHashes = storage.blockHashHeaderHashes
 
         let blockHashes: [BlockHash] = blockHashes
-                .filter {
-                    !existingHashes.contains($0)
-                }.map {
-                    lastOrder += 1
-                    return factory.blockHash(withHeaderHash: $0, height: 0, order: lastOrder)
-                }
+            .filter {
+                !existingHashes.contains($0)
+            }.map {
+                lastOrder += 1
+                return factory.blockHash(withHeaderHash: $0, height: 0, order: lastOrder)
+            }
 
         storage.add(blockHashes: blockHashes)
     }
@@ -163,19 +160,16 @@ extension BlockSyncer: IBlockSyncer {
             listener?.currentBestBlockHeightUpdated(height: Int32(block.height), maxBlockHeight: maxBlockHeight)
         }
     }
-
 }
 
 extension BlockSyncer {
-
     public static func instance(storage: IStorage, checkpoint: Checkpoint, factory: IFactory,
                                 transactionProcessor: IBlockTransactionProcessor, blockchain: IBlockchain, publicKeyManager: IPublicKeyManager,
-                                hashCheckpointThreshold: Int = 100, logger: Logger? = nil, state: BlockSyncerState = BlockSyncerState()) -> BlockSyncer {
-
+                                hashCheckpointThreshold: Int = 100, logger: Logger? = nil, state: BlockSyncerState = BlockSyncerState()) -> BlockSyncer
+    {
         let syncer = BlockSyncer(storage: storage, checkpoint: checkpoint, factory: factory, transactionProcessor: transactionProcessor,
-                blockchain: blockchain, publicKeyManager: publicKeyManager, hashCheckpointThreshold: hashCheckpointThreshold, logger: logger, state: state)
+                                 blockchain: blockchain, publicKeyManager: publicKeyManager, hashCheckpointThreshold: hashCheckpointThreshold, logger: logger, state: state)
 
         return syncer
     }
-
 }

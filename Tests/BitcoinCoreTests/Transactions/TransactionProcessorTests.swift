@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionProcessorTests: XCTestCase {
+// class TransactionProcessorTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //    private var mockOutputExtractor: MockITransactionExtractor!
 //    private var mockOutputAddressExtractor: MockITransactionOutputAddressExtractor!
@@ -549,4 +549,4 @@
 //        return [transaction, transaction2, transaction3, transaction4]
 //    }
 //
-//}
+// }

@@ -1,10 +1,10 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class OutputSetterTests: QuickSpec {
+// class OutputSetterTests: QuickSpec {
 //
 //    override func spec() {
 //        describe("check set outputs") {
@@ -53,4 +53,4 @@
 //
 //    }
 //
-//}
+// }

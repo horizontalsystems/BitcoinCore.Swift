@@ -21,19 +21,19 @@ public struct BitcoinPaymentData: Equatable {
 
     var uriPaymentAddress: String {
         var uriAddress = address
-        if let version = version {
+        if let version {
             uriAddress.append(";version=" + version)
         }
-        if let amount = amount {
+        if let amount {
             uriAddress.append("?amount=\(amount)")
         }
-        if let label = label {
+        if let label {
             uriAddress.append("?label=" + label)
         }
-        if let message = message {
+        if let message {
             uriAddress.append("?message=" + message)
         }
-        if let parameters = parameters {
+        if let parameters {
             for (name, value) in parameters {
                 uriAddress.append("?\(name)=" + value)
             }
@@ -42,13 +42,12 @@ public struct BitcoinPaymentData: Equatable {
         return uriAddress
     }
 
-    public static func ==(lhs: BitcoinPaymentData, rhs: BitcoinPaymentData) -> Bool {
-        return lhs.address == rhs.address &&
-                lhs.version == rhs.version &&
-                lhs.amount == rhs.amount &&
-                lhs.label == rhs.label &&
-                lhs.message == rhs.message &&
-                lhs.parameters == rhs.parameters
+    public static func == (lhs: BitcoinPaymentData, rhs: BitcoinPaymentData) -> Bool {
+        lhs.address == rhs.address &&
+            lhs.version == rhs.version &&
+            lhs.amount == rhs.amount &&
+            lhs.label == rhs.label &&
+            lhs.message == rhs.message &&
+            lhs.parameters == rhs.parameters
     }
-
 }

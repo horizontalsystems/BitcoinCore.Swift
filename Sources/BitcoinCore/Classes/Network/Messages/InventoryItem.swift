@@ -57,5 +57,4 @@ public struct InventoryItem {
 //        case compactBlockMessage = 4
         case unknown
     }
-
 }

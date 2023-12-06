@@ -5,7 +5,6 @@ class MyOutputsCache {
 }
 
 extension MyOutputsCache: IOutputsCache {
-
     func add(outputs: [Output]) {
         for output in outputs {
             if output.publicKeyPath != nil {
@@ -25,17 +24,14 @@ extension MyOutputsCache: IOutputsCache {
     func clear() {
         outputs.removeAll()
     }
-
 }
 
 extension MyOutputsCache {
-
     static func instance(storage: IOutputStorage) -> MyOutputsCache {
         let instance = MyOutputsCache()
         let outputs = storage.outputsWithPublicKeys()
-        instance.add(outputs: outputs.map { $0.output })
+        instance.add(outputs: outputs.map(\.output))
 
         return instance
     }
-
 }

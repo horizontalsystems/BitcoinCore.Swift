@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class AddressConverterTests: XCTestCase {
+// class AddressConverterTests: XCTestCase {
 //    private var addressConverter: AddressConverterChain!
 //    private var mockPaymentAddressParser: MockIPaymentAddressParser!
 //    private var mockBech32: MockIBech32AddressConverter!
@@ -147,4 +147,4 @@
 //        }
 //    }
 //
-//}
+// }

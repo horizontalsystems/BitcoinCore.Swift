@@ -7,13 +7,13 @@ public class MutableTransaction {
 
     public var recipientAddress: Address!
     public var recipientValue = 0
-    var changeAddress: Address? = nil
+    var changeAddress: Address?
     var changeValue = 0
 
     private(set) var pluginData = [UInt8: Data]()
 
     var pluginDataOutputSize: Int {
-        pluginData.count > 0 ? 1 + pluginData.reduce(into: 0) { $0 += 1 + $1.value.count } : 0                // OP_RETURN (PLUGIN_ID PLUGIN_DATA)
+        pluginData.count > 0 ? 1 + pluginData.reduce(into: 0) { $0 += 1 + $1.value.count } : 0 // OP_RETURN (PLUGIN_ID PLUGIN_DATA)
     }
 
     public init(outgoing: Bool = true) {
@@ -31,7 +31,6 @@ public class MutableTransaction {
     }
 
     public func build() -> FullTransaction {
-        FullTransaction(header: transaction, inputs: inputsToSign.map { $0.input }, outputs: outputs)
+        FullTransaction(header: transaction, inputs: inputsToSign.map(\.input), outputs: outputs)
     }
-
 }

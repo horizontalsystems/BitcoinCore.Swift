@@ -2,8 +2,8 @@ import Foundation
 
 public struct SelectedUnspentOutputInfo {
     public let unspentOutputs: [UnspentOutput]
-    public let recipientValue: Int              // amount to set to recipient output
-    public let changeValue: Int?                // amount to set to change output. No change output if nil
+    public let recipientValue: Int // amount to set to recipient output
+    public let changeValue: Int? // amount to set to change output. No change output if nil
 
     public init(unspentOutputs: [UnspentOutput], recipientValue: Int, changeValue: Int?) {
         self.unspentOutputs = unspentOutputs
@@ -13,7 +13,6 @@ public struct SelectedUnspentOutputInfo {
 }
 
 public class UnspentOutputSelector {
-
     private let calculator: ITransactionSizeCalculator
     private let provider: IUnspentOutputProvider
     private let dustCalculator: IDustCalculator
@@ -25,11 +24,9 @@ public class UnspentOutputSelector {
         self.dustCalculator = dustCalculator
         self.outputsLimit = outputsLimit
     }
-
 }
 
 extension UnspentOutputSelector: IUnspentOutputSelector {
-
     public func select(value: Int, feeRate: Int, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
         let unspentOutputs = provider.spendableUtxo
         let recipientOutputDust = dustCalculator.dust(type: outputScriptType)
@@ -45,7 +42,7 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
 
         let sortedOutputs = unspentOutputs.sorted(by: { lhs, rhs in
             (lhs.output.failedToSpend && !rhs.output.failedToSpend) || (
-                    lhs.output.failedToSpend == rhs.output.failedToSpend &&  lhs.output.value < rhs.output.value
+                lhs.output.failedToSpend == rhs.output.failedToSpend && lhs.output.value < rhs.output.value
             )
         })
 
@@ -60,8 +57,8 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
             selectedOutputs.append(unspentOutput)
             totalValue += unspentOutput.output.value
 
-            if let outputsLimit = outputsLimit {
-                if (selectedOutputs.count > outputsLimit) {
+            if let outputsLimit {
+                if selectedOutputs.count > outputsLimit {
                     guard let outputValueToExclude = selectedOutputs.first?.output.value else {
                         continue
                     }
@@ -69,13 +66,13 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
                     totalValue -= outputValueToExclude
                 }
             }
-            fee = calculator.transactionSize(previousOutputs: selectedOutputs.map { $0.output }, outputScriptTypes: [outputScriptType], pluginDataOutputSize: pluginDataOutputSize) * feeRate
+            fee = calculator.transactionSize(previousOutputs: selectedOutputs.map(\.output), outputScriptTypes: [outputScriptType], pluginDataOutputSize: pluginDataOutputSize) * feeRate
 
             recipientValue = senderPay ? value : value - fee
             sentValue = senderPay ? value + fee : value
 
-            if sentValue <= totalValue {      // totalValue is enough
-                if recipientValue >= recipientOutputDust {   // receivedValue won't be dust
+            if sentValue <= totalValue { // totalValue is enough
+                if recipientValue >= recipientOutputDust { // receivedValue won't be dust
                     break
                 } else {
                     // Here senderPay is false, because otherwise "dust" exception would throw far above.
@@ -90,7 +87,7 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
             throw BitcoinCoreErrors.SendValueErrors.notEnough
         }
 
-        let changeOutputHavingTransactionFee = calculator.transactionSize(previousOutputs: selectedOutputs.map { $0.output }, outputScriptTypes: [outputScriptType, changeType], pluginDataOutputSize: pluginDataOutputSize) * feeRate
+        let changeOutputHavingTransactionFee = calculator.transactionSize(previousOutputs: selectedOutputs.map(\.output), outputScriptTypes: [outputScriptType, changeType], pluginDataOutputSize: pluginDataOutputSize) * feeRate
         let withChangeRecipientValue = senderPay ? value : value - changeOutputHavingTransactionFee
         let withChangeSentValue = senderPay ? value + changeOutputHavingTransactionFee : value
         // if selected UTXOs total value >= recipientValue(toOutput value) + fee(for transaction with change output) + dust(minimum changeOutput value)
@@ -106,5 +103,4 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
         // No change needed
         return SelectedUnspentOutputInfo(unspentOutputs: selectedOutputs, recipientValue: recipientValue, changeValue: nil)
     }
-
 }

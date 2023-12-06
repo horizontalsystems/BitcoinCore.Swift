@@ -1,9 +1,8 @@
 import Foundation
 import HsExtensions
 
-class TransactionOutputSerializer {
-
-     static func serialize(output: Output) -> Data {
+enum TransactionOutputSerializer {
+    static func serialize(output: Output) -> Data {
         var data = Data()
 
         data += output.value
@@ -21,5 +20,4 @@ class TransactionOutputSerializer {
 
         return Output(withValue: value, index: 0, lockingScript: lockingScript)
     }
-
 }

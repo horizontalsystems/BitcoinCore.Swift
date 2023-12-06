@@ -1,13 +1,12 @@
 import Foundation
 
-public class DirectoryHelper {
-
+public enum DirectoryHelper {
     public static func directoryURL(for directoryName: String) throws -> URL {
         let fileManager = FileManager.default
 
         let url = try fileManager
-                .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                .appendingPathComponent(directoryName, isDirectory: true)
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent(directoryName, isDirectory: true)
 
         try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
 
@@ -28,5 +27,4 @@ public class DirectoryHelper {
             }
         }
     }
-
 }

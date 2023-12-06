@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionOutputAddressExtractorTests: XCTestCase {
+// class TransactionOutputAddressExtractorTests: XCTestCase {
 //    private var extractor: TransactionOutputAddressExtractor!
 //    private var mockAddressConverter: MockIAddressConverter!
 //    private var mockStorage: MockIStorage!
@@ -31,4 +31,4 @@
 //
 //    }
 //
-//}
+// }

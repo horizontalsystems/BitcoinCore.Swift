@@ -27,27 +27,27 @@ class Peer {
     var subVersion = ""
     var announcedLastBlockHeight: Int32 = 0
     var localBestBlockHeight: Int32 = 0
-    // TODO seems like property connected is not needed. It is always true in PeerManager. Need to check it and remove
+    // TODO: seems like property connected is not needed. It is always true in PeerManager. Need to check it and remove
     var connected: Bool = false
     var connectionTime: Double = 1000
 
     var protocolVersion: Int32 {
-        return network.protocolVersion
+        network.protocolVersion
     }
 
     var ready: Bool {
-        return connected && tasks.isEmpty
+        connected && tasks.isEmpty
     }
 
     var host: String {
-        return connection.host
+        connection.host
     }
 
     var logName: String {
-        return connection.logName
+        connection.logName
     }
 
-    init(host: String, network: INetwork, connection: IPeerConnection, connectionTimeoutManager: IConnectionTimeoutManager, logger: Logger? = nil) {
+    init(host _: String, network: INetwork, connection: IPeerConnection, connectionTimeoutManager: IConnectionTimeoutManager, logger: Logger? = nil) {
         self.connection = connection
         self.connectionTimeoutManager = connectionTimeoutManager
         self.network = network
@@ -62,15 +62,15 @@ class Peer {
 
     private func sendVersion() {
         let versionMessage = VersionMessage(
-                version: protocolVersion,
-                services: 0x00,
-                timestamp: Int64(Date().timeIntervalSince1970),
-                yourAddress: NetworkAddress(services: 0x00, address: connection.host, port: UInt16(connection.port)),
-                myAddress: NetworkAddress(services: 0x00, address: "::ffff:127.0.0.1", port: UInt16(connection.port)),
-                nonce: 0,
-                userAgent: VarString("/WalletKit:0.1.0/", length: 17),
-                startHeight: localBestBlockHeight,
-                relay: false
+            version: protocolVersion,
+            services: 0x00,
+            timestamp: Int64(Date().timeIntervalSince1970),
+            yourAddress: NetworkAddress(services: 0x00, address: connection.host, port: UInt16(connection.port)),
+            myAddress: NetworkAddress(services: 0x00, address: "::ffff:127.0.0.1", port: UInt16(connection.port)),
+            nonce: 0,
+            userAgent: VarString("/WalletKit:0.1.0/", length: 17),
+            startHeight: localBestBlockHeight,
+            relay: false
         )
 
         connection.send(message: versionMessage)
@@ -81,12 +81,12 @@ class Peer {
     }
 
     private func handleCompletedHandshake() {
-        guard remotePeerValidated && !connected else {
+        guard remotePeerValidated, !connected else {
             return
         }
 
         connected = true
-        guard let connectStartTime = self.connectStartTime else {
+        guard let connectStartTime else {
             connection.disconnect(error: nil)
             return
         }
@@ -101,7 +101,7 @@ class Peer {
         case let pingMessage as PingMessage: handle(message: pingMessage)
         case _ as PongMessage: ()
         default:
-            if self.connected {
+            if connected {
                 try handle(anyMessage: message)
             }
         }
@@ -116,7 +116,7 @@ class Peer {
             return
         }
 
-        self.announcedLastBlockHeight = message.startHeight ?? 0
+        announcedLastBlockHeight = message.startHeight ?? 0
         subVersion = message.userAgent?.value ?? ""
 
         sendVerack()
@@ -162,18 +162,16 @@ class Peer {
     private func log(_ message: String, level: Logger.Level = .debug) {
         logger?.log(level: level, message: message, context: [logName])
     }
-
 }
 
 extension Peer: IPeer {
-
     func connect() {
         connection.connect()
         connectStartTime = Date().timeIntervalSince1970
     }
 
     func disconnect(error: Error? = nil) {
-        self.connection.disconnect(error: error)
+        connection.disconnect(error: error)
     }
 
     func add(task: PeerTask) {
@@ -208,13 +206,11 @@ extension Peer: IPeer {
     }
 
     func equalTo(_ other: IPeer?) -> Bool {
-        return self.host == other?.host
+        host == other?.host
     }
-
 }
 
 extension Peer: PeerConnectionDelegate {
-
     func connectionAlive() {
         connectionTimeoutManager.reset()
     }
@@ -222,7 +218,7 @@ extension Peer: PeerConnectionDelegate {
     func connectionTimePeriodPassed() {
         connectionTimeoutManager.timePeriodPassed(peer: self)
 
-        if let task = self.tasks.first {
+        if let task = tasks.first {
             task.checkTimeout()
         }
     }
@@ -241,17 +237,15 @@ extension Peer: PeerConnectionDelegate {
 
     func connection(didReceiveMessage message: IMessage) {
         do {
-            try self.handle(message: message)
+            try handle(message: message)
         } catch {
-            self.log("Message handling failed with error: \(error)", level: .warning)
-            self.disconnect(error: error)
+            log("Message handling failed with error: \(error)", level: .warning)
+            disconnect(error: error)
         }
     }
-
 }
 
 extension Peer: IPeerTaskDelegate {
-
     func handle(completedTask task: PeerTask) {
         log("Handling completed task: \(type(of: task))")
         if let index = tasks.firstIndex(where: { $0 === task }) {
@@ -273,13 +267,10 @@ extension Peer: IPeerTaskDelegate {
         log("Handling failed task: \(type(of: task))")
         disconnect(error: error)
     }
-
 }
 
 extension Peer: IPeerTaskRequester {
-
     func send(message: IMessage) {
         connection.send(message: message)
     }
-
 }

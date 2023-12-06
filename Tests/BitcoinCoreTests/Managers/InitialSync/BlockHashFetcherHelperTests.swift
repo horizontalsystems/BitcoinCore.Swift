@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BlockHashFetcherHelperTests: XCTestCase {
+// class BlockHashFetcherHelperTests: XCTestCase {
 //
 //    private var helper = BlockHashFetcherHelper()
 //    private let addresses = [["address0_0", "address0_1"],
@@ -35,4 +35,4 @@
 //        XCTAssertEqual(1, result)
 //    }
 //
-//}
+// }

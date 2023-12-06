@@ -1,7 +1,7 @@
 import Foundation
+import HdWalletKit
 import HsCryptoKit
 import HsExtensions
-import HdWalletKit
 
 class SchnorrInputSigner {
     enum SignError: Error {
@@ -15,11 +15,9 @@ class SchnorrInputSigner {
     init(hdWallet: IPrivateHDWallet) {
         self.hdWallet = hdWallet
     }
-
 }
 
 extension SchnorrInputSigner: IInputSigner {
-
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data] {
         let input = inputsToSign[index]
         let pubKey = input.previousOutputPublicKey
@@ -35,5 +33,4 @@ extension SchnorrInputSigner: IInputSigner {
 
         return [signature]
     }
-
 }

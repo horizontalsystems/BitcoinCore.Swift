@@ -5,9 +5,9 @@ public class Chunk: Equatable {
     let index: Int
     let payloadRange: Range<Int>?
 
-    public var opCode: UInt8 { return scriptData[index] }
+    public var opCode: UInt8 { scriptData[index] }
     public var data: Data? {
-        guard let payloadRange = payloadRange, scriptData.count >= payloadRange.upperBound else {
+        guard let payloadRange, scriptData.count >= payloadRange.upperBound else {
             return nil
         }
         return scriptData.subdata(in: payloadRange)
@@ -19,8 +19,7 @@ public class Chunk: Equatable {
         self.payloadRange = payloadRange
     }
 
-    static public func ==(lhs: Chunk, rhs: Chunk) -> Bool {
-        return lhs.scriptData == rhs.scriptData && lhs.opCode == rhs.opCode && lhs.payloadRange == rhs.payloadRange
+    public static func == (lhs: Chunk, rhs: Chunk) -> Bool {
+        lhs.scriptData == rhs.scriptData && lhs.opCode == rhs.opCode && lhs.payloadRange == rhs.payloadRange
     }
-
 }

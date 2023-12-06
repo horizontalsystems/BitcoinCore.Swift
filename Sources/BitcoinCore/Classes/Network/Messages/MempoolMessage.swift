@@ -1,6 +1,5 @@
 struct MemPoolMessage: IMessage {
-    init() {
-    }
+    init() {}
 
     let description: String = ""
 }

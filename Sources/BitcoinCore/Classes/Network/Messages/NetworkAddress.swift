@@ -25,7 +25,6 @@ public struct NetworkAddress {
             address = addr
         }
 
-
         port = byteStream.read(UInt16.self)
     }
 
@@ -40,11 +39,10 @@ public struct NetworkAddress {
     func supportsBloomFilter() -> Bool {
         ServiceFlags(rawValue: services).contains(ServiceFlags.bloom)
     }
-
 }
 
 extension NetworkAddress: CustomStringConvertible {
     public var description: String {
-        return "[\(address)]:\(port.bigEndian) \(ServiceFlags(rawValue: services))"
+        "[\(address)]:\(port.bigEndian) \(ServiceFlags(rawValue: services))"
     }
 }
