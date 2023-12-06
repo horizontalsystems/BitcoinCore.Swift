@@ -28,7 +28,7 @@ public struct BloomFilter {
         self.init(elements: elements.count, falsePositiveRate: 0.00005, randomNonce: nTweak)
 
         for element in elements {
-            self.insert(element)
+            self.insert(Data(element))
         }
     }
 

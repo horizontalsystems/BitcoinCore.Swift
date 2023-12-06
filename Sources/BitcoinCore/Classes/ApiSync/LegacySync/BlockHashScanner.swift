@@ -3,9 +3,9 @@ class BlockHashScanner {
 
     private let restoreKeyConverter: IRestoreKeyConverter
     private let provider: IApiTransactionProvider
-    private let helper: BlockHashScanHelper
+    private let helper: IBlockHashScanHelper
 
-    init(restoreKeyConverter: IRestoreKeyConverter, provider: IApiTransactionProvider, helper: BlockHashScanHelper) {
+    init(restoreKeyConverter: IRestoreKeyConverter, provider: IApiTransactionProvider, helper: IBlockHashScanHelper) {
         self.restoreKeyConverter = restoreKeyConverter
         self.provider = provider
         self.helper = helper
