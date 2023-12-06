@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 import HsToolKit
 import NIO
 
@@ -15,7 +15,7 @@ public enum PeerGroupEvent {
 }
 
 class PeerGroup {
-    private static let acceptableBlockHeightDifference = 50_000
+    private static let acceptableBlockHeightDifference = 50000
     private static let peerCountToConnect = 100
 
     private let factory: IFactory
@@ -25,9 +25,9 @@ class PeerGroup {
     private var peerManager: IPeerManager
 
     private let localDownloadedBestBlockHeight: Int32
-    private let peerCountToHold: Int            // number of peers held
-    private var peerCountToConnect: Int?        // number of peers to connect to
-    private var peerCountConnected = 0          // number of peers connected to
+    private let peerCountToHold: Int // number of peers held
+    private var peerCountToConnect: Int? // number of peers to connect to
+    private var peerCountConnected = 0 // number of peers connected to
 
     private(set) var started: Bool = false
 
@@ -37,8 +37,8 @@ class PeerGroup {
 
     private let logger: Logger?
 
-    weak var inventoryItemsHandler: IInventoryItemsHandler? = nil
-    weak var peerTaskHandler: IPeerTaskHandler? = nil
+    weak var inventoryItemsHandler: IInventoryItemsHandler?
+    weak var peerTaskHandler: IPeerTaskHandler?
 
     private let subject = PassthroughSubject<PeerGroupEvent, Never>()
 
@@ -46,7 +46,8 @@ class PeerGroup {
          peerAddressManager: IPeerAddressManager, peerCount: Int = 10, localDownloadedBestBlockHeight: Int32,
          peerManager: IPeerManager, peersQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.peers", qos: .background),
          inventoryQueue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.peer-group.inventory", qos: .background),
-         logger: Logger? = nil) {
+         logger: Logger? = nil)
+    {
         self.factory = factory
 
         self.reachabilityManager = reachabilityManager
@@ -86,7 +87,7 @@ class PeerGroup {
 
             var peersToConnect = [IPeer]()
 
-            for _ in self.peerManager.totalPeersCount..<self.peerCountToHold {
+            for _ in self.peerManager.totalPeersCount ..< self.peerCountToHold {
                 if let host = self.peerAddressManager.ip {
                     let peer = self.factory.peer(withHost: host, eventLoopGroup: _eventLoopGroup, logger: self.logger)
                     peer.delegate = self
@@ -108,11 +109,9 @@ class PeerGroup {
     private func onNext(_ event: PeerGroupEvent) {
         subject.send(event)
     }
-
 }
 
 extension PeerGroup: IPeerGroup {
-
     func start() {
         guard !started else {
             return
@@ -147,11 +146,9 @@ extension PeerGroup: IPeerGroup {
     func isReady(peer: IPeer) -> Bool {
         peer.ready
     }
-
 }
 
 extension PeerGroup: PeerDelegate {
-
     func peerReady(_ peer: IPeer) {
         onNext(.onPeerReady(peer: peer))
     }
@@ -164,7 +161,7 @@ extension PeerGroup: PeerDelegate {
         peerAddressManager.markConnected(peer: peer)
         onNext(.onPeerConnect(peer: peer))
 
-        if let peerCountToConnect = peerCountToConnect {
+        if let peerCountToConnect {
             disconnectSlowestPeer(peerCountToConnect: peerCountToConnect)
         } else {
             setPeerCountToConnect(for: peer)
@@ -180,7 +177,7 @@ extension PeerGroup: PeerDelegate {
     }
 
     private func disconnectSlowestPeer(peerCountToConnect: Int) {
-        if peerCountToConnect > peerCountConnected && peerCountToHold > 1 && peerAddressManager.hasFreshIps {
+        if peerCountToConnect > peerCountConnected, peerCountToHold > 1, peerAddressManager.hasFreshIps {
             let sortedPeers = peerManager.sorted
             if sortedPeers.count >= peerCountToHold {
                 sortedPeers.last?.disconnect(error: nil)
@@ -193,11 +190,11 @@ extension PeerGroup: PeerDelegate {
             self.peerManager.peerDisconnected(peer: peer)
         }
 
-        if let error = error {
+        if let error {
             logger?.warning("Peer \(peer.logName)(\(peer.host)) disconnected. Network reachable: \(reachabilityManager.isReachable). Error: \(error)")
         }
 
-        if reachabilityManager.isReachable && error != nil {
+        if reachabilityManager.isReachable, error != nil {
             peerAddressManager.markFailed(ip: peer.host)
         } else {
             peerAddressManager.markSuccess(ip: peer.host)
@@ -215,8 +212,8 @@ extension PeerGroup: PeerDelegate {
         switch message {
         case let addressMessage as AddressMessage:
             let addresses = addressMessage.addressList
-                    .filter { $0.supportsBloomFilter() }
-                    .map { $0.address }
+                .filter { $0.supportsBloomFilter() }
+                .map(\.address)
 
             peerAddressManager.add(ips: addresses)
         case let inventoryMessage as InventoryMessage:
@@ -226,13 +223,10 @@ extension PeerGroup: PeerDelegate {
         default: ()
         }
     }
-
 }
 
 extension PeerGroup: IPeerAddressManagerDelegate {
-
     func newIpsAdded() {
         connectPeersIfRequired()
     }
-
 }

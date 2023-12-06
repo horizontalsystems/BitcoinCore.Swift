@@ -2,13 +2,13 @@ import Foundation
 
 /// A thread-safe array.
 public class SynchronizedArray<Element> {
-    fileprivate let queue = DispatchQueue(label: "io.SynchronizedArray", attributes: .concurrent)
-    fileprivate var array = [Element]()
+    private let queue = DispatchQueue(label: "io.SynchronizedArray", attributes: .concurrent)
+    private var array = [Element]()
 }
 
 // MARK: - Properties
-public extension SynchronizedArray {
 
+public extension SynchronizedArray {
     /// The first element of the collection.
     var first: Element? {
         var result: Element?
@@ -46,6 +46,7 @@ public extension SynchronizedArray {
 }
 
 // MARK: - Immutable
+
 public extension SynchronizedArray {
     /// Returns the first element of the sequence that satisfies the given predicate or nil if no such element is found.
     ///
@@ -116,12 +117,12 @@ public extension SynchronizedArray {
 }
 
 // MARK: - Mutable
-public extension SynchronizedArray {
 
+public extension SynchronizedArray {
     /// Adds a new element at the end of the array.
     ///
     /// - Parameter element: The element to append to the array.
-    func append( _ element: Element) {
+    func append(_ element: Element) {
         queue.async(flags: .barrier) {
             self.array.append(element)
         }
@@ -130,7 +131,7 @@ public extension SynchronizedArray {
     /// Adds a new element at the end of the array.
     ///
     /// - Parameter element: The element to append to the array.
-    func append( _ elements: [Element]) {
+    func append(_ elements: [Element]) {
         queue.async(flags: .barrier) {
             self.array += elements
         }
@@ -141,7 +142,7 @@ public extension SynchronizedArray {
     /// - Parameters:
     ///   - element: The new element to insert into the array.
     ///   - index: The position at which to insert the new element.
-    func insert( _ element: Element, at index: Int) {
+    func insert(_ element: Element, at index: Int) {
         queue.async(flags: .barrier) {
             self.array.insert(element, at: index)
         }
@@ -194,7 +195,6 @@ public extension SynchronizedArray {
 }
 
 public extension SynchronizedArray {
-
     /// Accesses the element at the specified position if it exists.
     ///
     /// - Parameter index: The position of the element to access.
@@ -204,14 +204,14 @@ public extension SynchronizedArray {
             var result: Element?
 
             queue.sync {
-                guard self.array.startIndex..<self.array.endIndex ~= index else { return }
+                guard self.array.startIndex ..< self.array.endIndex ~= index else { return }
                 result = self.array[index]
             }
 
             return result
         }
         set {
-            guard let newValue = newValue else { return }
+            guard let newValue else { return }
 
             queue.async(flags: .barrier) {
                 self.array[index] = newValue
@@ -220,10 +220,9 @@ public extension SynchronizedArray {
     }
 }
 
-
 // MARK: - Equatable
-public extension SynchronizedArray where Element: Equatable {
 
+public extension SynchronizedArray where Element: Equatable {
     /// Returns a Boolean value indicating whether the sequence contains the given element.
     ///
     /// - Parameter element: The element to find in the sequence.
@@ -236,13 +235,13 @@ public extension SynchronizedArray where Element: Equatable {
 }
 
 // MARK: - Infix operators
-public extension SynchronizedArray {
 
-    static func +=(left: inout SynchronizedArray, right: Element) {
+public extension SynchronizedArray {
+    static func += (left: inout SynchronizedArray, right: Element) {
         left.append(right)
     }
 
-    static func +=(left: inout SynchronizedArray, right: [Element]) {
+    static func += (left: inout SynchronizedArray, right: [Element]) {
         left.append(right)
     }
 }

@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class ConnectionTimeoutManagerTests:XCTestCase {
+// class ConnectionTimeoutManagerTests:XCTestCase {
 //
 //    private var generatedDate: Date!
 //    private var dateIsGenerated: Bool!
@@ -93,4 +93,4 @@
 //        verify(mockPeer).disconnect(error: equal(to: ConnectionTimeoutManager.TimeoutError.pingTimedOut, equalWhen: { type(of: $0) == type(of: $1) }))
 //    }
 //
-//}
+// }

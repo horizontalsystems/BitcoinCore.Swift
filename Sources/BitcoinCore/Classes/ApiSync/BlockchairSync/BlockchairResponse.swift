@@ -1,7 +1,7 @@
 import Foundation
 import ObjectMapper
 
-struct BlockchairResponse {
+enum BlockchairResponse {
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -9,12 +9,12 @@ struct BlockchairResponse {
     }()
 
     public static let dateStringToTimestampTransform: TransformOf<Int, String> = TransformOf(fromJSON: { string -> Int? in
-        guard let string = string else {
+        guard let string else {
             return nil
         }
         return dateFormatter.date(from: string).flatMap { Int($0.timeIntervalSince1970) }
     }, toJSON: { (value: Int?) in
-        guard let value = value else {
+        guard let value else {
             return nil
         }
         return dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(value)))

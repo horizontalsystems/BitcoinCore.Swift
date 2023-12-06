@@ -1,11 +1,11 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//import RxBlocking
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// import RxBlocking
 //
-//@testable import BitcoinCore
+// @testable import BitcoinCore
 //
-//class BlockHashFetcherTests: XCTestCase {
+// class BlockHashFetcherTests: XCTestCase {
 //
 //    private var mockApiManager: MockIBCoinApi!
 //    private var mockAddressSelector: MockIAddressSelector!
@@ -90,4 +90,4 @@
 //        }
 //    }
 //
-//}
+// }

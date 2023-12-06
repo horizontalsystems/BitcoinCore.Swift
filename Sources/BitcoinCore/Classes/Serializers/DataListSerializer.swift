@@ -1,8 +1,7 @@
 import Foundation
 import HsExtensions
 
-public class DataListSerializer {
-
+public enum DataListSerializer {
     static func serialize(dataList: [Data]) -> Data {
         var data = Data()
         data += VarInt(dataList.count).serialized()
@@ -15,7 +14,7 @@ public class DataListSerializer {
     static func deserialize(byteStream: ByteStream) -> [Data] {
         var data = [Data]()
         let count = byteStream.read(VarInt.self)
-        for _ in 0..<Int(count.underlyingValue) {
+        for _ in 0 ..< Int(count.underlyingValue) {
             let dataSize = byteStream.read(VarInt.self)
             data.append(byteStream.read(Data.self, count: Int(dataSize.underlyingValue)))
         }
@@ -24,7 +23,6 @@ public class DataListSerializer {
     }
 
     static func deserialize(data: Data) -> [Data] {
-        return deserialize(byteStream: ByteStream(data))
+        deserialize(byteStream: ByteStream(data))
     }
-
 }

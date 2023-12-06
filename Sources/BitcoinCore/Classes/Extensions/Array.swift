@@ -1,14 +1,13 @@
 import Foundation
 import GRDB
 
-extension Array where Element == FullTransaction {
-
+extension [FullTransaction] {
     func inTopologicalOrder() -> [FullTransaction] {
         var ordered = [FullTransaction]()
 
-        var visited = [Bool](repeating: false, count: self.count)
+        var visited = [Bool](repeating: false, count: count)
 
-        for i in 0..<self.count {
+        for i in 0 ..< count {
             visit(transactionWithIndex: i, picked: &ordered, visited: &visited)
         }
 
@@ -26,10 +25,11 @@ extension Array where Element == FullTransaction {
 
         visited[transactionIndex] = true
 
-        for candidateTransactionIndex in 0..<self.count {
+        for candidateTransactionIndex in 0 ..< count {
             for input in self[transactionIndex].inputs {
                 if input.previousOutputTxHash == self[candidateTransactionIndex].header.dataHash,
-                   self[candidateTransactionIndex].outputs.count > input.previousOutputIndex {
+                   self[candidateTransactionIndex].outputs.count > input.previousOutputIndex
+                {
                     visit(transactionWithIndex: candidateTransactionIndex, picked: &picked, visited: &visited)
                 }
             }
@@ -38,47 +38,38 @@ extension Array where Element == FullTransaction {
         visited[transactionIndex] = false
         picked.append(self[transactionIndex])
     }
-
 }
 
-extension Array where Element : Hashable {
-
+extension Array where Element: Hashable {
     var unique: [Element] {
-        return Array(Set(self))
+        Array(Set(self))
     }
-
 }
 
-extension Array: SQLExpressible where Element == Data {
-
+extension [Data]: SQLExpressible {
     public var sqlExpression: SQLExpression {
         databaseValue.sqlExpression
     }
-
 }
 
-extension Array: DatabaseValueConvertible, StatementBinding where Element == Data {
-
+extension [Data]: DatabaseValueConvertible, StatementBinding {
     public var databaseValue: DatabaseValue {
         DataListSerializer.serialize(dataList: self).databaseValue
     }
 
-    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Array<Element>? {
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> [Element]? {
         if case let DatabaseValue.Storage.blob(value) = dbValue.storage {
             return DataListSerializer.deserialize(data: value)
         }
 
         return nil
     }
-
 }
 
 extension Array {
-
     func chunked(into size: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: size).map {
+        stride(from: 0, to: count, by: size).map {
             Array(self[$0 ..< Swift.min($0 + size, count)])
         }
     }
-
 }

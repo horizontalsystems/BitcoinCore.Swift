@@ -571,9 +571,9 @@ protocol IMerkleBlockHandler: AnyObject {
     func handle(merkleBlock: MerkleBlock) throws
 }
 
-//protocol ITransactionHandler: AnyObject {
+// protocol ITransactionHandler: AnyObject {
 //    func handle(transaction: FullTransaction, transactionHash: TransactionHash) throws
-//}
+// }
 
 protocol ITransactionListener: AnyObject {
     func onReceive(transaction: FullTransaction)
@@ -609,7 +609,7 @@ public protocol IPlugin: IRestoreKeyConverter {
 }
 
 public extension IPlugin {
-    func bloomFilterElements(publicKey: PublicKey) -> [Data] { [] }
+    func bloomFilterElements(publicKey _: PublicKey) -> [Data] { [] }
 }
 
 public protocol IPluginManager {

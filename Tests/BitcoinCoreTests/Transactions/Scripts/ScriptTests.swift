@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class ScriptTests: XCTestCase {
+// class ScriptTests: XCTestCase {
 //    private var data: Data!
 //
 //    override func setUp() {
@@ -54,4 +54,4 @@
 //        }
 //    }
 //
-//}
+// }

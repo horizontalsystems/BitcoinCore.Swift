@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class IPeerGroupTests: PeerGroupTests {
+// class IPeerGroupTests: PeerGroupTests {
 //
 //    // For all tests peersCount = 3
 //
@@ -276,4 +276,4 @@
 //        }
 //    }
 //
-//}
+// }

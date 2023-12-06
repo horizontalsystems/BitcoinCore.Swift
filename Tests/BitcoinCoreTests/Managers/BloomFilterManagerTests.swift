@@ -1,11 +1,11 @@
-//import Quick
-//import Nimble
-//import XCTest
-//import Cuckoo
-//import HdWalletKit
-//@testable import BitcoinCore
+// import Quick
+// import Nimble
+// import XCTest
+// import Cuckoo
+// import HdWalletKit
+// @testable import BitcoinCore
 //
-//class BloomFilterManagerTests: QuickSpec {
+// class BloomFilterManagerTests: QuickSpec {
 //    override func spec() {
 //        let mockStorage = MockIStorage()
 //        let mockFactory = MockIFactory()
@@ -82,4 +82,4 @@
 //        }
 //    }
 //
-//}
+// }

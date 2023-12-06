@@ -12,11 +12,9 @@ public class TransactionSyncer {
         self.invalidator = invalidator
         self.publicKeyManager = publicKeyManager
     }
-
 }
 
 extension TransactionSyncer: ITransactionSyncer {
-
     public func newTransactions() -> [FullTransaction] {
         storage.newTransactions()
     }
@@ -29,11 +27,10 @@ extension TransactionSyncer: ITransactionSyncer {
         var needToUpdateBloomFilter = false
 
         do {
-            try self.processor.processReceived(transactions: transactions, skipCheckBloomFilter: false)
+            try processor.processReceived(transactions: transactions, skipCheckBloomFilter: false)
         } catch _ as BloomFilterManager.BloomFilterExpired {
             needToUpdateBloomFilter = true
-        } catch {
-        }
+        } catch {}
 
         if needToUpdateBloomFilter {
             try? publicKeyManager.fillGap()
@@ -47,5 +44,4 @@ extension TransactionSyncer: ITransactionSyncer {
     public func shouldRequestTransaction(hash: Data) -> Bool {
         !storage.relayedTransactionExists(byHash: hash)
     }
-
 }

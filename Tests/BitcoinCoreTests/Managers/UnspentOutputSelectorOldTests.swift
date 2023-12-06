@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class UnspentOutputSelectorOldTests: XCTestCase {
+// class UnspentOutputSelectorOldTests: XCTestCase {
 //
 //    private let dust = 12
 //
@@ -123,4 +123,4 @@
 //        }
 //    }
 //
-//}
+// }

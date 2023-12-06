@@ -29,7 +29,7 @@ class BlockHashScanner {
 
         listener?.transactionsFound(count: transactionResponses.count)
 
-        let outputs = transactionResponses.flatMap { $0.apiAddressItems }
+        let outputs = transactionResponses.flatMap(\.apiAddressItems)
         let externalLastUsedIndex = helper.lastUsedIndex(addresses: externalAddresses, items: outputs)
         let internalLastUsedIndex = helper.lastUsedIndex(addresses: internalAddresses, items: outputs)
 

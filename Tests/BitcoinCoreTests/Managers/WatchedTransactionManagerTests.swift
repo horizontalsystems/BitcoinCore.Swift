@@ -1,11 +1,11 @@
-//import Quick
-//import Nimble
-//import XCTest
-//import Cuckoo
-//import HdWalletKit
-//@testable import BitcoinCore
+// import Quick
+// import Nimble
+// import XCTest
+// import Cuckoo
+// import HdWalletKit
+// @testable import BitcoinCore
 //
-//class WatchedTransactionManagerTests: QuickSpec {
+// class WatchedTransactionManagerTests: QuickSpec {
 //    override func spec() {
 //        let mockBloomFilterManager = MockIBloomFilterManager()
 //        let mockP2ShFilterDelegate = MockIWatchedTransactionDelegate()
@@ -84,4 +84,4 @@
 //        }
 //    }
 //
-//}
+// }

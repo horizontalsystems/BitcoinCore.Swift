@@ -6,16 +6,14 @@ class TransactionMetadataExtractor {
         myOutputsCache = MyOutputsCache.instance(storage: storage)
         self.storage = storage
     }
-
 }
 
 extension TransactionMetadataExtractor: ITransactionExtractor {
-
     func extract(transaction: FullTransaction) {
-        var myInputsTotalValue: Int = 0
-        var myOutputsTotalValue: Int = 0
-        var myChangeOutputsTotalValue: Int = 0
-        var outputsTotalValue: Int = 0
+        var myInputsTotalValue = 0
+        var myOutputsTotalValue = 0
+        var myChangeOutputsTotalValue = 0
+        var outputsTotalValue = 0
         var allInputsMine = true
 
         for input in transaction.inputs {
@@ -87,5 +85,4 @@ extension TransactionMetadataExtractor: ITransactionExtractor {
             myOutputsCache.add(outputs: transaction.outputs)
         }
     }
-
 }

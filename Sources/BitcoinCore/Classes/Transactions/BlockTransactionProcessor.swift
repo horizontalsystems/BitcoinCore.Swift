@@ -14,7 +14,8 @@ class BlockTransactionProcessor {
     private let queue: DispatchQueue
 
     init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder,
-         conflictsResolver: TransactionConflictsResolver, invalidator: TransactionInvalidator, listener: IBlockchainDataListener? = nil, queue: DispatchQueue) {
+         conflictsResolver: TransactionConflictsResolver, invalidator: TransactionInvalidator, listener: IBlockchainDataListener? = nil, queue: DispatchQueue)
+    {
         self.storage = storage
         self.extractor = extractor
         self.publicKeyManager = publicKeyManager
@@ -32,11 +33,9 @@ class BlockTransactionProcessor {
         transaction.status = .relayed
         transaction.order = order
     }
-
 }
 
 extension BlockTransactionProcessor: IBlockTransactionProcessor {
-
     func processReceived(transactions: [FullTransaction], inBlock block: Block, skipCheckBloomFilter: Bool) throws {
         var needToUpdateBloomFilter = false
 
@@ -87,8 +86,8 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
 
                 if !skipCheckBloomFilter {
                     needToUpdateBloomFilter = needToUpdateBloomFilter ||
-                            publicKeyManager.gapShifts() ||
-                            irregularOutputFinder.hasIrregularOutput(outputs: fullTransaction.outputs)
+                        publicKeyManager.gapShifts() ||
+                        irregularOutputFinder.hasIrregularOutput(outputs: fullTransaction.outputs)
                 }
             }
         }

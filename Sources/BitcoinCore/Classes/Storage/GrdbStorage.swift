@@ -239,7 +239,6 @@ open class GrdbStorage {
                 func outputsWithPublicKeys() -> [OutputWithPublicKey] {
                     try! storage._outputsWithPublicKeys(db: db)
                 }
-
             }
 
             let anonymousOutputStorage = AnonymousOutputStorage(storage: self, db: db)
@@ -253,10 +252,10 @@ open class GrdbStorage {
             }
 
             for transaction in try Transaction.order([Transaction.Columns.timestamp, Transaction.Columns.order]).fetchAll(db) {
-                let fullTransaction = FullTransaction(
-                        header: transaction,
-                        inputs: try self._inputs(transactionHash: transaction.dataHash, db: db),
-                        outputs: try self._outputs(transactionHash: transaction.dataHash, db: db)
+                let fullTransaction = try FullTransaction(
+                    header: transaction,
+                    inputs: self._inputs(transactionHash: transaction.dataHash, db: db),
+                    outputs: self._outputs(transactionHash: transaction.dataHash, db: db)
                 )
 
                 extractor.extract(transaction: fullTransaction)
@@ -272,23 +271,23 @@ open class GrdbStorage {
             }
 
             let blockHashes = try BlockHash.fetchAll(db)
-            let hashes = blockHashes.map { $0.headerHash }
+            let hashes = blockHashes.map(\.headerHash)
 
             try Block.filter(hashes.contains(Block.Columns.headerHash)).updateAll(db, Block.Columns.partial.set(to: true))
         }
-        
+
         migrator.registerMigration("addConvertedForP2trToPublicKey") { db in
             try db.alter(table: PublicKey.databaseTableName) { t in
                 t.add(column: PublicKey.Columns.convertedForP2tr.name, .blob).notNull().defaults(to: Data())
             }
-            
+
             let publicKeys = try PublicKey.fetchAll(db)
             for pk in publicKeys {
                 let updatedPK = try PublicKey(withAccount: pk.account, index: pk.index, external: pk.external, hdPublicKeyData: pk.raw)
                 try updatedPK.update(db)
             }
         }
-        
+
         migrator.registerMigration("addLockingScriptPayloadToOutput") { db in
             let outputScriptTypeParser = OutputScriptTypeParser()
             let outputs = try Output.fetchAll(db)
@@ -302,7 +301,8 @@ open class GrdbStorage {
             let outputs = try Output.fetchAll(db)
             for output in outputs {
                 if output.scriptType == .p2sh,
-                   let publicKey = try PublicKey.filter(PublicKey.Columns.scriptHashForP2WPKH == output.lockingScriptPayload).fetchOne(db) {
+                   let publicKey = try PublicKey.filter(PublicKey.Columns.scriptHashForP2WPKH == output.lockingScriptPayload).fetchOne(db)
+                {
                     output.set(publicKey: publicKey)
                     output.scriptType = .p2wpkhSh
                     try output.update(db)
@@ -326,9 +326,9 @@ open class GrdbStorage {
 
     private func fullTransaction(transaction: Transaction) -> FullTransaction {
         FullTransaction(
-                header: transaction,
-                inputs: inputs(transactionHash: transaction.dataHash),
-                outputs: outputs(transactionHash: transaction.dataHash)
+            header: transaction,
+            inputs: inputs(transactionHash: transaction.dataHash),
+            outputs: outputs(transactionHash: transaction.dataHash)
         )
     }
 
@@ -362,19 +362,19 @@ open class GrdbStorage {
         let inputC = Input.Columns.allCases.count
 
         let adapter = ScopeAdapter([
-            "output": RangeRowAdapter(0..<outputC),
-            "publicKey": RangeRowAdapter(outputC..<outputC + publicKeyC),
-            "input": RangeRowAdapter(outputC + publicKeyC..<outputC + publicKeyC + inputC)
+            "output": RangeRowAdapter(0 ..< outputC),
+            "publicKey": RangeRowAdapter(outputC ..< outputC + publicKeyC),
+            "input": RangeRowAdapter(outputC + publicKeyC ..< outputC + publicKeyC + inputC),
         ])
 
         let sql = """
-                  SELECT outputs.*, publicKeys.*, inputs.*, blocks.height AS blockHeight
-                  FROM outputs 
-                  INNER JOIN publicKeys ON outputs.publicKeyPath = publicKeys.path
-                  LEFT JOIN inputs ON inputs.previousOutputTxHash = outputs.transactionHash AND inputs.previousOutputIndex = outputs."index"
-                  LEFT JOIN transactions ON inputs.transactionHash = transactions.dataHash
-                  LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
-                  """
+        SELECT outputs.*, publicKeys.*, inputs.*, blocks.height AS blockHeight
+        FROM outputs 
+        INNER JOIN publicKeys ON outputs.publicKeyPath = publicKeys.path
+        LEFT JOIN inputs ON inputs.previousOutputTxHash = outputs.transactionHash AND inputs.previousOutputIndex = outputs."index"
+        LEFT JOIN transactions ON inputs.transactionHash = transactions.dataHash
+        LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
+        """
         let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
 
         var outputs = [OutputWithPublicKey]()
@@ -395,9 +395,9 @@ open class GrdbStorage {
 
     private func _previousOutput(ofInput input: Input, db: Database) throws -> Output? {
         try Output
-                .filter(Output.Columns.transactionHash == input.previousOutputTxHash)
-                .filter(Output.Columns.index == input.previousOutputIndex)
-                .fetchOne(db)
+            .filter(Output.Columns.transactionHash == input.previousOutputTxHash)
+            .filter(Output.Columns.index == input.previousOutputIndex)
+            .fetchOne(db)
     }
 
     private func inputsWithPreviousOutputs(transactionHashes: [Data], db: Database) throws -> [InputWithPreviousOutput] {
@@ -407,16 +407,16 @@ open class GrdbStorage {
         let outputC = Output.Columns.allCases.count
 
         let adapter = ScopeAdapter([
-            "input": RangeRowAdapter(0..<inputC),
-            "output": RangeRowAdapter(inputC..<inputC + outputC)
+            "input": RangeRowAdapter(0 ..< inputC),
+            "output": RangeRowAdapter(inputC ..< inputC + outputC),
         ])
 
         let sql = """
-                  SELECT inputs.*, outputs.*
-                  FROM inputs
-                  LEFT JOIN outputs ON inputs.previousOutputTxHash = outputs.transactionHash AND inputs.previousOutputIndex = outputs."index"
-                  WHERE inputs.transactionHash IN (\(transactionHashes.map({ "x'" + $0.hs.hex + "'" }).joined(separator: ",")))
-                  """
+        SELECT inputs.*, outputs.*
+        FROM inputs
+        LEFT JOIN outputs ON inputs.previousOutputTxHash = outputs.transactionHash AND inputs.previousOutputIndex = outputs."index"
+        WHERE inputs.transactionHash IN (\(transactionHashes.map { "x'" + $0.hs.hex + "'" }.joined(separator: ",")))
+        """
         let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
 
         while let row = try rows.next() {
@@ -425,7 +425,6 @@ open class GrdbStorage {
 
         return inputs
     }
-
 }
 
 extension GrdbStorage: IStorage {
@@ -450,17 +449,17 @@ extension GrdbStorage: IStorage {
     public func leastScoreFastestPeerAddress(excludingIps: [String]) -> PeerAddress? {
         try! dbPool.read { db in
             try PeerAddress
-                    .filter(!excludingIps.contains(PeerAddress.Columns.ip))
-                    .order(PeerAddress.Columns.score.asc, PeerAddress.Columns.connectionTime.asc)
-                    .fetchOne(db)
+                .filter(!excludingIps.contains(PeerAddress.Columns.ip))
+                .order(PeerAddress.Columns.score.asc, PeerAddress.Columns.connectionTime.asc)
+                .fetchOne(db)
         }
     }
 
     public func peerAddressExist(address: String) -> Bool {
         try! dbPool.read { db in
             try PeerAddress
-                    .filter(PeerAddress.Columns.ip == address)
-                    .fetchCount(db) > 0
+                .filter(PeerAddress.Columns.ip == address)
+                .fetchCount(db) > 0
         }
     }
 
@@ -702,7 +701,7 @@ extension GrdbStorage: IStorage {
                 try Transaction.filter(Transaction.Columns.blockHash == block.headerHash).deleteAll(db)
             }
 
-            try Block.filter(blocks.map{$0.headerHash}.contains(Block.Columns.headerHash)).deleteAll(db)
+            try Block.filter(blocks.map(\.headerHash).contains(Block.Columns.headerHash)).deleteAll(db)
         }
     }
 
@@ -767,14 +766,14 @@ extension GrdbStorage: IStorage {
             let transactionC = Transaction.Columns.allCases.count
 
             let adapter = ScopeAdapter([
-                "transaction": RangeRowAdapter(0..<transactionC)
+                "transaction": RangeRowAdapter(0 ..< transactionC),
             ])
 
             let sql = """
-                      SELECT transactions.* 
-                      FROM (SELECT * FROM invalid_transactions UNION ALL SELECT transactions.* FROM transactions) AS transactions
-                      WHERE transactions.uid = ? 
-                      """
+            SELECT transactions.* 
+            FROM (SELECT * FROM invalid_transactions UNION ALL SELECT transactions.* FROM transactions) AS transactions
+            WHERE transactions.uid = ? 
+            """
 
             let rows = try Row.fetchCursor(db, sql: sql, arguments: [uid], adapter: adapter)
 
@@ -789,19 +788,19 @@ extension GrdbStorage: IStorage {
     public func incomingPendingTransactionHashes() -> [Data] {
         try! dbPool.read { db in
             try Transaction
-                    .filter(Transaction.Columns.blockHash == nil)
-                    .filter(Transaction.Columns.isOutgoing == false)
-                    .fetchAll(db)
-        }.map { $0.dataHash }
+                .filter(Transaction.Columns.blockHash == nil)
+                .filter(Transaction.Columns.isOutgoing == false)
+                .fetchAll(db)
+        }.map(\.dataHash)
     }
 
     public func incomingPendingTransactionsExist() -> Bool {
         try! dbPool.read { db in
             try Transaction
-                    .filter(Transaction.Columns.blockHash == nil)
-                    .filter(Transaction.Columns.isMine == true)
-                    .filter(Transaction.Columns.isOutgoing == false)
-                    .fetchCount(db) > 0
+                .filter(Transaction.Columns.blockHash == nil)
+                .filter(Transaction.Columns.isMine == true)
+                .filter(Transaction.Columns.isOutgoing == false)
+                .fetchCount(db) > 0
         }
     }
 
@@ -830,18 +829,18 @@ extension GrdbStorage: IStorage {
     public func newTransaction(byHash hash: Data) -> Transaction? {
         try! dbPool.read { db in
             try Transaction
-                    .filter(Transaction.Columns.status == TransactionStatus.new)
-                    .filter(Transaction.Columns.dataHash == hash)
-                    .fetchOne(db)
+                .filter(Transaction.Columns.status == TransactionStatus.new)
+                .filter(Transaction.Columns.dataHash == hash)
+                .fetchOne(db)
         }
     }
 
     public func relayedTransactionExists(byHash hash: Data) -> Bool {
         try! dbPool.read { db in
             try Transaction
-                    .filter(Transaction.Columns.status == TransactionStatus.relayed)
-                    .filter(Transaction.Columns.dataHash == hash)
-                    .fetchCount(db) > 1
+                .filter(Transaction.Columns.status == TransactionStatus.relayed)
+                .filter(Transaction.Columns.dataHash == hash)
+                .fetchCount(db) > 1
         }
     }
 
@@ -864,16 +863,16 @@ extension GrdbStorage: IStorage {
     }
 
     public func fullInfo(forTransactions transactionsWithBlocks: [TransactionWithBlock]) -> [FullTransactionForInfo] {
-        let transactionHashes: [Data] = transactionsWithBlocks.filter({ $0.transaction.status != .invalid }).map({ $0.transaction.dataHash })
+        let transactionHashes: [Data] = transactionsWithBlocks.filter { $0.transaction.status != .invalid }.map(\.transaction.dataHash)
         var inputs = [InputWithPreviousOutput]()
         var outputs = [Output]()
         var metadata = [TransactionMetadata]()
 
         try! dbPool.read { db in
             for transactionHashChunks in transactionHashes.chunked(into: 999) {
-                inputs.append(contentsOf: try inputsWithPreviousOutputs(transactionHashes: transactionHashChunks, db: db))
-                outputs.append(contentsOf: try Output.filter(transactionHashChunks.contains(Output.Columns.transactionHash)).fetchAll(db))
-                metadata.append(contentsOf: try TransactionMetadata.filter(transactionHashChunks.contains(TransactionMetadata.Columns.transactionHash)).fetchAll(db))
+                try inputs.append(contentsOf: inputsWithPreviousOutputs(transactionHashes: transactionHashChunks, db: db))
+                try outputs.append(contentsOf: Output.filter(transactionHashChunks.contains(Output.Columns.transactionHash)).fetchAll(db))
+                try metadata.append(contentsOf: TransactionMetadata.filter(transactionHashChunks.contains(TransactionMetadata.Columns.transactionHash)).fetchAll(db))
             }
         }
 
@@ -884,10 +883,10 @@ extension GrdbStorage: IStorage {
 
         for transactionWithBlock in transactionsWithBlocks {
             let fullTransaction = FullTransactionForInfo(
-                    transactionWithBlock: transactionWithBlock,
-                    inputsWithPreviousOutputs: inputsByTransaction[transactionWithBlock.transaction.dataHash] ?? [],
-                    outputs: outputsByTransaction[transactionWithBlock.transaction.dataHash] ?? [],
-                    metaData: metadataByTransaction[transactionWithBlock.transaction.dataHash]?.first ?? TransactionMetadata(transactionHash: transactionWithBlock.transaction.dataHash)
+                transactionWithBlock: transactionWithBlock,
+                inputsWithPreviousOutputs: inputsByTransaction[transactionWithBlock.transaction.dataHash] ?? [],
+                outputs: outputsByTransaction[transactionWithBlock.transaction.dataHash] ?? [],
+                metaData: metadataByTransaction[transactionWithBlock.transaction.dataHash]?.first ?? TransactionMetadata(transactionHash: transactionWithBlock.transaction.dataHash)
             )
 
             results.append(fullTransaction)
@@ -903,22 +902,21 @@ extension GrdbStorage: IStorage {
             let transactionC = Transaction.Columns.allCases.count
 
             let adapter = ScopeAdapter([
-                "transaction": RangeRowAdapter(0..<transactionC)
+                "transaction": RangeRowAdapter(0 ..< transactionC),
             ])
 
             let sql = """
-                      SELECT transactions.*, blocks.height as blockHeight
-                      FROM transactions
-                      LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
-                      WHERE transactions.dataHash = \("x'" + hash.hs.hex + "'")                    
-                      """
+            SELECT transactions.*, blocks.height as blockHeight
+            FROM transactions
+            LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
+            WHERE transactions.dataHash = \("x'" + hash.hs.hex + "'")                    
+            """
 
             let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
 
             if let row = try rows.next() {
                 transaction = TransactionWithBlock(transaction: row["transaction"], blockHeight: row["blockHeight"])
             }
-
         }
 
         guard let transactionWithBlock = transaction else {
@@ -934,24 +932,24 @@ extension GrdbStorage: IStorage {
             let transactionC = Transaction.Columns.allCases.count + 1
 
             let adapter = ScopeAdapter([
-                "transaction": RangeRowAdapter(0..<transactionC)
+                "transaction": RangeRowAdapter(0 ..< transactionC),
             ])
 
             var sql = """
-                      SELECT transactions.*, blocks.height as blockHeight
-                      FROM (SELECT * FROM invalid_transactions UNION ALL SELECT transactions.* FROM transactions) AS transactions
-                      LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
-                      LEFT JOIN transaction_metadata ON transactions.dataHash = transaction_metadata.transactionHash
-                      """
+            SELECT transactions.*, blocks.height as blockHeight
+            FROM (SELECT * FROM invalid_transactions UNION ALL SELECT transactions.* FROM transactions) AS transactions
+            LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
+            LEFT JOIN transaction_metadata ON transactions.dataHash = transaction_metadata.transactionHash
+            """
 
             var whereConditions = [String]()
 
-            if let fromTimestamp = fromTimestamp, let fromOrder = fromOrder {
+            if let fromTimestamp, let fromOrder {
                 whereConditions.append("(transactions.timestamp < \(fromTimestamp) OR (transactions.timestamp == \(fromTimestamp) AND transactions.\"order\" < \(fromOrder)))")
             }
 
             if let filterType = type {
-                let filters = filterType.types.map({ "transaction_metadata.type == \($0.rawValue)" }).joined(separator: " OR ")
+                let filters = filterType.types.map { "transaction_metadata.type == \($0.rawValue)" }.joined(separator: " OR ")
                 whereConditions.append("(\(filters))")
             }
 
@@ -961,7 +959,7 @@ extension GrdbStorage: IStorage {
 
             sql += " ORDER BY transactions.timestamp DESC, transactions.\"order\" DESC"
 
-            if let limit = limit {
+            if let limit {
                 sql += " LIMIT \(limit)"
             }
 
@@ -980,7 +978,6 @@ extension GrdbStorage: IStorage {
 
                 transactions.append(TransactionWithBlock(transaction: transaction, blockHeight: row["blockHeight"]))
             }
-
         }
 
         return fullInfo(forTransactions: transactions)
@@ -1034,19 +1031,19 @@ extension GrdbStorage: IStorage {
             let transactionC = Transaction.Columns.allCases.count
 
             let adapter = ScopeAdapter([
-                "output": RangeRowAdapter(0..<outputC),
-                "publicKey": RangeRowAdapter(outputC..<outputC + publicKeyC),
-                "transaction": RangeRowAdapter(outputC + publicKeyC..<outputC + publicKeyC + transactionC)
+                "output": RangeRowAdapter(0 ..< outputC),
+                "publicKey": RangeRowAdapter(outputC ..< outputC + publicKeyC),
+                "transaction": RangeRowAdapter(outputC + publicKeyC ..< outputC + publicKeyC + transactionC),
             ])
 
             let sql = """
-                      SELECT outputs.*, publicKeys.*, transactions.*, blocks.height AS blockHeight
-                      FROM outputs 
-                      INNER JOIN publicKeys ON outputs.publicKeyPath = publicKeys.path
-                      INNER JOIN transactions ON outputs.transactionHash = transactions.dataHash
-                      LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
-                      WHERE outputs.scriptType != \(ScriptType.unknown.rawValue)
-                      """
+            SELECT outputs.*, publicKeys.*, transactions.*, blocks.height AS blockHeight
+            FROM outputs 
+            INNER JOIN publicKeys ON outputs.publicKeyPath = publicKeys.path
+            INNER JOIN transactions ON outputs.transactionHash = transactions.dataHash
+            LEFT JOIN blocks ON transactions.blockHash = blocks.headerHash
+            WHERE outputs.scriptType != \(ScriptType.unknown.rawValue)
+            """
             let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
 
             var outputs = [UnspentOutput]()
@@ -1089,8 +1086,8 @@ extension GrdbStorage: IStorage {
     public func inputsUsing(previousOutputTxHash: Data, previousOutputIndex: Int) -> [Input] {
         try! dbPool.read { db in
             try Input.filter(Input.Columns.previousOutputTxHash == previousOutputTxHash)
-                    .filter(Input.Columns.previousOutputIndex == previousOutputIndex)
-                    .fetchAll(db)
+                .filter(Input.Columns.previousOutputIndex == previousOutputIndex)
+                .fetchAll(db)
         }
     }
 
@@ -1163,16 +1160,16 @@ extension GrdbStorage: IStorage {
             let publicKeyC = PublicKey.Columns.allCases.count
 
             let adapter = ScopeAdapter([
-                "publicKey": RangeRowAdapter(0..<publicKeyC)
+                "publicKey": RangeRowAdapter(0 ..< publicKeyC),
             ])
 
             let sql = """
-                      SELECT publicKeys.*, outputs.transactionHash AS outputTxHash, blockHashPublicKeys.blockHash AS blockHash
-                      FROM publicKeys
-                      LEFT JOIN outputs ON publicKeys.path = outputs.publicKeyPath
-                      LEFT JOIN blockHashPublicKeys ON publicKeys.path = blockHashPublicKeys.publicKeyPath
-                      GROUP BY publicKeys.path
-                      """
+            SELECT publicKeys.*, outputs.transactionHash AS outputTxHash, blockHashPublicKeys.blockHash AS blockHash
+            FROM publicKeys
+            LEFT JOIN outputs ON publicKeys.path = outputs.publicKeyPath
+            LEFT JOIN blockHashPublicKeys ON publicKeys.path = blockHashPublicKeys.publicKeyPath
+            GROUP BY publicKeys.path
+            """
 
             let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
             var publicKeys = [PublicKeyWithUsedState]()
@@ -1189,5 +1186,4 @@ extension GrdbStorage: IStorage {
             try PublicKey.filter(PublicKey.Columns.path == path).fetchOne(db)
         }
     }
-
 }

@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BitsValidatorTests: XCTestCase {
+// class BitsValidatorTests: XCTestCase {
 //
 //    private var validator: BitsValidator!
 //    private var network: MockINetwork!
@@ -49,4 +49,4 @@
 //        }
 //    }
 //
-//}
+// }

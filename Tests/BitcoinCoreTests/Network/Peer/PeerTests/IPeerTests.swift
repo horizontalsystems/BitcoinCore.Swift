@@ -1,11 +1,11 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//import Alamofire
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// import Alamofire
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class IPeerTests: XCTestCase {
+// class IPeerTests: XCTestCase {
 //
 //    internal var mockNetwork: MockINetwork!
 //    internal var mockConnection: MockIPeerConnection!
@@ -146,4 +146,4 @@
 //        XCTAssertEqual(peer.equalTo(otherPeer), false)
 //    }
 //
-//}
+// }

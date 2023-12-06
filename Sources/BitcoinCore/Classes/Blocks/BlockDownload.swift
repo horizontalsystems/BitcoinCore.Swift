@@ -65,7 +65,7 @@ public class BlockDownload {
     }
 
     private func downloadBlockchain() {
-        guard let syncPeer = syncPeer, syncPeer.ready else {
+        guard let syncPeer, syncPeer.ready else {
             return
         }
 
@@ -83,7 +83,8 @@ public class BlockDownload {
         } else {
             syncPeer.add(task: GetMerkleBlocksTask(
                 blockHashes: blockHashes, merkleBlockValidator: merkleBlockValidator, merkleBlockHandler: self,
-                minMerkleBlocksCount: minMerkleBlocksCount, minTransactionsCount: minTransactionsCount, minTransactionsSize: minTransactionsSize))
+                minMerkleBlocksCount: minMerkleBlocksCount, minTransactionsCount: minTransactionsCount, minTransactionsSize: minTransactionsSize
+            ))
         }
 
         if syncedState(syncPeer) {
@@ -97,7 +98,7 @@ public class BlockDownload {
 
     private func resetRequiredDownloadSpeed() {
         minMerkleBlocksCount = 500
-        minTransactionsCount = 50_000
+        minTransactionsCount = 50000
         minTransactionsSize = 100_000
     }
 
@@ -184,16 +185,16 @@ public class BlockDownload {
 }
 
 extension BlockDownload: IInventoryItemsHandler {
-    public func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem]) {}
+    public func handleInventoryItems(peer _: IPeer, inventoryItems _: [InventoryItem]) {}
 }
 
 extension BlockDownload: IPeerTaskHandler {
-    public func handleCompletedTask(peer: IPeer, task: PeerTask) -> Bool {
+    public func handleCompletedTask(peer _: IPeer, task: PeerTask) -> Bool {
         switch task {
-            case is GetMerkleBlocksTask:
-                blockSyncer.downloadIterationCompleted()
-                return true
-            default: return false
+        case is GetMerkleBlocksTask:
+            blockSyncer.downloadIterationCompleted()
+            return true
+        default: return false
         }
     }
 }
@@ -211,13 +212,13 @@ extension BlockDownload: IInitialDownload {
         publisher
             .sink { [weak self] event in
                 switch event {
-                    case .onStart: self?.onStart()
-                    case .onStop: self?.onStop()
-                    case .onRefresh: self?.onRefresh()
-                    case .onPeerConnect(let peer): self?.onPeerConnect(peer: peer)
-                    case .onPeerDisconnect(let peer, let error): self?.onPeerDisconnect(peer: peer, error: error)
-                    case .onPeerReady(let peer): self?.onPeerReady(peer: peer)
-                    default: ()
+                case .onStart: self?.onStart()
+                case .onStop: self?.onStop()
+                case .onRefresh: self?.onRefresh()
+                case let .onPeerConnect(peer): self?.onPeerConnect(peer: peer)
+                case let .onPeerDisconnect(peer, error): self?.onPeerDisconnect(peer: peer, error: error)
+                case let .onPeerReady(peer): self?.onPeerReady(peer: peer)
+                default: ()
                 }
             }
             .store(in: &cancellables)

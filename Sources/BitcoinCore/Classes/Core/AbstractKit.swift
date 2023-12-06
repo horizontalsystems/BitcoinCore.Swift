@@ -112,5 +112,4 @@ open class AbstractKit {
     public func rawTransaction(transactionHash: String) -> String? {
         bitcoinCore.rawTransaction(transactionHash: transactionHash)
     }
-
 }

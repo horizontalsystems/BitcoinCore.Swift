@@ -1,10 +1,10 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BlockSyncerTests: QuickSpec {
+// class BlockSyncerTests: QuickSpec {
 //    override func spec() {
 //        let mockStorage = MockIStorage()
 //        let mockFactory = MockIFactory()
@@ -529,4 +529,4 @@
 //            }
 //        }
 //    }
-//}
+// }

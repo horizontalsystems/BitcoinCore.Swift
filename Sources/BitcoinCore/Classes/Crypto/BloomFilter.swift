@@ -17,7 +17,7 @@ public struct BloomFilter {
     var elementsCount: Int
 
     var data: Data {
-        return Data(filter)
+        Data(filter)
     }
 
     let MAX_FILTER_SIZE: UInt32 = 36000
@@ -28,31 +28,30 @@ public struct BloomFilter {
         self.init(elements: elements.count, falsePositiveRate: 0.00005, randomNonce: nTweak)
 
         for element in elements {
-            self.insert(Data(element))
+            insert(Data(element))
         }
     }
 
     init(elements: Int, falsePositiveRate: Double, randomNonce nTweak: UInt32) {
-        self.elementsCount = elements
-        self.size = max(1, min(UInt32(-1.0 / pow(log(2), 2) * Double(elements) * log(falsePositiveRate)), MAX_FILTER_SIZE * 8) / 8)
+        elementsCount = elements
+        size = max(1, min(UInt32(-1.0 / pow(log(2), 2) * Double(elements) * log(falsePositiveRate)), MAX_FILTER_SIZE * 8) / 8)
         filter = [UInt8](repeating: 0, count: Int(size))
-        self.nHashFuncs = max(1, min(UInt32(Double(size * UInt32(8)) / Double(elements) * log(2)), MAX_HASH_FUNCS))
+        nHashFuncs = max(1, min(UInt32(Double(size * UInt32(8)) / Double(elements) * log(2)), MAX_HASH_FUNCS))
         self.nTweak = nTweak
     }
 
     mutating func insert(_ data: Data) {
-        for i in 0..<nHashFuncs {
-            let seed = i &* 0xFBA4C795 &+ nTweak
+        for i in 0 ..< nHashFuncs {
+            let seed = i &* 0xFBA4_C795 &+ nTweak
             let nIndex = Int(MurmurHash.hashValue(data, seed) % (size * 8))
             filter[nIndex >> 3] |= (1 << (7 & nIndex))
         }
     }
 }
 
-extension BloomFilter : CustomDebugStringConvertible {
-
+extension BloomFilter: CustomDebugStringConvertible {
     public var debugDescription: String {
-        return filter.compactMap { bits(fromByte: $0).map { $0.description }.joined() }.joined()
+        filter.compactMap { bits(fromByte: $0).map(\.description).joined() }.joined()
     }
 
     enum Bit: UInt8, CustomStringConvertible {
@@ -69,7 +68,7 @@ extension BloomFilter : CustomDebugStringConvertible {
     func bits(fromByte byte: UInt8) -> [Bit] {
         var byte = byte
         var bits = [Bit](repeating: .zero, count: 8)
-        for i in 0..<8 {
+        for i in 0 ..< 8 {
             let currentBit = byte & 0x01
             if currentBit != 0 {
                 bits[i] = .one
@@ -78,5 +77,4 @@ extension BloomFilter : CustomDebugStringConvertible {
         }
         return bits
     }
-
 }

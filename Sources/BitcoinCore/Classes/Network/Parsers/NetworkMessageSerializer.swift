@@ -43,11 +43,10 @@ class NetworkMessageSerializer: INetworkMessageSerializer {
 
         return data
     }
-
 }
 
 class GetDataMessageSerializer: IMessageSerializer {
-    var id: String { return "getdata" }
+    var id: String { "getdata" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? GetDataMessage else {
@@ -63,11 +62,10 @@ class GetDataMessageSerializer: IMessageSerializer {
 
         return data
     }
-
 }
 
 class GetBlocksMessageSerializer: IMessageSerializer {
-    var id: String { return "getblocks" }
+    var id: String { "getblocks" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? GetBlocksMessage else {
@@ -83,11 +81,10 @@ class GetBlocksMessageSerializer: IMessageSerializer {
         data += message.hashStop
         return data
     }
-
 }
 
 class InventoryMessageSerializer: IMessageSerializer {
-    var id: String { return "inv" }
+    var id: String { "inv" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? InventoryMessage else {
@@ -101,11 +98,10 @@ class InventoryMessageSerializer: IMessageSerializer {
         }
         return data
     }
-
 }
 
 class PingMessageSerializer: IMessageSerializer {
-    var id: String { return "ping" }
+    var id: String { "ping" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? PingMessage else {
@@ -116,11 +112,10 @@ class PingMessageSerializer: IMessageSerializer {
         data += message.nonce
         return data
     }
-
 }
 
 class PongMessageSerializer: IMessageSerializer {
-    var id: String { return "pong" }
+    var id: String { "pong" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? PongMessage else {
@@ -131,11 +126,10 @@ class PongMessageSerializer: IMessageSerializer {
         data += message.nonce
         return data
     }
-
 }
 
 class VersionMessageSerializer: IMessageSerializer {
-    var id: String { return "version" }
+    var id: String { "version" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? VersionMessage else {
@@ -154,11 +148,10 @@ class VersionMessageSerializer: IMessageSerializer {
         data += message.relay ?? false
         return data
     }
-
 }
 
 class VerackMessageSerializer: IMessageSerializer {
-    var id: String { return "verack" }
+    var id: String { "verack" }
 
     func serialize(message: IMessage) -> Data? {
         guard message is VerackMessage else {
@@ -167,11 +160,10 @@ class VerackMessageSerializer: IMessageSerializer {
 
         return Data()
     }
-
 }
 
 class MempoolMessageSerializer: IMessageSerializer {
-    var id: String { return "mempool" }
+    var id: String { "mempool" }
 
     func serialize(message: IMessage) -> Data? {
         guard message is MemPoolMessage else {
@@ -180,11 +172,10 @@ class MempoolMessageSerializer: IMessageSerializer {
 
         return Data()
     }
-
 }
 
 class TransactionMessageSerializer: IMessageSerializer {
-    var id: String { return "tx" }
+    var id: String { "tx" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? TransactionMessage else {
@@ -193,11 +184,10 @@ class TransactionMessageSerializer: IMessageSerializer {
 
         return TransactionSerializer.serialize(transaction: message.transaction)
     }
-
 }
 
 class FilterLoadMessageSerializer: IMessageSerializer {
-    var id: String { return "filterload" }
+    var id: String { "filterload" }
 
     func serialize(message: IMessage) -> Data? {
         guard let message = message as? FilterLoadMessage else {
@@ -214,5 +204,4 @@ class FilterLoadMessageSerializer: IMessageSerializer {
         data += bloomFilter.nFlag
         return data
     }
-
 }

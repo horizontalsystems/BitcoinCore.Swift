@@ -2,7 +2,6 @@ import Foundation
 import HsCryptoKit
 
 public struct BlockHeader {
-
     public let version: Int
     public let headerHash: Data
     public let previousBlockHeaderHash: Data
@@ -20,11 +19,9 @@ public struct BlockHeader {
         self.bits = bits
         self.nonce = nonce
     }
-
 }
 
 open class FullTransaction {
-
     public let header: Transaction
     public let inputs: [Input]
     public let outputs: [Output]
@@ -52,42 +49,32 @@ open class FullTransaction {
             output.transactionHash = header.dataHash
         }
     }
-
 }
 
 public struct InputToSign {
-
     let input: Input
     let previousOutput: Output
     let previousOutputPublicKey: PublicKey
-
 }
 
 public struct OutputWithPublicKey {
-
     let output: Output
     let publicKey: PublicKey
     let spendingInput: Input?
     let spendingBlockHeight: Int?
-
 }
 
 struct InputWithPreviousOutput {
-
     let input: Input
     let previousOutput: Output?
-
 }
 
 public struct TransactionWithBlock {
-
     public let transaction: Transaction
     let blockHeight: Int?
-
 }
 
 public struct UnspentOutput {
-
     public let output: Output
     public let publicKey: PublicKey
     public let transaction: Transaction
@@ -99,11 +86,9 @@ public struct UnspentOutput {
         self.transaction = transaction
         self.blockHeight = blockHeight
     }
-
 }
 
 public struct FullTransactionForInfo {
-
     public let transactionWithBlock: TransactionWithBlock
     let inputsWithPreviousOutputs: [InputWithPreviousOutput]
     let outputs: [Output]
@@ -111,14 +96,13 @@ public struct FullTransactionForInfo {
 
     var rawTransaction: String {
         let fullTransaction = FullTransaction(
-                header: transactionWithBlock.transaction,
-                inputs: inputsWithPreviousOutputs.map { $0.input },
-                outputs: outputs
+            header: transactionWithBlock.transaction,
+            inputs: inputsWithPreviousOutputs.map(\.input),
+            outputs: outputs
         )
 
         return TransactionSerializer.serialize(transaction: fullTransaction).hs.hex
     }
-
 }
 
 public struct PublicKeyWithUsedState {

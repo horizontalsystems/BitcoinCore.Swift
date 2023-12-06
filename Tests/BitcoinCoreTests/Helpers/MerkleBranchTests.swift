@@ -1,11 +1,11 @@
-//import Foundation
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import Foundation
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class MerkleBranchTests: QuickSpec {
+// class MerkleBranchTests: QuickSpec {
 //
 //    override func spec() {
 //        let hasher = MerkleRootHasher() // Must use real sha256sha256 hasher
@@ -77,4 +77,4 @@
 //        }
 //    }
 //
-//}
+// }

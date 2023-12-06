@@ -1,12 +1,12 @@
-//import XCTest
-//import Cuckoo
-//import RxSwift
-//import RxBlocking
+// import XCTest
+// import Cuckoo
+// import RxSwift
+// import RxBlocking
 //
-//@testable import BitcoinCore
+// @testable import BitcoinCore
 //
 //
-//class BlockDiscoveryBatchTest: XCTestCase {
+// class BlockDiscoveryBatchTest: XCTestCase {
 //
 //    private var mockWallet: MockIHDWallet!
 //    private var mockBlockHashFetcher: MockIBlockHashFetcher!
@@ -85,4 +85,4 @@
 //        }
 //    }
 //
-//}
+// }

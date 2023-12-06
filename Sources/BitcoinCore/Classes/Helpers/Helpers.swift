@@ -1,11 +1,11 @@
 import Foundation
 
 func ipv4(from data: Data) -> String {
-    return Data(data.dropFirst(12)).map { String($0) }.joined(separator: ".")
+    Data(data.dropFirst(12)).map { String($0) }.joined(separator: ".")
 }
 
 func ipv6(from data: Data) -> String {
-    return stride(from: 0, to: data.count - 1, by: 2).map { Data([data[$0], data[$0 + 1]]).hs.hex }.joined(separator: ":")
+    stride(from: 0, to: data.count - 1, by: 2).map { Data([data[$0], data[$0 + 1]]).hs.hex }.joined(separator: ":")
 }
 
 func pton(_ address: String) -> Data {
@@ -19,10 +19,10 @@ func pton(_ address: String) -> Data {
 }
 
 func byteArrayLittleEndian(int: Int) -> [UInt8] {
-    return [
-        UInt8(int & 0x000000FF),
-        UInt8((int & 0x0000FF00) >> 8),
-        UInt8((int & 0x00FF0000) >> 16),
-        UInt8((int & 0xFF000000) >> 24)
+    [
+        UInt8(int & 0x0000_00FF),
+        UInt8((int & 0x0000_FF00) >> 8),
+        UInt8((int & 0x00FF_0000) >> 16),
+        UInt8((int & 0xFF00_0000) >> 24),
     ]
 }

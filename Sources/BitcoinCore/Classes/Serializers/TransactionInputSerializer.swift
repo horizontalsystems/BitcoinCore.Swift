@@ -1,8 +1,7 @@
 import Foundation
 import HsExtensions
 
-class TransactionInputSerializer {
-
+enum TransactionInputSerializer {
     static func serialize(input: Input) -> Data {
         var data = Data()
         data += input.previousOutputTxHash
@@ -65,9 +64,8 @@ class TransactionInputSerializer {
         let sequence = Int(byteStream.read(UInt32.self))
 
         return Input(
-                withPreviousOutputTxHash: previousOutputTxHash, previousOutputIndex: previousOutputIndex,
-                script: signatureScript, sequence: sequence
+            withPreviousOutputTxHash: previousOutputTxHash, previousOutputIndex: previousOutputIndex,
+            script: signatureScript, sequence: sequence
         )
     }
-
 }

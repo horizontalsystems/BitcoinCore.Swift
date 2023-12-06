@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import BigInt
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import BigInt
+// @testable import BitcoinCore
 //
-//class DifficultyEncoderTests: XCTestCase {
+// class DifficultyEncoderTests: XCTestCase {
 //
 //    private var difficultyEncoder: DifficultyEncoder!
 //
@@ -96,4 +96,4 @@
 //        XCTAssertEqual(difficultyEncoder.decodeCompact(bits: representation), difficulty)
 //    }
 //
-//}
+// }

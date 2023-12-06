@@ -12,5 +12,4 @@ public extension INetwork {
     var lastCheckpoint: Checkpoint {
         try! Checkpoint(bundleName: bundleName, network: String(describing: type(of: self)), blockType: .last)
     }
-
 }

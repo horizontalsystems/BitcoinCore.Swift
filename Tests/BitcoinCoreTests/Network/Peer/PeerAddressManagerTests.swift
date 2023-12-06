@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class PeerAddressManagerTests: XCTestCase {
+// class PeerAddressManagerTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //    private var mockNetwork: MockINetwork!
 //    private var mockPeerDiscovery: MockIPeerDiscovery!
@@ -142,4 +142,4 @@
 //        XCTAssertTrue(argumentCaptor.value!.contains(PeerAddress(ip: ip3, score: 0)))
 //    }
 //
-//}
+// }

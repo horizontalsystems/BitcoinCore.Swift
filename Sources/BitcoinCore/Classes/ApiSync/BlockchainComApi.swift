@@ -22,7 +22,7 @@ public class BlockchainComApi {
         let parameters: Parameters = [
             "active": addresses.joined(separator: "|"),
             "n": Self.paginationLimit,
-            "offset": offset
+            "offset": offset,
         ]
 
         return try await delayedNetworkManager.fetch(url: "\(url)/multiaddr", method: .get, parameters: parameters)
@@ -33,7 +33,7 @@ public class BlockchainComApi {
         let transactions = addressesResponse.transactions
 
         let filteredTransactions = transactions.filter { transaction in
-            if let height = transaction.blockHeight, let stopHeight = stopHeight {
+            if let height = transaction.blockHeight, let stopHeight {
                 return stopHeight < height
             } else {
                 return true
@@ -64,7 +64,7 @@ public class BlockchainComApi {
 extension BlockchainComApi: IApiTransactionProvider {
     public func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem] {
         let transactions = try await _transactions(allAddresses: addresses, stopHeight: stopHeight)
-        let blockHeights = Array(Set(transactions.compactMap { $0.blockHeight }))
+        let blockHeights = Array(Set(transactions.compactMap(\.blockHeight)))
 
         guard !blockHeights.isEmpty else {
             return []

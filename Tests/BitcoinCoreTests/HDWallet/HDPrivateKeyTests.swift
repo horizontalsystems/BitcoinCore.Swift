@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HdWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HdWalletKit
+// @testable import BitcoinCore
 //
-//class HDPrivateKeyTests: XCTestCase {
+// class HDPrivateKeyTests: XCTestCase {
 //    private var mockNetwork: MockINetwork!
 //
 //    override func setUp() {
@@ -34,4 +34,4 @@
 //        XCTAssertEqual(privateKey.raw.hex, "004c16165875d0bed9a76e4ba83fae65c80076f60791d956f336a2d7a3b21185")
 //    }
 //
-//}
+// }

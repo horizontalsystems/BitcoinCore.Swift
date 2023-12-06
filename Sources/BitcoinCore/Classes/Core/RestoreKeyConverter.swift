@@ -1,7 +1,6 @@
 import Foundation
 
-class RestoreKeyConverterChain : IRestoreKeyConverter {
-
+class RestoreKeyConverterChain: IRestoreKeyConverter {
     var converters = [IRestoreKeyConverter]()
 
     func add(converter: IRestoreKeyConverter) {
@@ -25,21 +24,17 @@ class RestoreKeyConverterChain : IRestoreKeyConverter {
 
         return keys.unique
     }
-
 }
 
 public class Bip44RestoreKeyConverter {
-
     let addressConverter: IAddressConverter
 
     public init(addressConverter: IAddressConverter) {
         self.addressConverter = addressConverter
     }
-
 }
 
-extension Bip44RestoreKeyConverter : IRestoreKeyConverter {
-
+extension Bip44RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
         let legacyAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2pkh).stringValue
 
@@ -49,21 +44,17 @@ extension Bip44RestoreKeyConverter : IRestoreKeyConverter {
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
         [publicKey.hashP2pkh, publicKey.raw]
     }
-
 }
 
 public class Bip49RestoreKeyConverter {
-
     let addressConverter: IAddressConverter
 
     public init(addressConverter: IAddressConverter) {
         self.addressConverter = addressConverter
     }
-
 }
 
-extension Bip49RestoreKeyConverter : IRestoreKeyConverter {
-
+extension Bip49RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
         let wpkhShAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2wpkhSh).stringValue
 
@@ -73,21 +64,17 @@ extension Bip49RestoreKeyConverter : IRestoreKeyConverter {
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
         [publicKey.hashP2wpkhWrappedInP2sh]
     }
-
 }
 
 public class Bip84RestoreKeyConverter {
-
     let addressConverter: IAddressConverter
 
     public init(addressConverter: IAddressConverter) {
         self.addressConverter = addressConverter
     }
-
 }
 
-extension Bip84RestoreKeyConverter : IRestoreKeyConverter {
-
+extension Bip84RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
         let segwitAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2wpkh).stringValue
 
@@ -97,34 +84,29 @@ extension Bip84RestoreKeyConverter : IRestoreKeyConverter {
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
         [publicKey.hashP2pkh]
     }
-
 }
 
 public class Bip86RestoreKeyConverter {
-    
     let addressConverter: IAddressConverter
-    
+
     public init(addressConverter: IAddressConverter) {
         self.addressConverter = addressConverter
     }
-    
 }
 
-extension Bip86RestoreKeyConverter : IRestoreKeyConverter {
-    
+extension Bip86RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
         let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2tr).stringValue
-        
+
         return [taprootAddress].compactMap { $0 }
     }
-    
+
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
-        return [publicKey.convertedForP2tr]
+        [publicKey.convertedForP2tr]
     }
-    
 }
 
-public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
+public class KeyHashRestoreKeyConverter: IRestoreKeyConverter {
     let scriptType: ScriptType
 
     public init(scriptType: ScriptType) {
@@ -144,23 +126,19 @@ public class KeyHashRestoreKeyConverter : IRestoreKeyConverter {
         default: return [publicKey.hashP2pkh]
         }
     }
-
 }
 
 public class BlockchairCashRestoreKeyConverter {
-
     let addressConverter: IAddressConverter
     private let prefixCount: Int
 
     public init(addressConverter: IAddressConverter, prefix: String) {
         self.addressConverter = addressConverter
-        self.prefixCount = prefix.count + 1
+        prefixCount = prefix.count + 1
     }
-
 }
 
-extension BlockchairCashRestoreKeyConverter : IRestoreKeyConverter {
-
+extension BlockchairCashRestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
         let legacyAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2pkh).stringValue
 
@@ -173,5 +151,4 @@ extension BlockchairCashRestoreKeyConverter : IRestoreKeyConverter {
     public func bloomFilterElements(publicKey: PublicKey) -> [Data] {
         [publicKey.hashP2pkh, publicKey.raw]
     }
-
 }

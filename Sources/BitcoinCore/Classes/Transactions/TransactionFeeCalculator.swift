@@ -1,5 +1,4 @@
 class TransactionFeeCalculator {
-
     private let recipientSetter: IRecipientSetter
     private let inputSetter: IInputSetter
     private let addressConverter: IAddressConverter
@@ -15,16 +14,15 @@ class TransactionFeeCalculator {
     }
 
     private func sampleAddress() throws -> String {
-        try addressConverter.convert(publicKey: try publicKeyManager.changePublicKey(), type: changeScriptType).stringValue
+        try addressConverter.convert(publicKey: publicKeyManager.changePublicKey(), type: changeScriptType).stringValue
     }
 }
 
 extension TransactionFeeCalculator: ITransactionFeeCalculator {
-
     func fee(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
         let mutableTransaction = MutableTransaction()
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? (try sampleAddress()), value: value, pluginData: pluginData, skipChecks: true)
+        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? sampleAddress(), value: value, pluginData: pluginData, skipChecks: true)
         try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, sortType: .none)
 
         let inputsTotalValue = mutableTransaction.inputsToSign.reduce(0) { total, input in total + input.previousOutput.value }
@@ -32,5 +30,4 @@ extension TransactionFeeCalculator: ITransactionFeeCalculator {
 
         return inputsTotalValue - outputsTotalValue
     }
-
 }

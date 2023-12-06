@@ -24,13 +24,12 @@ class BloomFilterLoader: IBloomFilterManagerDelegate {
 
     func subscribeTo(publisher: AnyPublisher<PeerGroupEvent, Never>) {
         publisher
-                .sink { [weak self] event in
-                    switch event {
-                    case .onPeerConnect(let peer): self?.onPeerConnect(peer: peer)
-                    default: ()
-                    }
+            .sink { [weak self] event in
+                switch event {
+                case let .onPeerConnect(peer): self?.onPeerConnect(peer: peer)
+                default: ()
                 }
-                .store(in: &cancellables)
+            }
+            .store(in: &cancellables)
     }
-
 }

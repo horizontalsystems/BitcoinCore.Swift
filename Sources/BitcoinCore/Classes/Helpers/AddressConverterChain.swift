@@ -53,5 +53,4 @@ public class AddressConverterChain: IAddressConverter {
 
         throw BitcoinCoreErrors.AddressConversionErrors(errors: errors)
     }
-
 }

@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class KitStateProviderTest: XCTestCase  {
+// class KitStateProviderTest: XCTestCase  {
 //    private var mockDelegate: MockIKitStateProviderDelegate!
 //    private var syncer: KitStateProvider!
 //
@@ -105,4 +105,4 @@
 //        verify(mockDelegate, never()).handleKitStateUpdate(state: equal(to: BitcoinKit.KitState.syncing(progress: 0.01)))
 //    }
 //
-//}
+// }

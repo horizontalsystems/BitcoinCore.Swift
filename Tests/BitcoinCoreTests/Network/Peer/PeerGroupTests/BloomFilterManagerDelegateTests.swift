@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class BloomFilterManagerDelegateTests: PeerGroupTests {
+// class BloomFilterManagerDelegateTests: PeerGroupTests {
 //
 //    private var delegate: PeerGroup!
 //
@@ -33,4 +33,4 @@
 //        verify(peer).filterLoad(bloomFilter: equal(to: bloomFilter, equalWhen: { $0.filter == $1.filter }))
 //    }
 //
-//}
+// }

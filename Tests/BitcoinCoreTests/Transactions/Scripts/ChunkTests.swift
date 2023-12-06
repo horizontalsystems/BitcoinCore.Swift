@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class ChunkTests: XCTestCase {
+// class ChunkTests: XCTestCase {
 //    private var data: Data!
 //
 //    override func setUp() {
@@ -36,4 +36,4 @@
 //        XCTAssertNil(chunk.data)
 //    }
 //
-//}
+// }

@@ -2,7 +2,6 @@ import Foundation
 import GRDB
 
 public class Input: Record {
-
     public var previousOutputTxHash: Data
     var previousOutputIndex: Int
     public var signatureScript: Data
@@ -15,12 +14,11 @@ public class Input: Record {
     init(withPreviousOutputTxHash previousOutputTxHash: Data, previousOutputIndex: Int, script: Data, sequence: Int) {
         self.previousOutputTxHash = previousOutputTxHash
         self.previousOutputIndex = previousOutputIndex
-        self.signatureScript = script
+        signatureScript = script
         self.sequence = sequence
 
         super.init()
     }
-
 
     override open class var databaseTableName: String {
         "inputs"
@@ -60,7 +58,6 @@ public class Input: Record {
         container[Columns.address] = address
         container[Columns.witnessData] = witnessData
     }
-
 }
 
 enum SerializationError: Error {

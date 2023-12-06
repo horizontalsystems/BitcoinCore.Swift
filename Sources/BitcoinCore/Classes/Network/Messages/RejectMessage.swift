@@ -22,7 +22,6 @@ struct RejectMessage: IMessage {
     let data: Data
 
     var description: String {
-        return "\(message) code: 0x\(String(ccode, radix: 16)) reason: \(reason)"
+        "\(message) code: 0x\(String(ccode, radix: 16)) reason: \(reason)"
     }
-
 }

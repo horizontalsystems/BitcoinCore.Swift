@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class RequestTransactionTaskTests: XCTestCase {
+// class RequestTransactionTaskTests: XCTestCase {
 //
 //    private var mockRequester: MockIPeerTaskRequester!
 //    private var mockDelegate: MockIPeerTaskDelegate!
@@ -95,4 +95,4 @@
 //        verifyNoMoreInteractions(mockDelegate)
 //    }
 //
-//}
+// }

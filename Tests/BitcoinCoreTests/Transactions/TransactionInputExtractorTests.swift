@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionInputExtractorTests: XCTestCase {
+// class TransactionInputExtractorTests: XCTestCase {
 //
 //    private var addressConverter: MockIAddressConverter!
 //    private var scriptConverter: MockIScriptConverter!
@@ -92,4 +92,4 @@
 //        XCTAssertEqual(tx.inputs[0].address!, address.stringValue)
 //    }
 //
-//}
+// }

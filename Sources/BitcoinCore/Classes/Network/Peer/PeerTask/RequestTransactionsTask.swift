@@ -1,7 +1,6 @@
 import Foundation
 
 class RequestTransactionsTask: PeerTask {
-
     private var hashes: [Data]
     var transactions = [FullTransaction]()
 
@@ -46,7 +45,7 @@ class RequestTransactionsTask: PeerTask {
     }
 
     func equalTo(_ task: RequestTransactionsTask?) -> Bool {
-        guard let task = task else {
+        guard let task else {
             return false
         }
 

@@ -15,7 +15,8 @@ open class TransactionInfo: ITransactionInfo, Codable {
     public let conflictingHash: String?
 
     public required init(uid: String, transactionHash: String, transactionIndex: Int, inputs: [TransactionInputInfo], outputs: [TransactionOutputInfo],
-                         amount: Int, type: TransactionType, fee: Int?, blockHeight: Int?, timestamp: Int, status: TransactionStatus, conflictingHash: String?) {
+                         amount: Int, type: TransactionType, fee: Int?, blockHeight: Int?, timestamp: Int, status: TransactionStatus, conflictingHash: String?)
+    {
         self.uid = uid
         self.transactionHash = transactionHash
         self.transactionIndex = transactionIndex
@@ -29,7 +30,6 @@ open class TransactionInfo: ITransactionInfo, Codable {
         self.status = status
         self.conflictingHash = conflictingHash
     }
-
 }
 
 public class TransactionInputInfo: Codable {
@@ -42,7 +42,6 @@ public class TransactionInputInfo: Codable {
         self.address = address
         self.value = value
     }
-
 }
 
 public class TransactionOutputInfo: Codable {
@@ -65,7 +64,6 @@ public class TransactionOutputInfo: Codable {
         self.value = value
         self.address = address
     }
-
 }
 
 public struct BlockInfo {
@@ -74,11 +72,11 @@ public struct BlockInfo {
     public let timestamp: Int?
 }
 
-public struct BalanceInfo : Equatable {
+public struct BalanceInfo: Equatable {
     public let spendable: Int
     public let unspendable: Int
 
-    public static func ==(lhs: BalanceInfo, rhs: BalanceInfo) -> Bool {
+    public static func == (lhs: BalanceInfo, rhs: BalanceInfo) -> Bool {
         lhs.spendable == rhs.spendable && lhs.unspendable == rhs.unspendable
     }
 }

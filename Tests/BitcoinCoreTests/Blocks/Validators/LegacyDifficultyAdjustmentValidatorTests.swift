@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import BigInt
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import BigInt
+// @testable import BitcoinCore
 //
-//class LegacyDifficultyAdjustmentValidatorTests: XCTestCase {
+// class LegacyDifficultyAdjustmentValidatorTests: XCTestCase {
 //
 //    private var validator: LegacyDifficultyAdjustmentValidator!
 //    private var mockNetwork: MockINetwork!
@@ -95,4 +95,4 @@
 //        }
 //    }
 //
-//}
+// }

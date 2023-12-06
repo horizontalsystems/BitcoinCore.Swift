@@ -1,10 +1,10 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class TransactionSenderTests: QuickSpec {
+// class TransactionSenderTests: QuickSpec {
 //    override func spec() {
 //        let mockTransactionSyncer = MockITransactionSyncer()
 //        let mockInitialBlockDownload = MockIInitialBlockDownload()
@@ -230,4 +230,4 @@
 //            }
 //        }
 //    }
-//}
+// }

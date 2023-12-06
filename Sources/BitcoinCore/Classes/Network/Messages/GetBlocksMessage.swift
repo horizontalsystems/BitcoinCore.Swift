@@ -19,7 +19,6 @@ struct GetBlocksMessage: IMessage {
     }
 
     var description: String {
-        return "\(blockLocatorHashes.map { $0.hs.reversedHex })"
+        "\(blockLocatorHashes.map(\.hs.reversedHex))"
     }
-
 }

@@ -1,5 +1,4 @@
 public class DustCalculator {
-
     private let minFeeRate: Int
     private let sizeCalculator: ITransactionSizeCalculator
 
@@ -9,11 +8,9 @@ public class DustCalculator {
 
         self.sizeCalculator = sizeCalculator
     }
-
 }
 
 extension DustCalculator: IDustCalculator {
-
     public func dust(type: ScriptType) -> Int {
         // https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.cpp#L14
 
@@ -30,5 +27,4 @@ extension DustCalculator: IDustCalculator {
 
         return size * minFeeRate
     }
-
 }

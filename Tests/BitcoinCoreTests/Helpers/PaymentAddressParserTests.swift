@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class PaymentAddressParserTests: XCTestCase {
+// class PaymentAddressParserTests: XCTestCase {
 //
 //    private var addressParser: PaymentAddressParser!
 //
@@ -86,4 +86,4 @@
 //        XCTAssertEqual(bitcoinPaymentData, paymentData)
 //    }
 //
-//}
+// }

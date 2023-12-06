@@ -1,7 +1,7 @@
-import Foundation
 import Combine
-import QuartzCore
+import Foundation
 import HsToolKit
+import QuartzCore
 
 class TransactionSender {
     static let minConnectedPeersCount = 2
@@ -21,7 +21,8 @@ class TransactionSender {
 
     init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer,
          logger: Logger? = nil, queue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.transaction-sender", qos: .background),
-         maxRetriesCount: Int = 3, retriesPeriod: Double = 60) {
+         maxRetriesCount: Int = 3, retriesPeriod: Double = 60)
+    {
         self.transactionSyncer = transactionSyncer
         self.initialBlockDownload = initialBlockDownload
         self.peerManager = peerManager
@@ -44,12 +45,12 @@ class TransactionSender {
         }
 
         let sortedPeers = peerManager.readyPeers
-                .filter {
-                    freeSyncedPeer !== $0
-                }
-                .sorted { (a: IPeer, b: IPeer) in
-                    !syncedPeers.contains(where: { a === $0 }) && syncedPeers.contains(where: { b === $0 })
-                }
+            .filter {
+                freeSyncedPeer !== $0
+            }
+            .sorted { (a: IPeer, b: IPeer) in
+                !syncedPeers.contains(where: { a === $0 }) && syncedPeers.contains(where: { b === $0 })
+            }
 
         if sortedPeers.count == 1 {
             return sortedPeers
@@ -70,7 +71,8 @@ class TransactionSender {
 
     private func transactionSendSuccess(sentTransaction transaction: FullTransaction) {
         guard let sentTransaction = storage.sentTransaction(byHash: transaction.header.dataHash),
-              !sentTransaction.sendSuccess else {
+              !sentTransaction.sendSuccess
+        else {
             return
         }
 
@@ -128,11 +130,9 @@ class TransactionSender {
 
         send(transactions: transactions)
     }
-
 }
 
 extension TransactionSender: ITransactionSender {
-
     func verifyCanSend() throws {
         if peersToSendTo().isEmpty {
             throw BitcoinCoreErrors.TransactionSendError.peersNotSynced
@@ -157,33 +157,29 @@ extension TransactionSender: ITransactionSender {
 
     func subscribeTo(publisher: AnyPublisher<InitialDownloadEvent, Never>) {
         publisher
-                .sink { [weak self] event in
-                    switch event {
-                    case .onAllPeersSynced:
-                        self?.queue.async {
-                            self?.sendPendingTransactions()
-                        }
-                    default: ()
+            .sink { [weak self] event in
+                switch event {
+                case .onAllPeersSynced:
+                    self?.queue.async {
+                        self?.sendPendingTransactions()
                     }
+                default: ()
                 }
-                .store(in: &cancellables)
+            }
+            .store(in: &cancellables)
     }
-
 }
 
 extension TransactionSender: ITransactionSendTimerDelegate {
-
     func timePassed() {
         queue.async {
             self.sendPendingTransactions()
         }
     }
-
 }
 
 extension TransactionSender: IPeerTaskHandler {
-
-    func handleCompletedTask(peer: IPeer, task: PeerTask) -> Bool {
+    func handleCompletedTask(peer _: IPeer, task: PeerTask) -> Bool {
         switch task {
         case let task as SendTransactionTask:
             queue.async {
@@ -194,5 +190,4 @@ extension TransactionSender: IPeerTaskHandler {
         default: return false
         }
     }
-
 }

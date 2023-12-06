@@ -18,5 +18,4 @@ class UnspentOutputSelectorChain: IUnspentOutputSelector {
     func prepend(unspentOutputSelector: IUnspentOutputSelector) {
         concreteSelectors.insert(unspentOutputSelector, at: 0)
     }
-
 }

@@ -6,11 +6,9 @@ public class ApiSyncStateManager {
         self.storage = storage
         self.restoreFromApi = restoreFromApi
     }
-
 }
 
 extension ApiSyncStateManager: IApiSyncStateManager {
-
     var restored: Bool {
         get {
             guard restoreFromApi else {
@@ -23,5 +21,4 @@ extension ApiSyncStateManager: IApiSyncStateManager {
             storage.set(initialRestored: newValue)
         }
     }
-
 }

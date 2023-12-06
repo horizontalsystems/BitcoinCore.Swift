@@ -12,11 +12,9 @@ class TransactionBuilder {
         self.outputSetter = outputSetter
         self.signer = signer
     }
-
 }
 
 extension TransactionBuilder: ITransactionBuilder {
-
     func buildTransaction(toAddress: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
         let mutableTransaction = MutableTransaction()
 
@@ -42,5 +40,4 @@ extension TransactionBuilder: ITransactionBuilder {
 
         return mutableTransaction.build()
     }
-
 }

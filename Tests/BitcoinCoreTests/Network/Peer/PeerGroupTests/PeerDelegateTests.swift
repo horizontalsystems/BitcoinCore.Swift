@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class PeerDelegateTests: PeerGroupTests {
+// class PeerDelegateTests: PeerGroupTests {
 //
 //    private var delegate: PeerGroup!
 //
@@ -759,4 +759,4 @@
 //        return task
 //    }
 //
-//}
+// }

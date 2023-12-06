@@ -76,15 +76,12 @@ public class MerkleBranch: IMerkleBranch {
         return hasher.hash(data: left + right)
     }
 
-
     // Checks if the given bit is set in data, using little endian
     private func checkBitLE(data: [UInt8], index: Int) -> Bool {
-        return (data[Int(index >> 3)] & MerkleBranch.bitMask[Int(7 & index)]) != 0
+        (data[Int(index >> 3)] & MerkleBranch.bitMask[Int(7 & index)]) != 0
     }
 
     private func getTreeWidth(_ height: Int) -> Int {
-        return (txCount + (1 << height) - 1) >> height
+        (txCount + (1 << height) - 1) >> height
     }
-
 }
-

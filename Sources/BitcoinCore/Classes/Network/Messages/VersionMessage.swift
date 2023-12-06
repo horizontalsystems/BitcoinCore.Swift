@@ -26,12 +26,11 @@ struct VersionMessage: IMessage {
         (services & network.serviceFullNode) == network.serviceFullNode
     }
 
-    func supportsBloomFilter(network: INetwork) -> Bool {
+    func supportsBloomFilter(network _: INetwork) -> Bool {
         (version > 70000 && version < 70011) || (version > 70000 && ServiceFlags(rawValue: services).contains(ServiceFlags.bloom))
     }
 
     var description: String {
         "\(version) --- \(userAgent?.value ?? "") --- \(ServiceFlags(rawValue: services)) -- \(String(describing: startHeight ?? 0))"
     }
-
 }

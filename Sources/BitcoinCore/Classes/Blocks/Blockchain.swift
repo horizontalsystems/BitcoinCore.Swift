@@ -14,18 +14,17 @@ class Blockchain {
         self.factory = factory
         self.listener = listener
     }
-
 }
 
 extension Blockchain: IBlockchain {
-
     func connect(merkleBlock: MerkleBlock) throws -> Block {
         if let existingBlock = storage.block(byHash: merkleBlock.headerHash) {
             return existingBlock
         }
 
-        guard let previousBlock = self.previousBlock ?? storage.block(byHash: merkleBlock.header.previousBlockHeaderHash),
-              previousBlock.headerHash == merkleBlock.header.previousBlockHeaderHash else {
+        guard let previousBlock = previousBlock ?? storage.block(byHash: merkleBlock.header.previousBlockHeaderHash),
+              previousBlock.headerHash == merkleBlock.header.previousBlockHeaderHash
+        else {
             throw BitcoinCoreErrors.BlockValidation.noPreviousBlock
         }
 
@@ -76,10 +75,10 @@ extension Blockchain: IBlockchain {
 
         let lastNotStaleHeight = storage.block(stale: false, sortedHeight: "DESC")?.height ?? 0
 
-        if (firstStaleHeight <= lastNotStaleHeight) {
+        if firstStaleHeight <= lastNotStaleHeight {
             let lastStaleHeight = storage.block(stale: true, sortedHeight: "DESC")?.height ?? firstStaleHeight
 
-            if (lastStaleHeight > lastNotStaleHeight) {
+            if lastStaleHeight > lastNotStaleHeight {
                 let notStaleBlocks = storage.blocks(heightGreaterThanOrEqualTo: firstStaleHeight, stale: false)
                 try deleteBlocks(blocks: notStaleBlocks)
                 try storage.unstaleAllBlocks()
@@ -93,12 +92,11 @@ extension Blockchain: IBlockchain {
     }
 
     func deleteBlocks(blocks: [Block]) throws {
-        let hashes =  blocks.reduce(into: [String](), { acc, block in
-            acc.append(contentsOf: storage.transactions(ofBlock: block).map { $0.dataHash.hs.reversedHex })
-        })
+        let hashes = blocks.reduce(into: [String]()) { acc, block in
+            acc.append(contentsOf: storage.transactions(ofBlock: block).map(\.dataHash.hs.reversedHex))
+        }
 
         try storage.delete(blocks: blocks)
         listener?.onDelete(transactionHashes: hashes)
     }
-
 }

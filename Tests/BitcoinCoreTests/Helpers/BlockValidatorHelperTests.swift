@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BlockValidatorHelperTests: XCTestCase {
+// class BlockValidatorHelperTests: XCTestCase {
 //    private var mockStorage: MockIStorage!
 //    private var blockHelper: BlockValidatorHelper!
 //    private var firstBlock: Block!
@@ -67,4 +67,4 @@
 //        XCTAssertNil(window)
 //    }
 //
-//}
+// }

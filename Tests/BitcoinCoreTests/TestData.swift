@@ -1,8 +1,8 @@
-//import Foundation
-//import GRDB
-//@testable import BitcoinCore
+// import Foundation
+// import GRDB
+// @testable import BitcoinCore
 //
-//class TestData {
+// class TestData {
 //
 //    static var checkpoint: Checkpoint {
 //        Checkpoint(block: checkpointBlock, additionalBlocks: [])
@@ -218,13 +218,13 @@
 //        transaction.dataHash = bytes
 //    }
 //
-//}
+// }
 //
-//func randomBytes(length: Int) -> Data {
+// func randomBytes(length: Int) -> Data {
 //    var bytes = Data(count: length)
 //    let _ = bytes.withUnsafeMutableBytes { mutableBytes -> Int32 in
 //        SecRandomCopyBytes(kSecRandomDefault, length, mutableBytes.baseAddress!.assumingMemoryBound(to: UInt8.self))
 //    }
 //
 //    return bytes
-//}
+// }

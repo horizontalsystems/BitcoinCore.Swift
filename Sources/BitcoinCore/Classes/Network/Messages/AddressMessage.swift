@@ -9,7 +9,6 @@ struct AddressMessage: IMessage {
     }
 
     var description: String {
-        return "\(addressList.count) address(es)"
+        "\(addressList.count) address(es)"
     }
-
 }

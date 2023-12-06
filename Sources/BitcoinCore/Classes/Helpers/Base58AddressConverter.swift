@@ -13,7 +13,7 @@ public class Base58AddressConverter: IAddressConverter {
 
     public func convert(address: String) throws -> Address {
         // check length of address to avoid wrong converting
-        guard address.count >= 26 && address.count <= 35 else {
+        guard address.count >= 26, address.count <= 35 else {
             throw BitcoinCoreErrors.AddressConversion.invalidAddressLength
         }
 
@@ -31,9 +31,9 @@ public class Base58AddressConverter: IAddressConverter {
 
         let type: AddressType
         switch hex[0] {
-            case addressVersion: type = AddressType.pubKeyHash
-            case addressScriptVersion: type = AddressType.scriptHash
-            default: throw BitcoinCoreErrors.AddressConversion.wrongAddressPrefix
+        case addressVersion: type = AddressType.pubKeyHash
+        case addressScriptVersion: type = AddressType.scriptHash
+        default: throw BitcoinCoreErrors.AddressConversion.wrongAddressPrefix
         }
 
         let keyHash = hex.dropFirst().dropLast(4)
@@ -45,16 +45,16 @@ public class Base58AddressConverter: IAddressConverter {
         let addressType: AddressType
 
         switch type {
-            case .p2pkh, .p2pk:
-                version = addressVersion
-                addressType = AddressType.pubKeyHash
-            case .p2sh, .p2wpkhSh:
-                version = addressScriptVersion
-                addressType = AddressType.scriptHash
-            default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
+        case .p2pkh, .p2pk:
+            version = addressVersion
+            addressType = AddressType.pubKeyHash
+        case .p2sh, .p2wpkhSh:
+            version = addressScriptVersion
+            addressType = AddressType.scriptHash
+        default: throw BitcoinCoreErrors.AddressConversion.unknownAddressType
         }
 
-        var withVersion = (Data([version])) + lockingScriptPayload
+        var withVersion = Data([version]) + lockingScriptPayload
         let doubleSHA256 = Crypto.doubleSha256(withVersion)
         let checksum = doubleSHA256.prefix(4)
         withVersion += checksum
@@ -66,5 +66,4 @@ public class Base58AddressConverter: IAddressConverter {
         let keyHash = type == .p2wpkhSh ? publicKey.hashP2wpkhWrappedInP2sh : publicKey.hashP2pkh
         return try convert(lockingScriptPayload: keyHash, type: type)
     }
-
 }

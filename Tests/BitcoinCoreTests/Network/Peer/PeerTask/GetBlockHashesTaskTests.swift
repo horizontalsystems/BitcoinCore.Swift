@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class GetBlockHashesTaskTests:XCTestCase {
+// class GetBlockHashesTaskTests:XCTestCase {
 //
 //    private var generatedDate: Date!
 //    private var dateIsGenerated: Bool!
@@ -222,4 +222,4 @@
 //        verifyNoMoreInteractions(mockDelegate)
 //    }
 //
-//}
+// }

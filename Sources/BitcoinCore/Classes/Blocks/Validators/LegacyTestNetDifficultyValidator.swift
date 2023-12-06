@@ -1,8 +1,8 @@
-import Foundation
 import BigInt
+import Foundation
 
 public class LegacyTestNetDifficultyValidator: IBlockChainedValidator {
-    private let diffDate = 1329264000 // February 16th 2012
+    private let diffDate = 1_329_264_000 // February 16th 2012
 
     private let heightInterval: Int
     private let targetSpacing: Int
@@ -23,7 +23,7 @@ public class LegacyTestNetDifficultyValidator: IBlockChainedValidator {
         if timeDelta >= 0, timeDelta <= targetSpacing * 2 {
             var cursorBlock = previousBlock
 
-            while !(cursorBlock.height % heightInterval == 0) && cursorBlock.bits == maxTargetBits {
+            while !(cursorBlock.height % heightInterval == 0), cursorBlock.bits == maxTargetBits {
                 guard let previousBlock = blockHelper.previous(for: cursorBlock, count: 1) else {
                     throw BitcoinCoreErrors.BlockValidation.noPreviousBlock
                 }
@@ -35,8 +35,7 @@ public class LegacyTestNetDifficultyValidator: IBlockChainedValidator {
         }
     }
 
-    public func isBlockValidatable(block: Block, previousBlock: Block) -> Bool {
-        return previousBlock.timestamp > diffDate
+    public func isBlockValidatable(block _: Block, previousBlock: Block) -> Bool {
+        previousBlock.timestamp > diffDate
     }
-
 }

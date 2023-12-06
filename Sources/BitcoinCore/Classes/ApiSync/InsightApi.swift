@@ -16,7 +16,7 @@ public class InsightApi {
 }
 
 extension InsightApi: IApiTransactionProvider {
-    public func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem] {
+    public func transactions(addresses: [String], stopHeight _: Int?) async throws -> [ApiTransactionItem] {
         let items: [InsightTransactionItem] = try await sendAddressesRecursive(addresses: addresses)
 
         return items.compactMap { item -> ApiTransactionItem? in
@@ -61,7 +61,7 @@ extension InsightApi: IApiTransactionProvider {
     private func getTransactions(addresses: String, from: Int = 0) async throws -> InsightResponseItem {
         let parameters: Parameters = [
             "from": from,
-            "to": from + InsightApi.paginationLimit
+            "to": from + InsightApi.paginationLimit,
         ]
         let path = "/addrs/\(addresses)/txs"
 

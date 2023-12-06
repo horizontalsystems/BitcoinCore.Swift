@@ -21,5 +21,4 @@ open class BlockValidatorHelper: IBlockValidatorHelper {
         }
         return blocks
     }
-
 }

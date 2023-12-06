@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class SegWitBech32AddressConverterTests: XCTestCase {
+// class SegWitBech32AddressConverterTests: XCTestCase {
 //    private var segWitBech32Converter: SegWitBech32AddressConverter!
 //    private var mockScriptConverter: MockIScriptConverter!
 //    private let prefix = "tb1"
@@ -88,4 +88,4 @@
 //        }
 //    }
 //
-//}
+// }

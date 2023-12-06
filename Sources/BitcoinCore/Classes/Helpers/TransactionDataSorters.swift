@@ -1,5 +1,4 @@
 class Bip69Sorter: ITransactionDataSorter {
-
     func sort(outputs: [Output]) -> [Output] {
         outputs.sorted(by: Bip69.outputComparator)
     }
@@ -7,11 +6,9 @@ class Bip69Sorter: ITransactionDataSorter {
     func sort(unspentOutputs: [UnspentOutput]) -> [UnspentOutput] {
         unspentOutputs.sorted(by: Bip69.inputComparator)
     }
-
 }
 
 class ShuffleSorter: ITransactionDataSorter {
-
     func sort(outputs: [Output]) -> [Output] {
         outputs.shuffled()
     }
@@ -19,11 +16,9 @@ class ShuffleSorter: ITransactionDataSorter {
     func sort(unspentOutputs: [UnspentOutput]) -> [UnspentOutput] {
         unspentOutputs.shuffled()
     }
-
 }
 
 class StraightSorter: ITransactionDataSorter {
-
     func sort(outputs: [Output]) -> [Output] {
         outputs
     }
@@ -31,5 +26,4 @@ class StraightSorter: ITransactionDataSorter {
     func sort(unspentOutputs: [UnspentOutput]) -> [UnspentOutput] {
         unspentOutputs
     }
-
 }

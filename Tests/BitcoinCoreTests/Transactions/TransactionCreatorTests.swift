@@ -1,10 +1,10 @@
-//import XCTest
-//import Cuckoo
-//import Nimble
-//import Quick
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import Nimble
+// import Quick
+// @testable import BitcoinCore
 //
-//class TransactionCreatorTests: QuickSpec {
+// class TransactionCreatorTests: QuickSpec {
 //    override func spec() {
 //        let mockTransactionBuilder = MockITransactionBuilder()
 //        let mockTransactionProcessor = MockIPendingTransactionProcessor()
@@ -180,4 +180,4 @@
 //            }
 //        }
 //    }
-//}
+// }

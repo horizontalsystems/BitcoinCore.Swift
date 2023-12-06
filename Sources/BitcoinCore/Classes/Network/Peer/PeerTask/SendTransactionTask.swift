@@ -2,7 +2,6 @@ import Foundation
 import HsExtensions
 
 class SendTransactionTask: PeerTask {
-
     var transaction: FullTransaction
     private let allowedIdleTime: TimeInterval
 
@@ -19,7 +18,7 @@ class SendTransactionTask: PeerTask {
 
     override func start() {
         let message = InventoryMessage(inventoryItems: [
-            InventoryItem(type: InventoryItem.ObjectType.transaction.rawValue, hash: transaction.header.dataHash)
+            InventoryItem(type: InventoryItem.ObjectType.transaction.rawValue, hash: transaction.header.dataHash),
         ])
 
         requester?.send(message: message)
@@ -45,7 +44,7 @@ class SendTransactionTask: PeerTask {
     }
 
     override func checkTimeout() {
-        if let lastActiveTime = lastActiveTime {
+        if let lastActiveTime {
             if dateGenerator().timeIntervalSince1970 - lastActiveTime > allowedIdleTime {
                 delegate?.handle(completedTask: self)
             }
@@ -53,7 +52,7 @@ class SendTransactionTask: PeerTask {
     }
 
     private func handle(getDataInventoryItem item: InventoryItem) -> Bool {
-        guard item.objectType == .transaction && item.hash == transaction.header.dataHash else {
+        guard item.objectType == .transaction, item.hash == transaction.header.dataHash else {
             return false
         }
 
@@ -64,11 +63,10 @@ class SendTransactionTask: PeerTask {
     }
 
     func equalTo(_ task: SendTransactionTask?) -> Bool {
-        guard let task = task else {
+        guard let task else {
             return false
         }
 
         return transaction.header.dataHash == task.transaction.header.dataHash
     }
-
 }

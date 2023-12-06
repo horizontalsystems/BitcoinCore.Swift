@@ -14,8 +14,7 @@ class PeerMessageHandler: ChannelInboundHandler {
     typealias OutboundOut = ByteBuffer
 
     private var bufferSize = 4096
-    private var packets: Data = Data()
-
+    private var packets: Data = .init()
 
     private let networkMessageParser: INetworkMessageParser
 
@@ -25,15 +24,15 @@ class PeerMessageHandler: ChannelInboundHandler {
         self.networkMessageParser = networkMessageParser
     }
 
-    func channelActive(context: ChannelHandlerContext) {
+    func channelActive(context _: ChannelHandlerContext) {
         delegate?.onChannelActive()
     }
 
-    func channelInactive(context: ChannelHandlerContext) {
+    func channelInactive(context _: ChannelHandlerContext) {
         delegate?.onChannelInactive()
     }
 
-    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+    func channelRead(context _: ChannelHandlerContext, data: NIOAny) {
         delegate?.onChannelRead()
 
         var buffer = unwrapInboundIn(data)
@@ -57,8 +56,7 @@ class PeerMessageHandler: ChannelInboundHandler {
         }
     }
 
-    func errorCaught(context: ChannelHandlerContext, error: Error) {
+    func errorCaught(context _: ChannelHandlerContext, error: Error) {
         delegate?.onErrorCaught(error: error)
     }
-
 }

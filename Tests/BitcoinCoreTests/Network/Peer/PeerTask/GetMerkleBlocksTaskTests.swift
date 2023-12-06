@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSCryptoKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSCryptoKit
+// @testable import BitcoinCore
 //
-//class GetMerkleBlockTaskTests:XCTestCase {
+// class GetMerkleBlockTaskTests:XCTestCase {
 //
 //    private var generatedDate: Date!
 //    private var dateIsGenerated: Bool!
@@ -280,4 +280,4 @@
 //        }
 //    }
 //
-//}
+// }

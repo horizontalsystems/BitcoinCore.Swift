@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HSHDWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HSHDWalletKit
+// @testable import BitcoinCore
 //
-//class PeerHostManagerDelegateTests: PeerGroupTests {
+// class PeerHostManagerDelegateTests: PeerGroupTests {
 //
 //    private var delegate: PeerGroup!
 //
@@ -30,4 +30,4 @@
 //        verify(mockPeerAddressManager).ip.get
 //    }
 //
-//}
+// }

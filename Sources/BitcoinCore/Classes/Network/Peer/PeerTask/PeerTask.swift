@@ -1,14 +1,13 @@
 import Foundation
 
 open class PeerTask {
-    class TimeoutError: Error {
-    }
+    class TimeoutError: Error {}
 
     public let dateGenerator: () -> Date
-    public var lastActiveTime: Double? = nil
+    public var lastActiveTime: Double?
 
-    weak public var requester: IPeerTaskRequester?
-    weak public var delegate: IPeerTaskDelegate?
+    public weak var requester: IPeerTaskRequester?
+    public weak var delegate: IPeerTaskDelegate?
 
     public init(dateGenerator: @escaping () -> Date = Date.init) {
         self.dateGenerator = dateGenerator
@@ -20,22 +19,19 @@ open class PeerTask {
         resetTimer()
     }
 
-    open func handle(message: IMessage) throws -> Bool {
+    open func handle(message _: IMessage) throws -> Bool {
         false
     }
 
-    open func checkTimeout() {
-    }
+    open func checkTimeout() {}
 
     open func resetTimer() {
         lastActiveTime = dateGenerator().timeIntervalSince1970
     }
-
 }
 
 extension PeerTask: Equatable {
-
-    public static func ==(lhs: PeerTask, rhs: PeerTask) -> Bool {
+    public static func == (lhs: PeerTask, rhs: PeerTask) -> Bool {
         switch lhs {
         case let t as GetBlockHashesTask: return t.equalTo(rhs as? GetBlockHashesTask)
         case let t as GetMerkleBlocksTask: return t.equalTo(rhs as? GetMerkleBlocksTask)
@@ -44,5 +40,4 @@ extension PeerTask: Equatable {
         default: return true
         }
     }
-
 }

@@ -13,9 +13,9 @@ public class BCoinApi {
 }
 
 extension BCoinApi: IApiTransactionProvider {
-    public func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem] {
+    public func transactions(addresses: [String], stopHeight _: Int?) async throws -> [ApiTransactionItem] {
         let parameters: Parameters = [
-            "addresses": addresses
+            "addresses": addresses,
         ]
         let path = "/tx/address"
 
@@ -52,7 +52,7 @@ open class BCoinTransactionItem: ImmutableMappable {
         txOutputs = (try? map.value("outputs")) ?? []
     }
 
-    static func ==(lhs: BCoinTransactionItem, rhs: BCoinTransactionItem) -> Bool {
+    static func == (lhs: BCoinTransactionItem, rhs: BCoinTransactionItem) -> Bool {
         lhs.blockHash == rhs.blockHash && lhs.blockHeight == rhs.blockHeight
     }
 }

@@ -31,19 +31,20 @@ class PeerConnection: NSObject {
 
     private var bootstrap: ClientBootstrap {
         ClientBootstrap(group: group)
-                .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
-                .channelInitializer { [weak self] channel in
-                    self?.initializeChannel(channel: channel) ?? channel.eventLoop.makeSucceededVoidFuture()
-                }
+            .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
+            .channelInitializer { [weak self] channel in
+                self?.initializeChannel(channel: channel) ?? channel.eventLoop.makeSucceededVoidFuture()
+            }
     }
 
     init(host: String, port: Int, networkMessageParser: INetworkMessageParser, networkMessageSerializer: INetworkMessageSerializer,
-         eventLoopGroup: MultiThreadedEventLoopGroup, logger: Logger? = nil) {
+         eventLoopGroup: MultiThreadedEventLoopGroup, logger: Logger? = nil)
+    {
         self.host = host
         self.port = port
         self.networkMessageParser = networkMessageParser
         self.networkMessageSerializer = networkMessageSerializer
-        self.group = eventLoopGroup
+        group = eventLoopGroup
         self.logger = logger
     }
 
@@ -78,11 +79,9 @@ class PeerConnection: NSObject {
     private func onConnectFailure(error: Error) {
         disconnect(error: error)
     }
-
 }
 
 extension PeerConnection: IPeerConnection {
-
     func connect() {
         let connectFuture = bootstrap.connect(host: host, port: port)
 
@@ -109,7 +108,7 @@ extension PeerConnection: IPeerConnection {
         log("-> \(type(of: message)): \(message.description)")
         do {
             let data = try networkMessageSerializer.serialize(message: message)
-            guard !data.isEmpty, let channel = channel else {
+            guard !data.isEmpty, let channel else {
                 return
             }
 
@@ -118,14 +117,12 @@ extension PeerConnection: IPeerConnection {
 
             _ = channel.writeAndFlush(buffer)
         } catch {
-            log("Connection can't send message \(message) with error \(error)", level: .error) //todo catch error when try send message not registered in serializers
+            log("Connection can't send message \(message) with error \(error)", level: .error) // todo catch error when try send message not registered in serializers
         }
     }
-
 }
 
 extension PeerConnection: PeerMessageHandlerDelegate {
-
     func onChannelActive() {
         delegate?.connectionReadyForWrite()
     }
@@ -149,7 +146,6 @@ extension PeerConnection: PeerMessageHandlerDelegate {
         log("Error received: \(error)")
         disconnect(error: error)
     }
-
 }
 
 protocol PeerConnectionDelegate: AnyObject {

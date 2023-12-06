@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class ScriptConverterTests: XCTestCase {
+// class ScriptConverterTests: XCTestCase {
 //
 //    private var converter: ScriptConverter!
 //
@@ -62,4 +62,4 @@
 //        }
 //    }
 //
-//}
+// }

@@ -1,7 +1,6 @@
 import Foundation
 
-public class BitcoinCoreErrors {
-
+public enum BitcoinCoreErrors {
     public enum AddressConversion: Error {
         case invalidChecksum
         case invalidAddressLength
@@ -60,6 +59,4 @@ public class BitcoinCoreErrors {
     public enum Unexpected: Error {
         case unknown
     }
-
-
 }

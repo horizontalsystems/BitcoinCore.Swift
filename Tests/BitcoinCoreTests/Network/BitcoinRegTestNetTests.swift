@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class BitcoinRegTestNetTests:XCTestCase {
+// class BitcoinRegTestNetTests:XCTestCase {
 //
 //    private var mockNetwork: BitcoinMainNet!
 //    private var mockValidatorHelper: MockValidatorHelper!
@@ -33,4 +33,4 @@
 //        }
 //    }
 //
-//}
+// }

@@ -10,7 +10,8 @@ let package = Package(
     products: [
         .library(
             name: "BitcoinCore",
-            targets: ["BitcoinCore"]),
+            targets: ["BitcoinCore"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/attaswift/BigInt.git", .upToNextMajor(from: "5.0.0")),
@@ -46,6 +47,6 @@ let package = Package(
                 "Nimble",
                 "Quick",
             ]
-        )
+        ),
     ]
 )

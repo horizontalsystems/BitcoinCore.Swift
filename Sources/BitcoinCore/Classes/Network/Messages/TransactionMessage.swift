@@ -13,5 +13,4 @@ public struct TransactionMessage: IMessage {
     public var description: String {
         "\(transaction.header.dataHash.hs.reversedHex)"
     }
-
 }

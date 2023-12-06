@@ -1,9 +1,9 @@
-//import XCTest
-//import Cuckoo
-//import HdWalletKit
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// import HdWalletKit
+// @testable import BitcoinCore
 //
-//class PublicKeyManagerTests: XCTestCase {
+// class PublicKeyManagerTests: XCTestCase {
 //
 //    private var mockStorage: MockIStorage!
 //    private var mockHDWallet: MockIHDWallet!
@@ -416,4 +416,4 @@
 //        return PublicKey(withAccount: account, index: index, external: chain == .external, hdPublicKeyData: hdPrivKeyData)
 //    }
 //
-//}
+// }

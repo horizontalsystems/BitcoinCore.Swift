@@ -14,11 +14,9 @@ class TransactionExtractor {
         self.metaDataExtractor = metaDataExtractor
         self.pluginManager = pluginManager
     }
-
 }
 
 extension TransactionExtractor: ITransactionExtractor {
-
     func extract(transaction: FullTransaction) {
         outputScriptTypeParser.extract(transaction: transaction)
         publicKeySetter.extract(transaction: transaction)
@@ -34,5 +32,4 @@ extension TransactionExtractor: ITransactionExtractor {
             inputExtractor.extract(transaction: transaction)
         }
     }
-
 }

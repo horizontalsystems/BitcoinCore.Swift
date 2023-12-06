@@ -14,18 +14,15 @@ struct MerkleBlockMessage: IMessage {
     let flags: [UInt8]
 
     var description: String {
-        return "\(blockHeader.headerHash.hs.reversedHex)"
+        "\(blockHeader.headerHash.hs.reversedHex)"
     }
-
 }
 
 extension MerkleBlockMessage: Equatable {
-
-    static func ==(lhs: MerkleBlockMessage, rhs: MerkleBlockMessage) -> Bool {
-        return lhs.blockHeader.headerHash == rhs.blockHeader.headerHash &&
-                lhs.totalTransactions == rhs.totalTransactions &&
-                lhs.numberOfHashes.underlyingValue == rhs.numberOfHashes.underlyingValue &&
-                lhs.hashes == rhs.hashes
+    static func == (lhs: MerkleBlockMessage, rhs: MerkleBlockMessage) -> Bool {
+        lhs.blockHeader.headerHash == rhs.blockHeader.headerHash &&
+            lhs.totalTransactions == rhs.totalTransactions &&
+            lhs.numberOfHashes.underlyingValue == rhs.numberOfHashes.underlyingValue &&
+            lhs.hashes == rhs.hashes
     }
-
 }

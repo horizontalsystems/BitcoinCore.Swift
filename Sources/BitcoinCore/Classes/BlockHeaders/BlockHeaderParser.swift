@@ -19,9 +19,8 @@ class BlockHeaderParser: IBlockHeaderParser {
         let headerHash = hasher.hash(data: headerData)
 
         return BlockHeader(
-                version: version, headerHash: headerHash, previousBlockHeaderHash: previousBlockHeaderHash, merkleRoot: merkleRoot,
-                timestamp: timestamp, bits: bits, nonce: nonce
+            version: version, headerHash: headerHash, previousBlockHeaderHash: previousBlockHeaderHash, merkleRoot: merkleRoot,
+            timestamp: timestamp, bits: bits, nonce: nonce
         )
     }
-
 }

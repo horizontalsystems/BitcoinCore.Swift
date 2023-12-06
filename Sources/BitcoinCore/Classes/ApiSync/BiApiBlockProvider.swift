@@ -10,7 +10,7 @@ public class BiApiBlockProvider: IApiTransactionProvider {
     }
 
     public func transactions(addresses: [String], stopHeight: Int?) async throws -> [ApiTransactionItem] {
-        return apiSyncStateManager.restored
+        apiSyncStateManager.restored
             ? try await syncProvider.transactions(addresses: addresses, stopHeight: stopHeight)
             : try await restoreProvider.transactions(addresses: addresses, stopHeight: stopHeight)
     }

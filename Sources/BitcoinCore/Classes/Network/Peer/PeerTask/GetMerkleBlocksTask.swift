@@ -30,7 +30,8 @@ class GetMerkleBlocksTask: PeerTask {
 
     init(blockHashes: [BlockHash], merkleBlockValidator: IMerkleBlockValidator, merkleBlockHandler: IMerkleBlockHandler,
          minMerkleBlocksCount: Double, minTransactionsCount: Double, minTransactionsSize: Double,
-         dateGenerator: @escaping () -> Date = Date.init) {
+         dateGenerator: @escaping () -> Date = Date.init)
+    {
         self.blockHashes = blockHashes
         self.merkleBlockValidator = merkleBlockValidator
         self.merkleBlockHandler = merkleBlockHandler
@@ -90,17 +91,16 @@ class GetMerkleBlocksTask: PeerTask {
             return
         }
 
+        let minMerkleBlocksCount = Int((minMerkleBlocksCount * totalWaitingTime).rounded())
+        let minTransactionsCount = Int((minTransactionsCount * totalWaitingTime).rounded())
+        let minTransactionsSize = Int((minTransactionsSize * totalWaitingTime).rounded())
 
-        let minMerkleBlocksCount = Int((self.minMerkleBlocksCount * totalWaitingTime).rounded())
-        let minTransactionsCount = Int((self.minTransactionsCount * totalWaitingTime).rounded())
-        let minTransactionsSize = Int((self.minTransactionsSize * totalWaitingTime).rounded())
-
-        if merkleBlocksCount < minMerkleBlocksCount && transactionsCount < minTransactionsCount && transactionsSize < minTransactionsSize {
+        if merkleBlocksCount < minMerkleBlocksCount, transactionsCount < minTransactionsCount, transactionsSize < minTransactionsSize {
             warningsCount += 1
             if warningsCount >= 10 {
                 delegate?.handle(failedTask: self, error: TooSlowPeer(
-                        minMerkleBlocks: minMerkleBlocksCount, minTransactionsCount: minTransactionsCount, minTransactionsSize: minTransactionsSize,
-                        merkleBlocks: merkleBlocksCount, transactionsCount: transactionsCount, transactionsSize: transactionsSize
+                    minMerkleBlocks: minMerkleBlocksCount, minTransactionsCount: minTransactionsCount, minTransactionsSize: minTransactionsSize,
+                    merkleBlocks: merkleBlocksCount, transactionsCount: transactionsCount, transactionsSize: transactionsSize
                 ))
                 return
             }
@@ -180,11 +180,10 @@ class GetMerkleBlocksTask: PeerTask {
     }
 
     func equalTo(_ task: GetMerkleBlocksTask?) -> Bool {
-        guard let task = task else {
+        guard let task else {
             return false
         }
 
         return blockHashes == task.blockHashes
     }
-
 }

@@ -16,7 +16,7 @@ class AccountPublicKeyManager {
     }
 
     private func fillGap(publicKeysWithUsedStates: [PublicKeyWithUsedState], external: Bool) throws {
-        let publicKeys = publicKeysWithUsedStates.filter({ $0.publicKey.external == external })
+        let publicKeys = publicKeysWithUsedStates.filter { $0.publicKey.external == external }
         let gapKeysCount = gapKeysCount(publicKeyResults: publicKeys)
         var keys = [PublicKey]()
 
@@ -24,7 +24,7 @@ class AccountPublicKeyManager {
             let allKeys = publicKeys.sorted(by: { $0.publicKey.index < $1.publicKey.index })
             let lastIndex = allKeys.last?.publicKey.index ?? -1
             let newKeysStartIndex = lastIndex + 1
-            let indices = UInt32(newKeysStartIndex)..<UInt32(newKeysStartIndex + gapLimit - gapKeysCount)
+            let indices = UInt32(newKeysStartIndex) ..< UInt32(newKeysStartIndex + gapLimit - gapKeysCount)
 
             keys = try hdWallet.publicKeys(indices: indices, external: external)
         }
@@ -33,8 +33,8 @@ class AccountPublicKeyManager {
     }
 
     private func gapKeysCount(publicKeyResults publicKeysWithUsedStates: [PublicKeyWithUsedState]) -> Int {
-        if let lastUsedKey = publicKeysWithUsedStates.filter({ $0.used }).sorted(by: { $0.publicKey.index < $1.publicKey.index }).last {
-            return publicKeysWithUsedStates.filter({ $0.publicKey.index > lastUsedKey.publicKey.index }).count
+        if let lastUsedKey = publicKeysWithUsedStates.filter(\.used).sorted(by: { $0.publicKey.index < $1.publicKey.index }).last {
+            return publicKeysWithUsedStates.filter { $0.publicKey.index > lastUsedKey.publicKey.index }.count
         } else {
             return publicKeysWithUsedStates.count
         }
@@ -42,9 +42,10 @@ class AccountPublicKeyManager {
 
     private func publicKey(external: Bool) throws -> PublicKey {
         guard let unusedKey = storage.publicKeysWithUsedState()
-                .filter({ $0.publicKey.external == external && !$0.used })
-                .sorted(by: { $0.publicKey.index < $1.publicKey.index })
-                .first else {
+            .filter({ $0.publicKey.external == external && !$0.used })
+            .sorted(by: { $0.publicKey.index < $1.publicKey.index })
+            .first
+        else {
             throw PublicKeyManager.PublicKeyManagerError.noUnusedPublicKey
         }
 
@@ -53,7 +54,6 @@ class AccountPublicKeyManager {
 }
 
 extension AccountPublicKeyManager: IPublicKeyManager {
-
     func changePublicKey() throws -> PublicKey {
         try publicKey(external: false)
     }
@@ -82,11 +82,11 @@ extension AccountPublicKeyManager: IPublicKeyManager {
     func gapShifts() -> Bool {
         let publicKeysWithUsedStates = storage.publicKeysWithUsedState()
 
-        if gapKeysCount(publicKeyResults: publicKeysWithUsedStates.filter { $0.publicKey.external }) < gapLimit {
+        if gapKeysCount(publicKeyResults: publicKeysWithUsedStates.filter(\.publicKey.external)) < gapLimit {
             return true
         }
 
-        if gapKeysCount(publicKeyResults: publicKeysWithUsedStates.filter{ !$0.publicKey.external }) < gapLimit {
+        if gapKeysCount(publicKeyResults: publicKeysWithUsedStates.filter { !$0.publicKey.external }) < gapLimit {
             return true
         }
 
@@ -109,7 +109,6 @@ extension AccountPublicKeyManager: IPublicKeyManager {
 }
 
 extension AccountPublicKeyManager: IBloomFilterProvider {
-
     func filterElements() -> [Data] {
         var elements = [Data]()
 
@@ -119,15 +118,12 @@ extension AccountPublicKeyManager: IBloomFilterProvider {
 
         return elements
     }
-
 }
 
 extension AccountPublicKeyManager {
-
     public static func instance(storage: IStorage, hdWallet: IHDAccountWallet, gapLimit: Int, restoreKeyConverter: IRestoreKeyConverter) -> AccountPublicKeyManager {
         let addressManager = AccountPublicKeyManager(storage: storage, hdWallet: hdWallet, gapLimit: gapLimit, restoreKeyConverter: restoreKeyConverter)
         try? addressManager.fillGap()
         return addressManager
     }
-
 }

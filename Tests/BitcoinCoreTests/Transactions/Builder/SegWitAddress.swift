@@ -1,6 +1,6 @@
-//@testable import BitcoinCore
+// @testable import BitcoinCore
 //
-//public class SegWitAddress: Address, Equatable {
+// public class SegWitAddress: Address, Equatable {
 //    public let type: AddressType
 //    public let keyHash: Data
 //    public let stringValue: String
@@ -31,4 +31,4 @@
 //        }
 //        return lhs.type == rhs.type && lhs.keyHash == rhs.keyHash && lhs.version == rhs.version
 //    }
-//}
+// }

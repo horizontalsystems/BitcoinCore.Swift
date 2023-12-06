@@ -1,7 +1,6 @@
 import Foundation
 
 class TransactionDataSorterFactory: ITransactionDataSorterFactory {
-
     func sorter(for type: TransactionDataSortType) -> ITransactionDataSorter {
         switch type {
         case .none: return StraightSorter()
@@ -9,5 +8,4 @@ class TransactionDataSorterFactory: ITransactionDataSorterFactory {
         case .bip69: return Bip69Sorter()
         }
     }
-
 }

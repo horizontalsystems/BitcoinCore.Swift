@@ -1,8 +1,8 @@
-//import XCTest
-//import Quick
-//import Nimble
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Quick
+// import Nimble
+// import Cuckoo
+// @testable import BitcoinCore
 //
 ////   value:              Given value
 ////   totalValue:         Total value of selected UTXOs
@@ -23,7 +23,7 @@
 ////     when senderPay = false:  recipientValue = value - fee;  sentValue = value
 //
 //
-//class UnspentOutputSelectorTests: QuickSpec {
+// class UnspentOutputSelectorTests: QuickSpec {
 //
 //    override func spec() {
 //        let feeRate = 1
@@ -216,4 +216,4 @@
 //        }
 //    }
 //
-//}
+// }

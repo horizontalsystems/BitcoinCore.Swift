@@ -1,8 +1,8 @@
-//import XCTest
-//import Cuckoo
-//@testable import BitcoinCore
+// import XCTest
+// import Cuckoo
+// @testable import BitcoinCore
 //
-//class InputSignerTests: XCTestCase {
+// class InputSignerTests: XCTestCase {
 //
 //    private var mockHDWallet: MockIHDWallet!
 //    private var mockNetwork: MockINetwork!
@@ -127,4 +127,4 @@
 //        XCTAssertEqual(caught, true)
 //    }
 //
-//}
+// }

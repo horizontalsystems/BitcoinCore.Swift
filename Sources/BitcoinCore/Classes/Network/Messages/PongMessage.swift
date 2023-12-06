@@ -5,7 +5,6 @@ struct PongMessage: IMessage {
     let nonce: UInt64
 
     var description: String {
-        return "\(nonce)"
+        "\(nonce)"
     }
-
 }
