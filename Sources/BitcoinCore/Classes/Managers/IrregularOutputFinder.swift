@@ -1,13 +1,13 @@
 import Foundation
 
 class IrregularOutputFinder {
-
-    private let irregularScriptTypes: [ScriptType] = [.p2wpkh, .p2pk, .p2wpkhSh, .p2tr]
+    private let irregularScriptTypes: [ScriptType]
     private let storage: IStorage
-    weak var bloomFilterManager: IBloomFilterManager? = nil
+    weak var bloomFilterManager: IBloomFilterManager?
 
-    init(storage: IStorage) {
+    init(storage: IStorage, additionalScripts: [ScriptType]) {
         self.storage = storage
+        irregularScriptTypes = ([.p2wpkh, .p2pk, .p2wpkhSh, .p2tr] + additionalScripts).unique
     }
 
     private func needToSetToBloomFilter(output: OutputWithPublicKey, bestBlockHeight: Int) -> Bool {
@@ -24,11 +24,9 @@ class IrregularOutputFinder {
         // if output is spent by a mempool transaction, that is, spending input's transaction has not a block
         return true
     }
-
 }
 
 extension IrregularOutputFinder: IIrregularOutputFinder {
-
     func hasIrregularOutput(outputs: [Output]) -> Bool {
         for output in outputs {
             if output.publicKeyPath != nil, irregularScriptTypes.contains(output.scriptType) {
@@ -38,11 +36,9 @@ extension IrregularOutputFinder: IIrregularOutputFinder {
 
         return false
     }
-
 }
 
 extension IrregularOutputFinder: IBloomFilterProvider {
-
     func filterElements() -> [Data] {
         var elements = [Data]()
 
@@ -61,5 +57,4 @@ extension IrregularOutputFinder: IBloomFilterProvider {
 
         return elements
     }
-
 }
