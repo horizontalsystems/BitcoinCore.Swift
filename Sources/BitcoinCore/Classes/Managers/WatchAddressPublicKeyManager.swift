@@ -6,9 +6,13 @@ class WatchAddressPublicKeyManager: IPublicKeyFetcher, IPublicKeyManager, IBloom
 
     weak var bloomFilterManager: IBloomFilterManager?
 
-    init(publicKey: WatchAddressPublicKey, restoreKeyConverter: RestoreKeyConverterChain) {
+    init(storage: IStorage, publicKey: WatchAddressPublicKey, restoreKeyConverter: RestoreKeyConverterChain) {
         self.publicKey = publicKey
         self.restoreKeyConverter = restoreKeyConverter
+
+        if !storage.publicKeys().contains(where: { $0.path == publicKey.path }) {
+            storage.add(publicKeys: [publicKey])
+        }
     }
 
     func publicKeys(indices _: Range<UInt32>, external _: Bool) throws -> [PublicKey] {
