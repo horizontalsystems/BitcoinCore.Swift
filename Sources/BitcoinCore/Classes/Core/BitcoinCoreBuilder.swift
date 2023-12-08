@@ -169,8 +169,7 @@ public class BitcoinCoreBuilder {
         let blockHashScanHelper: IBlockHashScanHelper
 
         if let watchAddressPublicKey {
-            storage.add(publicKeys: [watchAddressPublicKey])
-            let manager = WatchAddressPublicKeyManager(publicKey: watchAddressPublicKey, restoreKeyConverter: restoreKeyConverterChain)
+            let manager = WatchAddressPublicKeyManager(storage: storage, publicKey: watchAddressPublicKey, restoreKeyConverter: restoreKeyConverterChain)
             publicKeyManager = manager
             publicKeyFetcher = manager
             blockHashScanHelper = WatchAddressBlockHashScanHelper()
