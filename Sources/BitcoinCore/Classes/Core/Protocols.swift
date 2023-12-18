@@ -156,6 +156,7 @@ public protocol IRestoreKeyConverter {
 }
 
 public protocol IPublicKeyManager {
+    var usedPublicKeys: [PublicKey] { get }
     func changePublicKey() throws -> PublicKey
     func receivePublicKey() throws -> PublicKey
     func fillGap() throws

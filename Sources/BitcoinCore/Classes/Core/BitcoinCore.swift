@@ -243,6 +243,13 @@ public extension BitcoinCore {
         try publicKeyManager.receivePublicKey()
     }
 
+    var usedAddresses: [UsedAddress] {
+        publicKeyManager.usedPublicKeys.compactMap { pubKey in
+            let address = try? addressConverter.convert(publicKey: pubKey, type: purpose.scriptType)
+            return address.map { UsedAddress(index: pubKey.index, address: $0.stringValue) }
+        }
+    }
+
     internal func watch(transaction: BitcoinCore.TransactionFilter, delegate: IWatchedTransactionDelegate) {
         watchedTransactionManager.add(transactionFilter: transaction, delegatedTo: delegate)
     }

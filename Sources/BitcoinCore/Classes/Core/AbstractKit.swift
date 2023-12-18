@@ -85,6 +85,10 @@ open class AbstractKit {
         bitcoinCore.receiveAddress()
     }
 
+    open var usedAddresses: [UsedAddress] {
+        bitcoinCore.usedAddresses
+    }
+
     open func changePublicKey() throws -> PublicKey {
         try bitcoinCore.changePublicKey()
     }
