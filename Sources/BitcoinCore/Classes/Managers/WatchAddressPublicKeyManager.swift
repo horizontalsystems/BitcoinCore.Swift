@@ -27,6 +27,10 @@ class WatchAddressPublicKeyManager: IPublicKeyFetcher, IPublicKeyManager, IBloom
         publicKey
     }
 
+    var usedPublicKeys: [PublicKey] {
+        []
+    }
+
     func fillGap() throws {
         bloomFilterManager?.regenerateBloomFilter()
     }
