@@ -3,13 +3,15 @@ class TransactionFeeCalculator {
     private let inputSetter: IInputSetter
     private let addressConverter: IAddressConverter
     private let publicKeyManager: IPublicKeyManager
+    private let transactionSizeCalculator: TransactionSizeCalculator
     private let changeScriptType: ScriptType
 
-    init(recipientSetter: IRecipientSetter, inputSetter: IInputSetter, addressConverter: IAddressConverter, publicKeyManager: IPublicKeyManager, changeScriptType: ScriptType) {
+    init(recipientSetter: IRecipientSetter, inputSetter: IInputSetter, addressConverter: IAddressConverter, publicKeyManager: IPublicKeyManager, transactionSizeCalculator: TransactionSizeCalculator, changeScriptType: ScriptType) {
         self.recipientSetter = recipientSetter
         self.inputSetter = inputSetter
         self.addressConverter = addressConverter
         self.publicKeyManager = publicKeyManager
+        self.transactionSizeCalculator = transactionSizeCalculator
         self.changeScriptType = changeScriptType
     }
 
@@ -19,11 +21,15 @@ class TransactionFeeCalculator {
 }
 
 extension TransactionFeeCalculator: ITransactionFeeCalculator {
-    func fee(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
+    func fee(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
         let mutableTransaction = MutableTransaction()
 
         try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? sampleAddress(), value: value, pluginData: pluginData, skipChecks: true)
-        try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, sortType: .none)
+        if let unspentOutputs {
+            try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: .none)
+        } else {
+            try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, sortType: .none)
+        }
 
         let inputsTotalValue = mutableTransaction.inputsToSign.reduce(0) { total, input in total + input.previousOutput.value }
         let outputsTotalValue = mutableTransaction.recipientValue + mutableTransaction.changeValue

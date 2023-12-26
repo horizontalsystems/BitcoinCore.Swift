@@ -13,37 +13,47 @@ public class UnspentOutputSelectorSingleNoChange {
 }
 
 extension UnspentOutputSelectorSingleNoChange: IUnspentOutputSelector {
-    public func select(value: Int, feeRate: Int, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
-        let unspentOutputs = provider.spendableUtxo
-        let recipientOutputDust = dustCalculator.dust(type: outputScriptType)
-        let changeOutputDust = dustCalculator.dust(type: changeType)
+    public var all: [UnspentOutput] {
+        provider.spendableUtxo
+    }
 
-        guard unspentOutputs.allSatisfy({ !$0.output.failedToSpend }) else {
-            throw BitcoinCoreErrors.SendValueErrors.singleNoChangeOutputNotFound
-        }
-        guard value >= recipientOutputDust else {
+    public func select(value: Int, feeRate: Int, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
+        let sortedOutputs = provider.spendableUtxo.sorted(by: { lhs, rhs in
+            (lhs.output.failedToSpend && !rhs.output.failedToSpend) || (
+                    lhs.output.failedToSpend == rhs.output.failedToSpend && lhs.output.value < rhs.output.value
+            )
+        })
+
+        // check if value is not dust. recipientValue may be less, but not more
+        guard value >= dustCalculator.dust(type: outputScriptType) else {
             throw BitcoinCoreErrors.SendValueErrors.dust
         }
-        guard !unspentOutputs.isEmpty else {
-            throw BitcoinCoreErrors.SendValueErrors.emptyOutputs
-        }
 
-        // try to find 1 unspent output with exactly matching value
-        for unspentOutput in unspentOutputs {
-            let output = unspentOutput.output
-            let fee = calculator.transactionSize(previousOutputs: [output], outputScriptTypes: [outputScriptType], pluginDataOutputSize: pluginDataOutputSize) * feeRate
+        let params = UnspentOutputQueue.Parameters(
+                value: value,
+                senderPay: senderPay,
+                fee: feeRate,
+                outputsLimit: nil,
+                outputScriptType: outputScriptType,
+                changeType: changeType,
+                pluginDataOutputSize: pluginDataOutputSize
+        )
 
-            let recipientValue = senderPay ? value : value - fee
-            let sentValue = senderPay ? value + fee : value
+        let queue = UnspentOutputQueue(parameters: params, sizeCalculator: calculator, dustCalculator: dustCalculator)
 
-            if sentValue <= output.value, // output.value is enough
-               recipientValue >= recipientOutputDust, // receivedValue won't be dust
-               output.value - sentValue < changeOutputDust
-            { // no need to add change output
-                return SelectedUnspentOutputInfo(unspentOutputs: [unspentOutput], recipientValue: recipientValue, changeValue: nil)
+        // select unspentOutputs with least value until we get needed value
+        for unspentOutput in sortedOutputs {
+            queue.set(outputs: [unspentOutput])
+
+            do {
+                let info = try queue.calculate()
+                if info.changeValue == nil {
+                    return info
+                }
+            } catch {
+                print(error)
             }
         }
-
         throw BitcoinCoreErrors.SendValueErrors.singleNoChangeOutputNotFound
     }
 }

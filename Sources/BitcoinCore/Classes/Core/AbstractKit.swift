@@ -41,20 +41,20 @@ open class AbstractKit {
         bitcoinCore.transaction(hash: hash)
     }
 
-    open func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
-        try bitcoinCore.send(to: address, value: value, feeRate: feeRate, sortType: sortType, pluginData: pluginData)
+    open func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+        try bitcoinCore.send(to: address, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
-    public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
-        try bitcoinCore.send(to: hash, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType)
+    public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil) throws -> FullTransaction {
+        try bitcoinCore.send(to: hash, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs)
     }
 
     public func redeem(from unspentOutput: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
         try bitcoinCore.redeem(from: unspentOutput, to: address, feeRate: feeRate, sortType: sortType)
     }
 
-    open func createRawTransaction(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
-        try bitcoinCore.createRawTransaction(to: address, value: value, feeRate: feeRate, sortType: sortType, pluginData: pluginData)
+    open func createRawTransaction(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
+        try bitcoinCore.createRawTransaction(to: address, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
     open func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {
@@ -79,6 +79,10 @@ open class AbstractKit {
 
     open func minSpendableValue(toAddress: String? = nil) throws -> Int {
         try bitcoinCore.minSpendableValue(toAddress: toAddress)
+    }
+
+    open var unspentOutputs: [UnspentOutput] {
+        bitcoinCore.unspentOutputs
     }
 
     open func receiveAddress() -> String {

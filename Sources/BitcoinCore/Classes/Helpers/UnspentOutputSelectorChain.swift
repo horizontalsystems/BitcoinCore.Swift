@@ -1,5 +1,14 @@
 class UnspentOutputSelectorChain: IUnspentOutputSelector {
+    private let provider: IUnspentOutputProvider
     var concreteSelectors = [IUnspentOutputSelector]()
+
+    init(provider: IUnspentOutputProvider) {
+        self.provider = provider
+    }
+
+    var all: [UnspentOutput] {
+        provider.spendableUtxo
+    }
 
     func select(value: Int, feeRate: Int, outputScriptType: ScriptType, changeType: ScriptType, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
         var lastError: Error = BitcoinCoreErrors.Unexpected.unknown
