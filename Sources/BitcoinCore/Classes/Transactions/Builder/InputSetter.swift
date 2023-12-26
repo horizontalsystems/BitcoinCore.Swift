@@ -40,13 +40,7 @@ class InputSetter {
 }
 
 extension InputSetter: IInputSetter {
-    func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws {
-        let value = mutableTransaction.recipientValue
-        let unspentOutputInfo = try unspentOutputSelector.select(
-            value: value, feeRate: feeRate,
-            outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
-            senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
-        )
+    private func _set(to mutableTransaction: MutableTransaction, unspentOutputInfo: SelectedUnspentOutputInfo, sortType: TransactionDataSortType) throws {
         let unspentOutputs = inputSorterFactory.sorter(for: sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
 
         for unspentOutput in unspentOutputs {
@@ -65,6 +59,34 @@ extension InputSetter: IInputSetter {
         }
 
         try pluginManager.processInputs(mutableTransaction: mutableTransaction)
+    }
+
+    func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput], sortType: TransactionDataSortType) throws {
+        let params = UnspentOutputQueue.Parameters(
+                value: mutableTransaction.recipientValue,
+                senderPay: senderPay,
+                fee: feeRate,
+                outputsLimit: nil,
+                outputScriptType: mutableTransaction.recipientAddress.scriptType,
+                changeType: changeScriptType,
+                pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+        )
+
+        let queue = UnspentOutputQueue(parameters: params, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
+        let unspentOutputInfo = try queue.calculate()
+
+        try _set(to: mutableTransaction, unspentOutputInfo: unspentOutputInfo, sortType: sortType)
+    }
+
+    func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws {
+        let value = mutableTransaction.recipientValue
+        let unspentOutputInfo = try unspentOutputSelector.select(
+            value: value, feeRate: feeRate,
+            outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
+            senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+        )
+
+        try _set(to: mutableTransaction, unspentOutputInfo: unspentOutputInfo, sortType: sortType)
     }
 
     func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int) throws {
