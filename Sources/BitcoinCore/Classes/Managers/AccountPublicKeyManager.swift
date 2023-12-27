@@ -54,8 +54,8 @@ class AccountPublicKeyManager {
 }
 
 extension AccountPublicKeyManager: IPublicKeyManager {
-    var usedPublicKeys: [PublicKey] {
-        storage.publicKeysWithUsedState().compactMap { ($0.used && $0.publicKey.external) ? $0.publicKey : nil }
+    func usedPublicKeys(change: Bool) -> [PublicKey] {
+        storage.publicKeysWithUsedState().compactMap { ($0.used && $0.publicKey.external == !change) ? $0.publicKey : nil }
     }
 
     func changePublicKey() throws -> PublicKey {
