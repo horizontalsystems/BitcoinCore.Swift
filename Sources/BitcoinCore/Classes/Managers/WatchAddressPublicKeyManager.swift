@@ -27,7 +27,7 @@ class WatchAddressPublicKeyManager: IPublicKeyFetcher, IPublicKeyManager, IBloom
         publicKey
     }
 
-    var usedPublicKeys: [PublicKey] {
+    func usedPublicKeys(change: Bool) -> [PublicKey] {
         []
     }
 

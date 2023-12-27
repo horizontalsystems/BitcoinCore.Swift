@@ -247,8 +247,8 @@ public extension BitcoinCore {
         try publicKeyManager.receivePublicKey()
     }
 
-    var usedAddresses: [UsedAddress] {
-        publicKeyManager.usedPublicKeys.compactMap { pubKey in
+    func usedAddresses(change: Bool) -> [UsedAddress] {
+        publicKeyManager.usedPublicKeys(change: change).compactMap { pubKey in
             let address = try? addressConverter.convert(publicKey: pubKey, type: purpose.scriptType)
             return address.map { UsedAddress(index: pubKey.index, address: $0.stringValue) }
         }

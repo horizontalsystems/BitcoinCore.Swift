@@ -41,12 +41,20 @@ open class AbstractKit {
         bitcoinCore.transaction(hash: hash)
     }
 
-    open func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+    open func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+        try bitcoinCore.send(to: address, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil, pluginData: pluginData)
+    }
+
+    open func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput], pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
         try bitcoinCore.send(to: address, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
-    public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil) throws -> FullTransaction {
+    public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]) throws -> FullTransaction {
         try bitcoinCore.send(to: hash, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs)
+    }
+
+    public func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+        try bitcoinCore.send(to: hash, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil)
     }
 
     public func redeem(from unspentOutput: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
@@ -89,8 +97,8 @@ open class AbstractKit {
         bitcoinCore.receiveAddress()
     }
 
-    open var usedAddresses: [UsedAddress] {
-        bitcoinCore.usedAddresses
+    open func usedAddresses(change: Bool) -> [UsedAddress] {
+        bitcoinCore.usedAddresses(change: change)
     }
 
     open func changePublicKey() throws -> PublicKey {
