@@ -40,7 +40,30 @@ class InputSetter {
 }
 
 extension InputSetter: IInputSetter {
-    private func _set(to mutableTransaction: MutableTransaction, unspentOutputInfo: SelectedUnspentOutputInfo, sortType: TransactionDataSortType) throws {
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType) throws -> OutputInfo {
+        let unspentOutputInfo: SelectedUnspentOutputInfo
+        if let unspentOutputs {
+            let params = UnspentOutputQueue.Parameters(
+                    value: mutableTransaction.recipientValue,
+                    senderPay: senderPay,
+                    fee: feeRate,
+                    outputsLimit: nil,
+                    outputScriptType: mutableTransaction.recipientAddress.scriptType,
+                    changeType: changeScriptType,
+                    pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+            )
+
+            let queue = UnspentOutputQueue(parameters: params, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
+            unspentOutputInfo = try queue.calculate()
+        } else {
+            let value = mutableTransaction.recipientValue
+            unspentOutputInfo = try unspentOutputSelector.select(
+                    value: value, feeRate: feeRate,
+                    outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
+                    senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+            )
+        }
+
         let unspentOutputs = inputSorterFactory.sorter(for: sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
 
         for unspentOutput in unspentOutputs {
@@ -50,32 +73,18 @@ extension InputSetter: IInputSetter {
         mutableTransaction.recipientValue = unspentOutputInfo.recipientValue
 
         // Add change output if needed
+        var changeInfo: ChangeInfo?
         if let changeValue = unspentOutputInfo.changeValue {
             let changePubKey = try publicKeyManager.changePublicKey()
             let changeAddress = try addressConverter.convert(publicKey: changePubKey, type: changeScriptType)
 
             mutableTransaction.changeAddress = changeAddress
             mutableTransaction.changeValue = changeValue
+            changeInfo = ChangeInfo(address: changeAddress, value: changeValue)
         }
 
         try pluginManager.processInputs(mutableTransaction: mutableTransaction)
-    }
-
-    func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput], sortType: TransactionDataSortType) throws {
-        let params = UnspentOutputQueue.Parameters(
-                value: mutableTransaction.recipientValue,
-                senderPay: senderPay,
-                fee: feeRate,
-                outputsLimit: nil,
-                outputScriptType: mutableTransaction.recipientAddress.scriptType,
-                changeType: changeScriptType,
-                pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
-        )
-
-        let queue = UnspentOutputQueue(parameters: params, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
-        let unspentOutputInfo = try queue.calculate()
-
-        try _set(to: mutableTransaction, unspentOutputInfo: unspentOutputInfo, sortType: sortType)
+        return OutputInfo(unspentOutputs: unspentOutputs, changeInfo: changeInfo)
     }
 
     @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws -> [UnspentOutput] {
@@ -86,7 +95,6 @@ extension InputSetter: IInputSetter {
             senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
         )
 
-        try _set(to: mutableTransaction, unspentOutputInfo: unspentOutputInfo, sortType: sortType)
         return unspentOutputInfo.unspentOutputs
     }
 
@@ -106,5 +114,17 @@ extension InputSetter: IInputSetter {
         // Add to mutable transaction
         try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput))
         mutableTransaction.recipientValue = unspentOutput.output.value - fee
+    }
+}
+
+extension InputSetter {
+    public struct ChangeInfo {
+        let address: Address
+        let value: Int
+    }
+
+    public struct OutputInfo {
+        let unspentOutputs: [UnspentOutput]
+        let changeInfo: ChangeInfo?
     }
 }

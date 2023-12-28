@@ -19,11 +19,7 @@ extension TransactionBuilder: ITransactionBuilder {
         let mutableTransaction = MutableTransaction()
 
         try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, value: value, pluginData: pluginData, skipChecks: false)
-        if let unspentOutputs {
-            try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType)
-        } else {
-            try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, sortType: sortType)
-        }
+        try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 
         outputSetter.setOutputs(to: mutableTransaction, sortType: sortType)
