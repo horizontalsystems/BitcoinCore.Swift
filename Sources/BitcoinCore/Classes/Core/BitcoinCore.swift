@@ -195,12 +195,12 @@ public extension BitcoinCore {
         paymentAddressParser.parse(paymentAddress: paymentAddress)
     }
 
-    func fee(for value: Int, toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+    func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionFeeCalculator.fee(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, unspentOutputs: nil, pluginData: pluginData)
+        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, unspentOutputs: nil, pluginData: pluginData)
     }
 
     func maxSpendableValue(toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
@@ -208,7 +208,7 @@ public extension BitcoinCore {
             throw CoreError.readOnlyCore
         }
 
-        let sendAllFee = try transactionFeeCalculator.fee(for: balance.spendable, feeRate: feeRate, senderPay: false, toAddress: toAddress, unspentOutputs: nil, pluginData: pluginData).fee
+        let sendAllFee = try transactionFeeCalculator.sendInfo(for: balance.spendable, feeRate: feeRate, senderPay: false, toAddress: toAddress, unspentOutputs: nil, pluginData: pluginData).fee
         return max(0, balance.spendable - sendAllFee)
     }
 
