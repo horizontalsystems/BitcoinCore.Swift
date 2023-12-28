@@ -384,7 +384,7 @@ protocol ITransactionBuilder {
 }
 
 protocol ITransactionFeeCalculator {
-    func fee(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> Int
+    func fee(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> BitcoinSendInfo
 }
 
 protocol IBlockchain {
@@ -641,7 +641,7 @@ protocol IOutputSetter {
 
 protocol IInputSetter {
     func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput], sortType: TransactionDataSortType) throws
-    func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws -> [UnspentOutput]
     func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int) throws
 }
 
