@@ -3,15 +3,14 @@ import HdWalletKit
 import HsToolKit
 
 public class BitcoinCoreBuilder {
-    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noPurpose, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noApiProvider, notSupported, noApiSyncStateManager, noCheckpoint }
+    public enum BuildError: Error { case peerSizeLessThanRequired, noSeedData, noPurpose, noKeystoreType, noScriptType, noWalletId, noNetwork, noPaymentAddressParser, noAddressSelector, noStorage, noApiProvider, notSupported, noApiSyncStateManager, noCheckpoint }
 
     // chains
     public let addressConverter = AddressConverterChain()
 
     // required parameters
-    private var extendedKey: HDExtendedKey?
-    private var watchAddressPublicKey: WatchAddressPublicKey?
-    private var purpose: Purpose?
+    private var keystoreType: KeystoreType?
+    private var scriptType: ScriptType?
     private var network: INetwork?
     private var paymentAddressParser: IPaymentAddressParser?
     private var walletId: String?
@@ -33,13 +32,8 @@ public class BitcoinCoreBuilder {
     private var checkpoint: Checkpoint?
     private var apiSyncStateManager: ApiSyncStateManager?
 
-    @discardableResult public func set(extendedKey: HDExtendedKey?) -> BitcoinCoreBuilder {
-        self.extendedKey = extendedKey
-        return self
-    }
-
-    public func set(watchAddressPublicKey: WatchAddressPublicKey?) -> BitcoinCoreBuilder {
-        self.watchAddressPublicKey = watchAddressPublicKey
+    @discardableResult public func set(keystoreType: KeystoreType) -> BitcoinCoreBuilder {
+        self.keystoreType = keystoreType
         return self
     }
 
@@ -48,8 +42,8 @@ public class BitcoinCoreBuilder {
         return self
     }
 
-    public func set(purpose: Purpose) -> BitcoinCoreBuilder {
-        self.purpose = purpose
+    public func set(scriptType: ScriptType) -> BitcoinCoreBuilder {
+        self.scriptType = scriptType
         return self
     }
 
@@ -127,8 +121,11 @@ public class BitcoinCoreBuilder {
     }
 
     public func build() throws -> BitcoinCore {
-        guard let purpose else {
-            throw BuildError.noPurpose
+        guard let keystoreType else {
+            throw BuildError.noKeystoreType
+        }
+        guard let scriptType else {
+            throw BuildError.noScriptType
         }
         guard let network else {
             throw BuildError.noNetwork
@@ -168,42 +165,56 @@ public class BitcoinCoreBuilder {
         let publicKeyManager: IPublicKeyManager & IBloomFilterProvider
         let blockHashScanHelper: IBlockHashScanHelper
 
-        if let watchAddressPublicKey {
-            let manager = WatchAddressPublicKeyManager(storage: storage, publicKey: watchAddressPublicKey, restoreKeyConverter: restoreKeyConverterChain)
-            publicKeyManager = manager
-            publicKeyFetcher = manager
-            blockHashScanHelper = WatchAddressBlockHashScanHelper()
-        } else if let extendedKey {
-            switch extendedKey {
-            case let .private(privateKey):
-                switch extendedKey.derivedType {
-                case .master:
-                    let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: purpose)
-                    hdWallet = wallet
-                    let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
-                    publicKeyFetcher = fetcher
-                    multiAccountPublicKeyFetcher = fetcher
-                    publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                case .account:
-                    let wallet = HDAccountWallet(privateKey: privateKey)
-                    hdWallet = wallet
-                    publicKeyFetcher = PublicKeyFetcher(hdAccountWallet: wallet)
-                    publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                case .bip32:
-                    throw BuildError.notSupported
+        switch keystoreType {
+            case .extendedKey(let key, let purpose):
+                switch key {
+                    case .private(let privateKey):
+                        switch key.derivedType {
+                            case .master:
+                                guard let purpose else {
+                                    throw BuildError.noPurpose
+                                }
+
+                                let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: purpose)
+                                hdWallet = wallet
+                                let fetcher = MultiAccountPublicKeyFetcher(hdWallet: wallet)
+                                publicKeyFetcher = fetcher
+                                multiAccountPublicKeyFetcher = fetcher
+                                publicKeyManager = PublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+                            case .account:
+                                let wallet = HDAccountWallet(privateKey: privateKey)
+                                hdWallet = wallet
+                                publicKeyFetcher = PublicKeyFetcher(hdAccountWallet: wallet)
+                                publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+                            case .bip32:
+                                throw BuildError.notSupported
+                        }
+                    case .public(let publicKey):
+                        switch key.derivedType {
+                            case .account:
+                                let wallet = HDWatchAccountWallet(publicKey: publicKey)
+                                publicKeyFetcher = WatchPublicKeyFetcher(hdWatchAccountWallet: wallet)
+                                publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+                            default: throw BuildError.notSupported
+                        }
                 }
-            case let .public(publicKey):
-                switch extendedKey.derivedType {
-                case .account:
-                    let wallet = HDWatchAccountWallet(publicKey: publicKey)
-                    publicKeyFetcher = WatchPublicKeyFetcher(hdWatchAccountWallet: wallet)
-                    publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: wallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
-                default: throw BuildError.notSupported
-                }
-            }
-            blockHashScanHelper = BlockHashScanHelper()
-        } else {
-            throw BuildError.notSupported
+                blockHashScanHelper = BlockHashScanHelper()
+            case .watchPublicKey(let key):
+                let manager = WatchAddressPublicKeyManager(storage: storage, publicKey: key, restoreKeyConverter: restoreKeyConverterChain)
+                publicKeyManager = manager
+                publicKeyFetcher = manager
+                blockHashScanHelper = WatchAddressBlockHashScanHelper()
+            case .multisig(let config):
+                let keystores = try MultisigConfig
+                    .sortedLastHardenedPublicKeys(keystores: config.keystores, coinType: network.coinType)
+                    .map { HDWatchAccountWallet(publicKey: $0) }
+
+                let multisigKeystores = MultisigKeystores(cosignersCount: config.cosignersCount, minSignaturesCount: config.minSignaturesCount, keystores: keystores)
+
+                let referenceKeystoreWallet = keystores.first!
+                publicKeyFetcher = WatchPublicKeyFetcher(hdWatchAccountWallet: referenceKeystoreWallet)
+                publicKeyManager = AccountPublicKeyManager.instance(storage: storage, hdWallet: referenceKeystoreWallet, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain)
+                blockHashScanHelper = BlockHashScanHelper()
         }
 
         let networkMessageParser = NetworkMessageParser(magic: network.magic)
@@ -218,7 +229,14 @@ public class BitcoinCoreBuilder {
         let pendingOutpointsProvider = PendingOutpointsProvider(storage: storage)
 
         let transactionMetadataExtractor = TransactionMetadataExtractor(storage: storage)
-        let irregularOutputFinder = IrregularOutputFinder(storage: storage, additionalScripts: watchAddressPublicKey == nil ? [] : [ScriptType.p2pkh])
+        let additionalScripts: [ScriptType]
+        if case .watchPublicKey = keystoreType {
+            additionalScripts = []
+        } else {
+            additionalScripts = [ScriptType.p2pkh]
+        }
+
+        let irregularOutputFinder = IrregularOutputFinder(storage: storage, additionalScripts: additionalScripts)
         let transactionInputExtractor = TransactionInputExtractor(storage: storage, scriptConverter: scriptConverter, addressConverter: addressConverter, logger: logger)
         let publicKeySetter = TransactionPublicKeySetter(storage: storage)
         let outputScriptTypeParser = OutputScriptTypeParser()
@@ -249,7 +267,7 @@ public class BitcoinCoreBuilder {
         var apiSyncer: IApiSyncer
         let initialDownload: IInitialDownload
 
-        if case let .blockchair(key) = syncMode {
+        if case .blockchair(let key) = syncMode {
             let blockchairApi: BlockchairApi
 
             if let provider = apiTransactionProvider as? BlockchairTransactionProvider {
@@ -303,11 +321,11 @@ public class BitcoinCoreBuilder {
             let dustCalculatorInstance = DustCalculator(dustRelayTxFee: network.dustRelayTxFee, sizeCalculator: transactionSizeCalculatorInstance)
             let recipientSetter = RecipientSetter(addressConverter: addressConverter, pluginManager: pluginManager)
             let outputSetter = OutputSetter(outputSorterFactory: transactionDataSorterFactory, factory: factory)
-            let inputSetter = InputSetter(unspentOutputSelector: unspentOutputSelector, transactionSizeCalculator: transactionSizeCalculatorInstance, addressConverter: addressConverter, publicKeyManager: publicKeyManager, factory: factory, pluginManager: pluginManager, dustCalculator: dustCalculatorInstance, changeScriptType: purpose.scriptType, inputSorterFactory: transactionDataSorterFactory)
+            let inputSetter = InputSetter(unspentOutputSelector: unspentOutputSelector, transactionSizeCalculator: transactionSizeCalculatorInstance, addressConverter: addressConverter, publicKeyManager: publicKeyManager, factory: factory, pluginManager: pluginManager, dustCalculator: dustCalculatorInstance, changeScriptType: scriptType, inputSorterFactory: transactionDataSorterFactory)
             let lockTimeSetter = LockTimeSetter(storage: storage)
             let transactionSigner = TransactionSigner(ecdsaInputSigner: ecdsaInputSigner, schnorrInputSigner: schnorrInputSigner)
             let transactionBuilder = TransactionBuilder(recipientSetter: recipientSetter, inputSetter: inputSetter, lockTimeSetter: lockTimeSetter, outputSetter: outputSetter, signer: transactionSigner)
-            transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: purpose.scriptType)
+            transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: scriptType)
             let transactionSendTimer = TransactionSendTimer(interval: 60)
             let transactionSenderInstance = TransactionSender(transactionSyncer: pendingTransactionSyncer, initialBlockDownload: initialDownload, peerManager: peerManager, storage: storage, timer: transactionSendTimer, logger: logger)
 
@@ -340,7 +358,7 @@ public class BitcoinCoreBuilder {
                                       syncManager: syncManager,
                                       pluginManager: pluginManager,
                                       watchedTransactionManager: watchedTransactionManager,
-                                      purpose: purpose,
+                                      scriptType: scriptType,
                                       peerManager: peerManager)
 
         dataProvider.delegate = bitcoinCore
@@ -395,4 +413,10 @@ public class BitcoinCoreBuilder {
 
         return bitcoinCore
     }
+}
+
+public enum KeystoreType {
+    case extendedKey(key: HDExtendedKey, purpose: Purpose?)
+    case watchPublicKey(key: WatchAddressPublicKey)
+    case multisig(config: MultisigConfig)
 }

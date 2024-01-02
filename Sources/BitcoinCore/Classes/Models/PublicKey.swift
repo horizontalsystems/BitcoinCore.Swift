@@ -16,6 +16,7 @@ public class PublicKey: Record {
     public let hashP2pkh: Data
     public let hashP2wpkhWrappedInP2sh: Data
     public let convertedForP2tr: Data
+    public let multisig: Bool
 
     init(path: String, hashP2pkh: Data = Data(), hashP2wpkhWrappedInP2sh: Data = Data(), convertedForP2tr: Data = Data()) {
         self.path = path
@@ -23,6 +24,7 @@ public class PublicKey: Record {
         index = 0
         external = false
         raw = Data()
+        multisig = false
         self.hashP2pkh = hashP2pkh
         self.hashP2wpkhWrappedInP2sh = hashP2wpkhWrappedInP2sh
         self.convertedForP2tr = convertedForP2tr
@@ -30,7 +32,7 @@ public class PublicKey: Record {
         super.init()
     }
 
-    public init(withAccount account: Int, index: Int, external: Bool, hdPublicKeyData data: Data) throws {
+    public init(withAccount account: Int, index: Int, external: Bool, hdPublicKeyData data: Data, multisig: Bool = false) throws {
         self.account = account
         self.index = index
         self.external = external
@@ -39,6 +41,7 @@ public class PublicKey: Record {
         hashP2pkh = Crypto.ripeMd160Sha256(data)
         hashP2wpkhWrappedInP2sh = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(hashP2pkh, versionByte: 0))
         convertedForP2tr = try SchnorrHelper.tweakedOutputKey(publicKey: raw)
+        self.multisig = multisig
 
         super.init()
     }
@@ -56,6 +59,7 @@ public class PublicKey: Record {
         case keyHash
         case scriptHashForP2WPKH
         case convertedForP2tr
+        case multisig
     }
 
     required init(row: Row) throws {
@@ -67,6 +71,7 @@ public class PublicKey: Record {
         hashP2pkh = row[Columns.keyHash]
         hashP2wpkhWrappedInP2sh = row[Columns.scriptHashForP2WPKH]
         convertedForP2tr = row[Columns.convertedForP2tr]
+        multisig = row[Columns.multisig]
 
         try super.init(row: row)
     }
@@ -80,6 +85,7 @@ public class PublicKey: Record {
         container[Columns.keyHash] = hashP2pkh
         container[Columns.scriptHashForP2WPKH] = hashP2wpkhWrappedInP2sh
         container[Columns.convertedForP2tr] = convertedForP2tr
+        container[Columns.multisig] = multisig
     }
 }
 

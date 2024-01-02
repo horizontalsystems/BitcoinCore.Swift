@@ -23,7 +23,7 @@ public class BitcoinCore {
     private let syncManager: SyncManager
     private let pluginManager: IPluginManager
 
-    private let purpose: Purpose
+    private let scriptType: ScriptType
     private let peerManager: IPeerManager
 
     // START: Extending
@@ -85,7 +85,7 @@ public class BitcoinCore {
          unspentOutputSelector: UnspentOutputSelectorChain,
          transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, dustCalculator: IDustCalculator?,
          paymentAddressParser: IPaymentAddressParser, networkMessageParser: NetworkMessageParser, networkMessageSerializer: NetworkMessageSerializer,
-         syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, purpose: Purpose,
+         syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, scriptType: ScriptType,
          peerManager: IPeerManager)
     {
         self.storage = storage
@@ -110,7 +110,7 @@ public class BitcoinCore {
         self.pluginManager = pluginManager
         self.watchedTransactionManager = watchedTransactionManager
 
-        self.purpose = purpose
+        self.scriptType = scriptType
         self.peerManager = peerManager
     }
 }
@@ -231,7 +231,7 @@ public extension BitcoinCore {
 
     func receiveAddress() -> String {
         guard let publicKey = try? publicKeyManager.receivePublicKey(),
-              let address = try? addressConverter.convert(publicKey: publicKey, type: purpose.scriptType)
+              let address = try? addressConverter.convert(publicKey: publicKey, type: scriptType)
         else {
             return ""
         }
@@ -249,7 +249,7 @@ public extension BitcoinCore {
 
     func usedAddresses(change: Bool) -> [UsedAddress] {
         publicKeyManager.usedPublicKeys(change: change).compactMap { pubKey in
-            let address = try? addressConverter.convert(publicKey: pubKey, type: purpose.scriptType)
+            let address = try? addressConverter.convert(publicKey: pubKey, type: scriptType)
             return address.map { UsedAddress(index: pubKey.index, address: $0.stringValue) }
         }
     }
@@ -259,7 +259,7 @@ public extension BitcoinCore {
     }
 
     func debugInfo(network: INetwork) -> String {
-        dataProvider.debugInfo(network: network, scriptType: purpose.scriptType, addressConverter: addressConverter)
+        dataProvider.debugInfo(network: network, scriptType: scriptType, addressConverter: addressConverter)
     }
 
     var statusInfo: [(String, Any)] {
@@ -267,7 +267,7 @@ public extension BitcoinCore {
         status.append(("state", syncManager.syncState.toString()))
         status.append(("synced until", ((lastBlockInfo?.timestamp.map { Double($0) })?.map { Date(timeIntervalSince1970: $0) }) ?? "n/a"))
         status.append(("syncing peer", initialDownload.syncPeer?.host ?? "n/a"))
-        status.append(("derivation", purpose.description))
+        status.append(("derivation", scriptType))
 
         status.append(contentsOf:
             peerManager.connected.enumerated().map { index, peer in

@@ -321,6 +321,12 @@ open class GrdbStorage {
             }
         }
 
+        migrator.registerMigration("addMultisigToPublicKeys") { db in
+            try db.alter(table: PublicKey.databaseTableName) { t in
+                t.add(column: PublicKey.Columns.multisig.name, .boolean).notNull().defaults(to: false)
+            }
+        }
+
         return migrator
     }
 
