@@ -154,6 +154,18 @@ public extension BitcoinCore {
         unspentOutputSelector.all
     }
 
+    var unspentOutputsInfo: [UnspentOutputInfo] {
+        unspentOutputSelector.all.map {
+            .init(
+                outputIndex: $0.output.index,
+                transactionHash: $0.output.transactionHash,
+                timestamp: TimeInterval($0.transaction.timestamp),
+                address: $0.output.address,
+                value: $0.output.value
+            )
+        }
+    }
+
     func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
@@ -195,12 +207,12 @@ public extension BitcoinCore {
         paymentAddressParser.parse(paymentAddress: paymentAddress)
     }
 
-    func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+    func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, unspentOutputs: nil, pluginData: pluginData)
+        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
     func maxSpendableValue(toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
