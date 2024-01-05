@@ -73,8 +73,9 @@ open class AbstractKit {
         bitcoinCore.parse(paymentAddress: paymentAddress)
     }
 
-    open func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
-        try bitcoinCore.sendInfo(for: value, toAddress: toAddress, feeRate: feeRate, pluginData: pluginData)
+    open func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+        let outputs = unspentOutputs.map { $0.outputs(from: bitcoinCore.unspentOutputs) }
+        return try bitcoinCore.sendInfo(for: value, toAddress: toAddress, feeRate: feeRate, unspentOutputs: outputs, pluginData: pluginData)
     }
 
     open func maxSpendableValue(toAddress: String? = nil, feeRate: Int, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
@@ -89,8 +90,8 @@ open class AbstractKit {
         try bitcoinCore.minSpendableValue(toAddress: toAddress)
     }
 
-    open var unspentOutputs: [UnspentOutput] {
-        bitcoinCore.unspentOutputs
+    open var unspentOutputs: [UnspentOutputInfo] {
+        bitcoinCore.unspentOutputs.map { $0.info }
     }
 
     open func receiveAddress() -> String {
