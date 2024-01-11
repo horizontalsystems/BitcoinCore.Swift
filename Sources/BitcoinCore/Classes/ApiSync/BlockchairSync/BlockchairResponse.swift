@@ -59,14 +59,12 @@ struct BlockchairTransactionsReponse: ImmutableMappable {
     struct Transaction: ImmutableMappable, Hashable {
         let blockId: Int?
         let hash: String
-        let time: Int
         let balanceChange: Int
         let address: String
 
         init(map: Map) throws {
             blockId = try map.value("block_id")
             hash = try map.value("hash")
-            time = try map.value("time", using: BlockchairResponse.dateStringToTimestampTransform)
             balanceChange = try map.value("balance_change")
             address = try map.value("address")
         }
