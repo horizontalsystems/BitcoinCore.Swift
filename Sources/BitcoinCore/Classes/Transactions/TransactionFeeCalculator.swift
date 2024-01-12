@@ -19,10 +19,10 @@ class TransactionFeeCalculator {
 }
 
 extension TransactionFeeCalculator: ITransactionFeeCalculator {
-    func sendInfo(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+    func sendInfo(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, memo: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
         let mutableTransaction = MutableTransaction()
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? sampleAddress(), value: value, pluginData: pluginData, skipChecks: true)
+        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? sampleAddress(), memo: memo, value: value, pluginData: pluginData, skipChecks: true)
 
         let outputInfo = try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: .none)
 

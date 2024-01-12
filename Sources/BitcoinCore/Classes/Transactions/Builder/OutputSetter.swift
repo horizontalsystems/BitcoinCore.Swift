@@ -1,4 +1,5 @@
 import Foundation
+import HsExtensions
 
 class OutputSetter {
     private let outputSorterFactory: ITransactionDataSorterFactory
@@ -32,7 +33,15 @@ extension OutputSetter: IOutputSetter {
             outputs.append(factory.nullDataOutput(data: data))
         }
 
-        let sorted = outputSorterFactory.sorter(for: sortType).sort(outputs: outputs)
+        var sorted = outputSorterFactory.sorter(for: sortType).sort(outputs: outputs)
+        if let memo = transaction.memo, let memoData = memo.data(using: .utf8) {
+            var data = Data([OpCode.op_return])
+            data += VarInt(memoData.count).data
+            data += memoData
+
+            sorted.append(factory.nullDataOutput(data: data))
+        }
+
         sorted.enumerated().forEach { index, transactionOutput in
             transactionOutput.index = index
         }

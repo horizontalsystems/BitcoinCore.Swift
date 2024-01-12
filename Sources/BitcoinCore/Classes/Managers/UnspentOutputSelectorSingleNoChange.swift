@@ -17,7 +17,7 @@ extension UnspentOutputSelectorSingleNoChange: IUnspentOutputSelector {
         provider.spendableUtxo
     }
 
-    public func select(value: Int, feeRate: Int, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
+    public func select(value: Int, memo: String?, feeRate: Int, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
         let sortedOutputs = provider.spendableUtxo.sorted(by: { lhs, rhs in
             (lhs.output.failedToSpend && !rhs.output.failedToSpend) || (
                     lhs.output.failedToSpend == rhs.output.failedToSpend && lhs.output.value < rhs.output.value
@@ -32,6 +32,7 @@ extension UnspentOutputSelectorSingleNoChange: IUnspentOutputSelector {
         let params = UnspentOutputQueue.Parameters(
                 value: value,
                 senderPay: senderPay,
+                memo: memo,
                 fee: feeRate,
                 outputsLimit: nil,
                 outputScriptType: outputScriptType,

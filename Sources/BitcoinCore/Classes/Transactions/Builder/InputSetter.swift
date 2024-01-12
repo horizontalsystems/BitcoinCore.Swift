@@ -46,6 +46,7 @@ extension InputSetter: IInputSetter {
             let params = UnspentOutputQueue.Parameters(
                     value: mutableTransaction.recipientValue,
                     senderPay: senderPay,
+                    memo: mutableTransaction.memo,
                     fee: feeRate,
                     outputsLimit: nil,
                     outputScriptType: mutableTransaction.recipientAddress.scriptType,
@@ -58,7 +59,7 @@ extension InputSetter: IInputSetter {
         } else {
             let value = mutableTransaction.recipientValue
             unspentOutputInfo = try unspentOutputSelector.select(
-                    value: value, feeRate: feeRate,
+                    value: value, memo: mutableTransaction.memo, feeRate: feeRate,
                     outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
                     senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
@@ -90,7 +91,7 @@ extension InputSetter: IInputSetter {
     @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws -> [UnspentOutput] {
         let value = mutableTransaction.recipientValue
         let unspentOutputInfo = try unspentOutputSelector.select(
-            value: value, feeRate: feeRate,
+            value: value, memo: mutableTransaction.memo, feeRate: feeRate,
             outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
             senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
         )
@@ -104,7 +105,7 @@ extension InputSetter: IInputSetter {
         }
 
         // Calculate fee
-        let transactionSize = transactionSizeCalculator.transactionSize(previousOutputs: [unspentOutput.output], outputScriptTypes: [mutableTransaction.recipientAddress.scriptType], pluginDataOutputSize: 0)
+        let transactionSize = transactionSizeCalculator.transactionSize(previousOutputs: [unspentOutput.output], outputScriptTypes: [mutableTransaction.recipientAddress.scriptType], memo: mutableTransaction.memo, pluginDataOutputSize: 0)
         let fee = transactionSize * feeRate
 
         guard fee < unspentOutput.output.value else {

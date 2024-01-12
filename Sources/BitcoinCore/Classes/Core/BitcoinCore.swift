@@ -166,42 +166,43 @@ public extension BitcoinCore {
         }
     }
 
-    func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
+
         let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
-        return try transactionCreator.create(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: pluginData)
+        return try transactionCreator.create(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: pluginData)
     }
 
-    func send(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
-        try send(to: address, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil, pluginData: pluginData)
+    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
+        try send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil, pluginData: pluginData)
     }
 
-    func send(to hash: Data, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
+    func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
         let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
         let toAddress = try addressConverter.convert(lockingScriptPayload: hash, type: scriptType)
-        return try transactionCreator.create(to: toAddress.stringValue, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: [:])
+        return try transactionCreator.create(to: toAddress.stringValue, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: [:])
     }
 
-    internal func redeem(from unspentOutput: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+    internal func redeem(from unspentOutput: UnspentOutput, memo: String?, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.create(from: unspentOutput, to: address, feeRate: feeRate, sortType: sortType)
+        return try transactionCreator.create(from: unspentOutput, to: address, memo: memo, feeRate: feeRate, sortType: sortType)
     }
 
-    func createRawTransaction(to address: String, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
+    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.createRawTransaction(to: address, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
+        return try transactionCreator.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
     func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {
@@ -212,15 +213,15 @@ public extension BitcoinCore {
         paymentAddressParser.parse(paymentAddress: paymentAddress)
     }
 
-    func sendInfo(for value: Int, toAddress: String? = nil, feeRate: Int, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+    func sendInfo(for value: Int, toAddress: String? = nil, memo: String?, feeRate: Int, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, unspentOutputs: unspentOutputs, pluginData: pluginData)
+        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, memo: memo, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
-    func maxSpendableValue(toAddress: String? = nil, feeRate: Int, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
+    func maxSpendableValue(toAddress: String? = nil, memo: String?, feeRate: Int, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
@@ -228,7 +229,7 @@ public extension BitcoinCore {
         let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
         let balance = outputs.map { $0.map(\.output.value).reduce(0, +) } ?? balance.spendable
 
-        let sendAllFee = try transactionFeeCalculator.sendInfo(for: balance, feeRate: feeRate, senderPay: false, toAddress: toAddress, unspentOutputs: outputs, pluginData: pluginData).fee
+        let sendAllFee = try transactionFeeCalculator.sendInfo(for: balance, feeRate: feeRate, senderPay: false, toAddress: toAddress, memo: memo, unspentOutputs: outputs, pluginData: pluginData).fee
         return max(0, balance - sendAllFee)
     }
 
