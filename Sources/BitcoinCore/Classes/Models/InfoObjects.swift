@@ -49,6 +49,7 @@ public class TransactionOutputInfo: Codable {
     public let changeOutput: Bool
     public let value: Int
     public let address: String?
+    public var memo: String?
     public var pluginId: UInt8? = nil
     public var pluginData: IPluginOutputData? = nil
 

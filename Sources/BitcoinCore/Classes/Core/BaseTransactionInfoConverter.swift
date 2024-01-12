@@ -44,6 +44,15 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
                 outputInfo.pluginId = pluginId
                 outputInfo.pluginDataString = pluginDataString
                 outputInfo.pluginData = pluginManager.parsePluginData(fromPlugin: pluginId, pluginDataString: pluginDataString, transactionTimestamp: transactionTimestamp)
+            } else if output.scriptType == .nullData, let payload = output.lockingScriptPayload, !payload.isEmpty {
+                // read first byte to get data length and parse first message
+                let byteStream = ByteStream(payload)
+                let _ = byteStream.read(UInt8.self) // read op_return
+                let length = byteStream.read(VarInt.self).underlyingValue
+                if byteStream.availableBytes >= length {
+                    let data = byteStream.read(Data.self, count: Int(length))
+                    outputInfo.memo = String(data: data, encoding: .utf8)   //todo: make memo manager if need parse not only memo (some instructions)
+                }
             }
 
             outputsInfo.append(outputInfo)

@@ -15,10 +15,10 @@ class TransactionBuilder {
 }
 
 extension TransactionBuilder: ITransactionBuilder {
-    func buildTransaction(toAddress: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
+    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
         let mutableTransaction = MutableTransaction()
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, value: value, pluginData: pluginData, skipChecks: false)
+        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: value, pluginData: pluginData, skipChecks: false)
         try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 
@@ -28,10 +28,10 @@ extension TransactionBuilder: ITransactionBuilder {
         return mutableTransaction.build()
     }
 
-    func buildTransaction(from unspentOutput: UnspentOutput, toAddress: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+    func buildTransaction(from unspentOutput: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
         let mutableTransaction = MutableTransaction(outgoing: false)
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, value: unspentOutput.output.value, pluginData: [:], skipChecks: false)
+        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: unspentOutput.output.value, pluginData: [:], skipChecks: false)
         try inputSetter.setInputs(to: mutableTransaction, fromUnspentOutput: unspentOutput, feeRate: feeRate)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 

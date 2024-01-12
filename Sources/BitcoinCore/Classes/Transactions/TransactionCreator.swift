@@ -31,9 +31,10 @@ class TransactionCreator {
 }
 
 extension TransactionCreator: ITransactionCreator {
-    func create(to address: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+    func create(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
         let transaction = try transactionBuilder.buildTransaction(
             toAddress: address,
+            memo: memo,
             value: value,
             feeRate: feeRate,
             senderPay: senderPay,
@@ -46,16 +47,23 @@ extension TransactionCreator: ITransactionCreator {
         return transaction
     }
 
-    func create(from unspentOutput: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
-        let transaction = try transactionBuilder.buildTransaction(from: unspentOutput, toAddress: address, feeRate: feeRate, sortType: sortType)
+    func create(from unspentOutput: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+        let transaction = try transactionBuilder.buildTransaction(
+            from: unspentOutput,
+            toAddress: address,
+            memo: memo,
+            feeRate: feeRate,
+            sortType: sortType
+        )
 
         try processAndSend(transaction: transaction)
         return transaction
     }
 
-    func createRawTransaction(to address: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
+    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
         let transaction = try transactionBuilder.buildTransaction(
             toAddress: address,
+            memo: memo,
             value: value,
             feeRate: feeRate,
             senderPay: senderPay,

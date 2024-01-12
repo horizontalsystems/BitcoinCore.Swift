@@ -373,18 +373,18 @@ public protocol ITransactionSyncer: AnyObject {
 }
 
 public protocol ITransactionCreator {
-    func create(to address: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
-    func create(from: UnspentOutput, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
-    func createRawTransaction(to address: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> Data
+    func create(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
+    func create(from: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
+    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> Data
 }
 
 protocol ITransactionBuilder {
-    func buildTransaction(toAddress: String, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
-    func buildTransaction(from: UnspentOutput, toAddress: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
+    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
+    func buildTransaction(from: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
 }
 
 protocol ITransactionFeeCalculator {
-    func sendInfo(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> BitcoinSendInfo
+    func sendInfo(for value: Int, feeRate: Int, senderPay: Bool, toAddress: String?, memo: String?, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> BitcoinSendInfo
 }
 
 protocol IBlockchain {
@@ -407,8 +407,8 @@ protocol IInputSigner {
 }
 
 public protocol ITransactionSizeCalculator {
-    func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType]) -> Int
-    func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType], pluginDataOutputSize: Int) -> Int
+    func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType], memo: String?) -> Int
+    func transactionSize(previousOutputs: [Output], outputScriptTypes: [ScriptType], memo: String?, pluginDataOutputSize: Int) -> Int
     func outputSize(type: ScriptType) -> Int
     func inputSize(type: ScriptType) -> Int
     func witnessSize(type: ScriptType) -> Int
@@ -422,7 +422,7 @@ public protocol IDustCalculator {
 public protocol IUnspentOutputSelector {
     var all: [UnspentOutput] { get }
 
-    func select(value: Int, feeRate: Int, outputScriptType: ScriptType, changeType: ScriptType, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo
+    func select(value: Int, memo: String?, feeRate: Int, outputScriptType: ScriptType, changeType: ScriptType, senderPay: Bool, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo
 }
 
 public protocol IUnspentOutputProvider {
@@ -632,7 +632,7 @@ public protocol IBlockMedianTimeHelper {
 }
 
 protocol IRecipientSetter {
-    func setRecipient(to mutableTransaction: MutableTransaction, toAddress: String, value: Int, pluginData: [UInt8: IPluginData], skipChecks: Bool) throws
+    func setRecipient(to mutableTransaction: MutableTransaction, toAddress: String, memo: String?, value: Int, pluginData: [UInt8: IPluginData], skipChecks: Bool) throws
 }
 
 protocol IOutputSetter {

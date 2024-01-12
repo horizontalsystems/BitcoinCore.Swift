@@ -63,6 +63,7 @@ class UnspentOutputQueue {
         let feeWithoutChange = sizeCalculator.transactionSize(
                 previousOutputs: selectedOutputs.map(\.output),
                 outputScriptTypes: [params.outputScriptType],
+                memo: params.memo,
                 pluginDataOutputSize: params.pluginDataOutputSize
         ) * params.fee
 
@@ -86,6 +87,7 @@ class UnspentOutputQueue {
     struct Parameters {
         let value: Int
         let senderPay: Bool
+        let memo: String?
         let fee: Int
 
         let outputsLimit: Int?

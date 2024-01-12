@@ -9,9 +9,10 @@ class RecipientSetter {
 }
 
 extension RecipientSetter: IRecipientSetter {
-    func setRecipient(to mutableTransaction: MutableTransaction, toAddress: String, value: Int, pluginData: [UInt8: IPluginData], skipChecks: Bool = false) throws {
+    func setRecipient(to mutableTransaction: MutableTransaction, toAddress: String, memo: String?, value: Int, pluginData: [UInt8: IPluginData], skipChecks: Bool = false) throws {
         mutableTransaction.recipientAddress = try addressConverter.convert(address: toAddress)
         mutableTransaction.recipientValue = value
+        mutableTransaction.memo = memo
 
         try pluginManager.processOutputs(mutableTransaction: mutableTransaction, pluginData: pluginData, skipChecks: skipChecks)
     }
