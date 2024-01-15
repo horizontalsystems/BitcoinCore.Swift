@@ -294,7 +294,6 @@ protocol IApiSyncer {
     var listener: IApiSyncerListener? { get set }
     var willSync: Bool { get }
     func sync()
-    func syncLastBlock()
     func terminate()
 }
 

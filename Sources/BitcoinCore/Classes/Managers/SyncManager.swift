@@ -213,7 +213,6 @@ extension SyncManager: IBlockSyncListener {
         let forceAddedBlocks = forceAddedBlocksTotal - storage.apiBlockHashesCount
 
         if forceAddedBlocks >= forceAddedBlocksTotal {
-            apiSyncer.syncLastBlock()
             syncState = .synced
         } else {
             syncState = .syncing(progress: Double(forceAddedBlocks) / Double(forceAddedBlocksTotal))
