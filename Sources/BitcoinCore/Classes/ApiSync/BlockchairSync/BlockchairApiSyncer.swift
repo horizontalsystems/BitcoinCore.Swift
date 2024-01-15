@@ -112,6 +112,17 @@ class BlockchairApiSyncer {
     private func handle(error: Error) {
         listener?.onSyncFailed(error: error)
     }
+
+    private func syncLastBlock() {
+        Task { [weak self] in
+            do {
+                try await self?._syncLastBlock()
+            } catch {
+                self?.handle(error: error)
+            }
+        }
+        .store(in: &tasks)
+    }
 }
 
 extension BlockchairApiSyncer: IApiSyncer {
@@ -123,17 +134,7 @@ extension BlockchairApiSyncer: IApiSyncer {
         Task { [weak self] in
             do {
                 try await self?.scan()
-            } catch {
-                self?.handle(error: error)
-            }
-        }
-        .store(in: &tasks)
-    }
-
-    func syncLastBlock() {
-        Task { [weak self] in
-            do {
-                try await self?._syncLastBlock()
+                self?.syncLastBlock()
             } catch {
                 self?.handle(error: error)
             }

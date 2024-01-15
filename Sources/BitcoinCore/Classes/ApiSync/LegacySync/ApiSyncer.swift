@@ -91,8 +91,6 @@ extension ApiSyncer: IApiSyncer {
         Task { [weak self] in await self?._sync() }.store(in: &tasks)
     }
 
-    func syncLastBlock() {}
-
     func terminate() {
         tasks = Set()
     }
