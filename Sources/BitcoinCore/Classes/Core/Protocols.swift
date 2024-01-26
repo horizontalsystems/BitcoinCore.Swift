@@ -401,7 +401,7 @@ public protocol IBlockchainDataListener: AnyObject {
     func onInsert(block: Block)
 }
 
-protocol IInputSigner {
+public protocol IInputSigner {
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data]
 }
 

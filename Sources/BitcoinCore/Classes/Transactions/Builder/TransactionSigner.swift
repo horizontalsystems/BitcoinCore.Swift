@@ -1,6 +1,6 @@
 import Foundation
 
-class TransactionSigner {
+public class TransactionSigner {
     enum SignError: Error {
         case notSupportedScriptType
         case noRedeemScript
@@ -79,7 +79,7 @@ class TransactionSigner {
 }
 
 extension TransactionSigner: ITransactionSigner {
-    func sign(mutableTransaction: MutableTransaction) throws {
+   public func sign(mutableTransaction: MutableTransaction) throws {
         for (index, inputToSign) in mutableTransaction.inputsToSign.enumerated() {
             if inputToSign.previousOutput.scriptType == .p2tr {
                 try schnorrSign(index: index, mutableTransaction: mutableTransaction)

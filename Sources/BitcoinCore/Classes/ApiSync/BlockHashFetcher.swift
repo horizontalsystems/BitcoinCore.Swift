@@ -23,7 +23,7 @@ public class BlockHashFetcher: IBlockHashFetcher {
         }
 
         if afterCheckpoint.count > 0 {
-            await try blockHashes.merge(blockchairFetcher.fetch(heights: afterCheckpoint), uniquingKeysWith: { a, _ in a })
+            try await blockHashes.merge(blockchairFetcher.fetch(heights: afterCheckpoint), uniquingKeysWith: { a, _ in a })
         }
 
         return blockHashes

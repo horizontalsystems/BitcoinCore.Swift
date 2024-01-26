@@ -3,14 +3,12 @@ class TransactionBuilder {
     private let inputSetter: IInputSetter
     private let lockTimeSetter: ILockTimeSetter
     private let outputSetter: IOutputSetter
-    // private let signer: ITransactionSigner
 
     init(recipientSetter: IRecipientSetter, inputSetter: IInputSetter, lockTimeSetter: ILockTimeSetter, outputSetter: IOutputSetter, signer: ITransactionSigner) {
         self.recipientSetter = recipientSetter
         self.inputSetter = inputSetter
         self.lockTimeSetter = lockTimeSetter
         self.outputSetter = outputSetter
-        // self.signer = signer
     }
 }
 
