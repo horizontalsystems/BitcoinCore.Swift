@@ -9,12 +9,14 @@ class TransactionCreator {
     private let transactionProcessor: IPendingTransactionProcessor
     private let transactionSender: ITransactionSender
     private let bloomFilterManager: IBloomFilterManager
+    private let signer: ITransactionSigner
 
-    init(transactionBuilder: ITransactionBuilder, transactionProcessor: IPendingTransactionProcessor, transactionSender: ITransactionSender, bloomFilterManager: IBloomFilterManager) {
+    init(transactionBuilder: ITransactionBuilder, transactionProcessor: IPendingTransactionProcessor, transactionSender: ITransactionSender, bloomFilterManager: IBloomFilterManager, signer: ITransactionSigner) {
         self.transactionBuilder = transactionBuilder
         self.transactionProcessor = transactionProcessor
         self.transactionSender = transactionSender
         self.bloomFilterManager = bloomFilterManager
+        self.signer = signer
     }
 
     private func processAndSend(transaction: FullTransaction) throws {
@@ -40,7 +42,8 @@ extension TransactionCreator: ITransactionCreator {
             senderPay: senderPay,
             sortType: sortType,
             unspentOutputs: unspentOutputs,
-            pluginData: pluginData
+            pluginData: pluginData,
+            signer: signer
         )
 
         try processAndSend(transaction: transaction)
@@ -53,7 +56,8 @@ extension TransactionCreator: ITransactionCreator {
             toAddress: address,
             memo: memo,
             feeRate: feeRate,
-            sortType: sortType
+            sortType: sortType,
+            signer: self.signer
         )
 
         try processAndSend(transaction: transaction)
@@ -69,7 +73,8 @@ extension TransactionCreator: ITransactionCreator {
             senderPay: senderPay,
             sortType: sortType,
             unspentOutputs: unspentOutputs,
-            pluginData: pluginData
+            pluginData: pluginData,
+            signer: self.signer
         )
 
         return TransactionSerializer.serialize(transaction: transaction)
