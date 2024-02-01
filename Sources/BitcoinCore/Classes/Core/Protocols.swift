@@ -378,8 +378,8 @@ public protocol ITransactionCreator {
 }
 
 protocol ITransactionBuilder {
-    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
-    func buildTransaction(from: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
+    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData], signer: ITransactionSigner) throws -> FullTransaction
+    func buildTransaction(from: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, signer: ITransactionSigner) throws -> FullTransaction
 }
 
 protocol ITransactionFeeCalculator {
@@ -401,7 +401,7 @@ public protocol IBlockchainDataListener: AnyObject {
     func onInsert(block: Block)
 }
 
-protocol IInputSigner {
+public protocol IInputSigner {
     func sigScriptData(transaction: Transaction, inputsToSign: [InputToSign], outputs: [Output], index: Int) throws -> [Data]
 }
 
@@ -647,7 +647,7 @@ protocol ILockTimeSetter {
     func setLockTime(to mutableTransaction: MutableTransaction)
 }
 
-protocol ITransactionSigner {
+public protocol ITransactionSigner {
     func sign(mutableTransaction: MutableTransaction) throws
 }
 

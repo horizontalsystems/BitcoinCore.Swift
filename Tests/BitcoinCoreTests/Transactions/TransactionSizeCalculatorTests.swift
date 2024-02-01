@@ -28,7 +28,7 @@
         XCTAssertEqual(calculator.transactionSize(previousOutputs: outputs(withScriptTypes: [.p2wpkhSh]), outputScriptTypes: [.p2pkh]), 136) // 1-in 1-out (sh) witness tx
         XCTAssertEqual(calculator.transactionSize(previousOutputs: outputs(withScriptTypes: [.p2wpkh, .p2pkh, .p2pkh, .p2pkh]), outputScriptTypes: [.p2pkh]), 558) // 4-in 1-out witness tx
     }
-
+    
     func testTransactionSizeShInputsStandard() {
         let redeemScript = Data(repeating: 0, count: 45)
         let shOutput = Output(withValue: 0, index: 0, lockingScript: Data(), type: .p2sh, redeemScript: redeemScript)
