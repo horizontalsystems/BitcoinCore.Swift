@@ -41,24 +41,24 @@ open class AbstractKit {
         bitcoinCore.transaction(hash: hash)
     }
 
-    open func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
-        try bitcoinCore.send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
+    open func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+        try bitcoinCore.send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
-    public func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
-        try bitcoinCore.send(to: hash, memo: memo, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs)
+    public func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
+        try bitcoinCore.send(to: hash, memo: memo, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: unspentOutputs)
     }
 
-    public func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
-        try bitcoinCore.send(to: hash, memo: memo, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil)
+    public func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
+        try bitcoinCore.send(to: hash, memo: memo, scriptType: scriptType, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: nil)
     }
 
-    public func redeem(from unspentOutput: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
-        try bitcoinCore.redeem(from: unspentOutput, memo: memo, to: address, feeRate: feeRate, sortType: sortType)
+    public func redeem(from unspentOutput: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
+        try bitcoinCore.redeem(from: unspentOutput, memo: memo, to: address, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled)
     }
 
-    open func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
-        try bitcoinCore.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
+    open func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]? = nil, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
+        try bitcoinCore.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
     open func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {

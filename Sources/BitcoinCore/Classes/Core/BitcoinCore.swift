@@ -166,43 +166,43 @@ public extension BitcoinCore {
         }
     }
 
-    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
         let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
-        return try transactionCreator.create(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: pluginData)
+        return try transactionCreator.create(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: outputs, pluginData: pluginData)
     }
 
-    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
-        try send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, unspentOutputs: nil, pluginData: pluginData)
+    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
+        try send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: nil, pluginData: pluginData)
     }
 
-    func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
+    func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
         let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
         let toAddress = try addressConverter.convert(lockingScriptPayload: hash, type: scriptType)
-        return try transactionCreator.create(to: toAddress.stringValue, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: outputs, pluginData: [:])
+        return try transactionCreator.create(to: toAddress.stringValue, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: outputs, pluginData: [:])
     }
 
-    internal func redeem(from unspentOutput: UnspentOutput, memo: String?, to address: String, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+    internal func redeem(from unspentOutput: UnspentOutput, memo: String?, to address: String, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.create(from: unspentOutput, to: address, memo: memo, feeRate: feeRate, sortType: sortType)
+        return try transactionCreator.create(from: unspentOutput, to: address, memo: memo, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled)
     }
 
-    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
+    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, unspentOutputs: unspentOutputs, pluginData: pluginData)
+        return try transactionCreator.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: unspentOutputs, pluginData: pluginData)
     }
 
     func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {

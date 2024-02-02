@@ -30,28 +30,28 @@ class InputSetter {
         self.inputSorterFactory = inputSorterFactory
     }
 
-    private func input(fromUnspentOutput unspentOutput: UnspentOutput) throws -> InputToSign {
+    private func input(fromUnspentOutput unspentOutput: UnspentOutput, rbfEnabled: Bool) throws -> InputToSign {
         // Maximum nSequence value (0xFFFFFFFF) disables nLockTime.
         // According to BIP-125, any value less than 0xFFFFFFFE makes a Replace-by-Fee(RBF) opted in.
-        let sequence = 0xFFFF_FFFE
+        let sequence = rbfEnabled ? 0x0 : 0xFFFF_FFFE
 
         return factory.inputToSign(withPreviousOutput: unspentOutput, script: Data(), sequence: sequence)
     }
 }
 
 extension InputSetter: IInputSetter {
-    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType) throws -> OutputInfo {
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> OutputInfo {
         let unspentOutputInfo: SelectedUnspentOutputInfo
         if let unspentOutputs {
             let params = UnspentOutputQueue.Parameters(
-                    value: mutableTransaction.recipientValue,
-                    senderPay: senderPay,
-                    memo: mutableTransaction.memo,
-                    fee: feeRate,
-                    outputsLimit: nil,
-                    outputScriptType: mutableTransaction.recipientAddress.scriptType,
-                    changeType: changeScriptType,
-                    pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+                value: mutableTransaction.recipientValue,
+                senderPay: senderPay,
+                memo: mutableTransaction.memo,
+                fee: feeRate,
+                outputsLimit: nil,
+                outputScriptType: mutableTransaction.recipientAddress.scriptType,
+                changeType: changeScriptType,
+                pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
 
             let queue = UnspentOutputQueue(parameters: params, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
@@ -59,16 +59,16 @@ extension InputSetter: IInputSetter {
         } else {
             let value = mutableTransaction.recipientValue
             unspentOutputInfo = try unspentOutputSelector.select(
-                    value: value, memo: mutableTransaction.memo, feeRate: feeRate,
-                    outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
-                    senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+                value: value, memo: mutableTransaction.memo, feeRate: feeRate,
+                outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
+                senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
         }
 
         let unspentOutputs = inputSorterFactory.sorter(for: sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
 
         for unspentOutput in unspentOutputs {
-            try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput))
+            try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: rbfEnabled))
         }
 
         mutableTransaction.recipientValue = unspentOutputInfo.recipientValue
@@ -99,7 +99,7 @@ extension InputSetter: IInputSetter {
         return unspentOutputInfo.unspentOutputs
     }
 
-    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int) throws {
+    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int, rbfEnabled: Bool) throws {
         guard unspentOutput.output.scriptType == .p2sh else {
             throw UnspentOutputError.notSupportedScriptType
         }
@@ -113,7 +113,7 @@ extension InputSetter: IInputSetter {
         }
 
         // Add to mutable transaction
-        try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput))
+        try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: rbfEnabled))
         mutableTransaction.recipientValue = unspentOutput.output.value - fee
     }
 }
