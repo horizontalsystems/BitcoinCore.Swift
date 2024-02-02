@@ -372,14 +372,14 @@ public protocol ITransactionSyncer: AnyObject {
 }
 
 public protocol ITransactionCreator {
-    func create(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
-    func create(from: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
-    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> Data
+    func create(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
+    func create(from: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction
+    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> Data
 }
 
 protocol ITransactionBuilder {
-    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
-    func buildTransaction(from: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction
+    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction
+    func buildTransaction(from: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction
 }
 
 protocol ITransactionFeeCalculator {
@@ -639,8 +639,8 @@ protocol IOutputSetter {
 }
 
 protocol IInputSetter {
-    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType) throws -> InputSetter.OutputInfo
-    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int) throws
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> InputSetter.OutputInfo
+    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int, rbfEnabled: Bool) throws
 }
 
 protocol ILockTimeSetter {

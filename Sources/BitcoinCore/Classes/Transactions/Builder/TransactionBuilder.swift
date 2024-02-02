@@ -15,11 +15,11 @@ class TransactionBuilder {
 }
 
 extension TransactionBuilder: ITransactionBuilder {
-    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
+    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
         let mutableTransaction = MutableTransaction()
 
         try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: value, pluginData: pluginData, skipChecks: false)
-        try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType)
+        try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType, rbfEnabled: rbfEnabled)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 
         outputSetter.setOutputs(to: mutableTransaction, sortType: sortType)
@@ -28,11 +28,11 @@ extension TransactionBuilder: ITransactionBuilder {
         return mutableTransaction.build()
     }
 
-    func buildTransaction(from unspentOutput: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType) throws -> FullTransaction {
+    func buildTransaction(from unspentOutput: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
         let mutableTransaction = MutableTransaction(outgoing: false)
 
         try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: unspentOutput.output.value, pluginData: [:], skipChecks: false)
-        try inputSetter.setInputs(to: mutableTransaction, fromUnspentOutput: unspentOutput, feeRate: feeRate)
+        try inputSetter.setInputs(to: mutableTransaction, fromUnspentOutput: unspentOutput, feeRate: feeRate, rbfEnabled: rbfEnabled)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 
         outputSetter.setOutputs(to: mutableTransaction, sortType: sortType)

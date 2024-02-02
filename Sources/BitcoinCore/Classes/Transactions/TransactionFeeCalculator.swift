@@ -24,7 +24,7 @@ extension TransactionFeeCalculator: ITransactionFeeCalculator {
 
         try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress ?? sampleAddress(), memo: memo, value: value, pluginData: pluginData, skipChecks: true)
 
-        let outputInfo = try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: .none)
+        let outputInfo = try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: .none, rbfEnabled: false)
 
         let inputsTotalValue = mutableTransaction.inputsToSign.reduce(0) { total, input in total + input.previousOutput.value }
         let outputsTotalValue = mutableTransaction.recipientValue + mutableTransaction.changeValue
