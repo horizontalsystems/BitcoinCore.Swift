@@ -14,6 +14,7 @@ public class BitcoinCore {
 
     private let transactionCreator: ITransactionCreator?
     private let transactionFeeCalculator: ITransactionFeeCalculator?
+    private let replacementTransactionBuilder: ReplacementTransactionBuilder?
     private let dustCalculator: IDustCalculator?
     private let paymentAddressParser: IPaymentAddressParser
 
@@ -83,7 +84,7 @@ public class BitcoinCore {
          peerGroup: IPeerGroup, initialDownload: IInitialDownload, bloomFilterLoader: BloomFilterLoader, transactionSyncer: ITransactionSyncer,
          publicKeyManager: IPublicKeyManager, addressConverter: AddressConverterChain, restoreKeyConverterChain: RestoreKeyConverterChain,
          unspentOutputSelector: UnspentOutputSelectorChain,
-         transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, dustCalculator: IDustCalculator?,
+         transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, replacementTransactionBuilder: ReplacementTransactionBuilder?, dustCalculator: IDustCalculator?,
          paymentAddressParser: IPaymentAddressParser, networkMessageParser: NetworkMessageParser, networkMessageSerializer: NetworkMessageSerializer,
          syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, purpose: Purpose,
          peerManager: IPeerManager)
@@ -100,6 +101,7 @@ public class BitcoinCore {
         self.unspentOutputSelector = unspentOutputSelector
         self.transactionCreator = transactionCreator
         self.transactionFeeCalculator = transactionFeeCalculator
+        self.replacementTransactionBuilder = replacementTransactionBuilder
         self.dustCalculator = dustCalculator
         self.paymentAddressParser = paymentAddressParser
 
@@ -260,6 +262,11 @@ public extension BitcoinCore {
         return address.stringValue
     }
 
+    func changeAddress() throws -> Address {
+        let publicKey = try publicKeyManager.changePublicKey()
+        return try addressConverter.convert(publicKey: publicKey, type: purpose.scriptType)
+    }
+
     func changePublicKey() throws -> PublicKey {
         try publicKeyManager.changePublicKey()
     }
@@ -277,6 +284,25 @@ public extension BitcoinCore {
 
     internal func watch(transaction: BitcoinCore.TransactionFilter, delegate: IWatchedTransactionDelegate) {
         watchedTransactionManager.add(transactionFilter: transaction, delegatedTo: delegate)
+    }
+
+    func replacementTransaction(transactionHash: String, minFee: Int, type: ReplacementType) throws -> ReplacementTransaction {
+        guard let replacementTransactionBuilder else {
+            throw CoreError.readOnlyCore
+        }
+
+        let (mutableTransaction, fullInfo, descendantTransactionHashes) = try replacementTransactionBuilder.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: type)
+        let info = dataProvider.transactionInfo(from: fullInfo)
+
+        return ReplacementTransaction(mutableTransaction: mutableTransaction, info: info, descendantTransactionHashes: descendantTransactionHashes)
+    }
+
+    func send(replacementTransaction: ReplacementTransaction) throws -> FullTransaction {
+        guard let transactionCreator else {
+            throw CoreError.readOnlyCore
+        }
+
+        return try transactionCreator.create(from: replacementTransaction.mutableTransaction)
     }
 
     func debugInfo(network: INetwork) -> String {

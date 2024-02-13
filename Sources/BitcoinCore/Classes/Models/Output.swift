@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import HsExtensions
 
 public enum ScriptType: Int, DatabaseValueConvertible {
     case unknown, p2pkh, p2pk, p2multi, p2sh, p2wsh, p2wpkh, p2wpkhSh, p2tr, nullData
@@ -42,6 +43,25 @@ public class Output: Record {
     public func set(publicKey: PublicKey) {
         publicKeyPath = publicKey.path
         changeOutput = !publicKey.external
+    }
+
+    public init(original: Output) {
+        value = original.value
+        lockingScript = original.lockingScript
+        index = original.index
+        transactionHash = original.transactionHash
+        publicKeyPath = original.publicKeyPath
+        changeOutput = original.changeOutput
+        scriptType = original.scriptType
+        redeemScript = original.redeemScript
+        lockingScriptPayload = original.lockingScriptPayload
+        address = original.address
+        failedToSpend = original.failedToSpend
+        pluginId = original.pluginId
+        pluginData = original.pluginData
+        signatureScriptFunction = original.signatureScriptFunction
+
+        super.init()
     }
 
     public init(withValue value: Int, index: Int, lockingScript script: Data, transactionHash: Data = Data(), type: ScriptType = .unknown, redeemScript: Data? = nil, address: String? = nil, lockingScriptPayload: Data? = nil, publicKey: PublicKey? = nil) {
@@ -113,5 +133,24 @@ public class Output: Record {
         container[Columns.pluginId] = pluginId
         container[Columns.pluginData] = pluginData
         container[Columns.failedToSpend] = failedToSpend
+    }
+}
+
+extension Output {
+    var memo: String? {
+        guard scriptType == .nullData, let payload = lockingScriptPayload, !payload.isEmpty, pluginId == nil else {
+            return nil
+        }
+
+        // read first byte to get data length and parse first message
+        let byteStream = ByteStream(payload)
+        _ = byteStream.read(UInt8.self) // read op_return
+        let length = byteStream.read(VarInt.self).underlyingValue
+        if byteStream.availableBytes >= length {
+            let data = byteStream.read(Data.self, count: Int(length))
+            return String(data: data, encoding: .utf8) // TODO: make memo manager if need parse not only memo (some instructions)
+        }
+
+        return nil
     }
 }

@@ -125,4 +125,16 @@ open class AbstractKit {
     public func rawTransaction(transactionHash: String) -> String? {
         bitcoinCore.rawTransaction(transactionHash: transactionHash)
     }
+
+    public func speedUpTransaction(transactionHash: String, minFee: Int) throws -> ReplacementTransaction {
+        try bitcoinCore.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: .speedUp)
+    }
+
+    public func cancelTransaction(transactionHash: String, minFee: Int) throws -> ReplacementTransaction {
+        try bitcoinCore.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: .cancel(changeAddress: try bitcoinCore.changeAddress()))
+    }
+
+    public func send(replacementTransaction: ReplacementTransaction) throws -> FullTransaction {
+        try bitcoinCore.send(replacementTransaction: replacementTransaction)
+    }
 }

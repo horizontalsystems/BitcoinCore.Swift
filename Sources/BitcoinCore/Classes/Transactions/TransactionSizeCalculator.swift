@@ -66,7 +66,7 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
             }
         }
 
-        previousOutputs.forEach { previousOutput in
+        for previousOutput in previousOutputs {
             inputWeight += inputSize(output: previousOutput) * 4 // to vbytes
             if segWit {
                 inputWeight += witnessSize(type: previousOutput.scriptType)
@@ -116,5 +116,10 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
 
     public func toBytes(fee: Int) -> Int {
         fee / 4 + (fee % 4 == 0 ? 0 : 1)
+    }
+
+    public func transactionSize(previousOutputs: [Output], outputs: [Output]) -> Int {
+        // TODO:
+        return 0
     }
 }

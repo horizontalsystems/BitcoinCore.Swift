@@ -820,6 +820,17 @@ extension GrdbStorage: IStorage {
         }
     }
 
+    public func descendantTransactionsFullInfo(of transactionHash: Data) -> [FullTransactionForInfo] {
+        guard let fullTransactionInfo = transactionFullInfo(byHash: transactionHash) else {
+            return []
+        }
+
+        return inputsUsingOutputs(withTransactionHash: transactionHash)
+            .reduce(into: [fullTransactionInfo]) { list, input in
+                list.append(contentsOf: descendantTransactionsFullInfo(of: input.transactionHash))
+            }
+    }
+
     public func newTransactions() -> [FullTransaction] {
         try! dbPool.read { db in
             try Transaction.filter(Transaction.Columns.status == TransactionStatus.new).fetchAll(db)

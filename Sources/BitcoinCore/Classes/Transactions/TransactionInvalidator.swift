@@ -11,30 +11,18 @@ class TransactionInvalidator {
         self.transactionInfoConverter = transactionInfoConverter
         self.listener = listener
     }
-
-    private func descendantTransactionsFullInfo(of transactionHash: Data) -> [FullTransactionForInfo] {
-        guard let fullTransactionInfo = storage.transactionFullInfo(byHash: transactionHash) else {
-            return []
-        }
-
-        return storage
-            .inputsUsingOutputs(withTransactionHash: transactionHash)
-            .reduce(into: [fullTransactionInfo]) { list, input in
-                list.append(contentsOf: descendantTransactionsFullInfo(of: input.transactionHash))
-            }
-    }
 }
 
 extension TransactionInvalidator: ITransactionInvalidator {
     public func invalidate(transaction: Transaction) {
-        let invalidTransactionsFullInfo = descendantTransactionsFullInfo(of: transaction.dataHash)
+        let invalidTransactionsFullInfo = storage.descendantTransactionsFullInfo(of: transaction.dataHash)
 
         guard !invalidTransactionsFullInfo.isEmpty else {
             return
         }
 
-        invalidTransactionsFullInfo.forEach {
-            $0.transactionWithBlock.transaction.status = .invalid
+        for invalidTransactionsFullInfo in invalidTransactionsFullInfo {
+            invalidTransactionsFullInfo.transactionWithBlock.transaction.status = .invalid
         }
 
         let invalidTransactions: [InvalidTransaction] = invalidTransactionsFullInfo.map { transactionFullInfo in
