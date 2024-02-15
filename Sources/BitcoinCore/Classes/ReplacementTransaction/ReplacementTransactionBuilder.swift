@@ -7,27 +7,29 @@ class ReplacementTransactionBuilder {
     private let factory: IFactory
     private let metadataExtractor: TransactionMetadataExtractor
     private let pluginManager: IPluginManager
+    private let unspentOutputProvider: IUnspentOutputProvider
 
-    init(storage: IStorage, sizeCalculator: ITransactionSizeCalculator, dustCalculator: IDustCalculator, factory: IFactory, metadataExtractor: TransactionMetadataExtractor, pluginManager: IPluginManager) {
+    init(storage: IStorage, sizeCalculator: ITransactionSizeCalculator, dustCalculator: IDustCalculator, factory: IFactory, metadataExtractor: TransactionMetadataExtractor, pluginManager: IPluginManager, unspentOutputProvider: IUnspentOutputProvider) {
         self.storage = storage
         self.sizeCalculator = sizeCalculator
         self.dustCalculator = dustCalculator
         self.factory = factory
         self.metadataExtractor = metadataExtractor
         self.pluginManager = pluginManager
+        self.unspentOutputProvider = unspentOutputProvider
     }
 
-    private func replacementTransaction(minFee: Int, minFeeRate: Int, utxo: [Output], fixedOutputs: [Output], outputs: [Output]) -> (outputs: [Output], fee: Int)? {
+    private func replacementTransaction(minFee: Int, minFeeRate: Int, utxo: [Output], fixedOutputs: [Output], outputs: [Output]) throws -> (outputs: [Output], fee: Int)? {
         var minFee = minFee
         var outputs = outputs
 
-        let size = sizeCalculator.transactionSize(
+        let size = try sizeCalculator.transactionSize(
             previousOutputs: utxo,
             outputs: fixedOutputs + outputs
         )
 
-        let inputsValue = utxo.reduce(into: 0) { acc, out in acc = acc + out.value }
-        let outputsValue = (fixedOutputs + outputs).reduce(into: 0) { acc, out in acc = acc + out.value }
+        let inputsValue = utxo.map(\.value).reduce(0, +)
+        let outputsValue = (fixedOutputs + outputs).map(\.value).reduce(0, +)
         let fee = inputsValue - outputsValue
         let feeRate = fee / size
 
@@ -104,7 +106,7 @@ class ReplacementTransactionBuilder {
         let myExternalOutputs = myOutputs.filter { !$0.changeOutput }.sorted { a, b in a.value < b.value }
 
         let sortedOutputs = myChangeOutputs + myExternalOutputs
-        let unusedUtxo = storage.unspentOutputs().sorted(by: { a, b in a.output.value < b.output.value })
+        let unusedUtxo = unspentOutputProvider.spendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
         for utxoCount in 0..<unusedUtxo.count {
@@ -113,7 +115,7 @@ class ReplacementTransactionBuilder {
                 let outputsCount = sortedOutputs.count - i
                 let outputs = Array(sortedOutputs.suffix(outputsCount))
 
-                if let replacement = replacementTransaction(
+                if let replacement = try replacementTransaction(
                     minFee: minFee, minFeeRate: originalFeeRate,
                     utxo: fixedUtxo + utxo.map { $0.output },
                     fixedOutputs: fixedOutputs, outputs: outputs
@@ -142,15 +144,15 @@ class ReplacementTransactionBuilder {
     }
 
     private func cancelReplacement(originalFullInfo: FullTransactionForInfo, minFee: Int, originalFee: Int, originalFeeRate: Int, fixedUtxo: [Output], changeAddress: Address) throws -> MutableTransaction? {
-        let unusedUtxo = storage.unspentOutputs().sorted(by: { a, b in a.output.value < b.output.value })
-        let originalInputsValue = fixedUtxo.reduce(into: 0) { acc, out in acc = acc + out.value }
+        let unusedUtxo = unspentOutputProvider.spendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
+        let originalInputsValue = fixedUtxo.map(\.value).reduce(0, +)
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
         for utxoCount in 0..<unusedUtxo.count {
             let utxo = Array(unusedUtxo.prefix(utxoCount))
             let outputs = [factory.output(withIndex: 0, address: changeAddress, value: originalInputsValue - originalFee, publicKey: nil)]
 
-            if let replacement = replacementTransaction(
+            if let replacement = try replacementTransaction(
                 minFee: minFee, minFeeRate: originalFeeRate,
                 utxo: fixedUtxo + utxo.map { $0.output },
                 fixedOutputs: [], outputs: outputs
@@ -178,7 +180,8 @@ class ReplacementTransactionBuilder {
     }
 
     func replacementTransaction(transactionHash: String, minFee: Int, type: ReplacementType) throws -> (MutableTransaction, FullTransactionForInfo, [String]) {
-        guard let transactionHash = transactionHash.hs.hexData,
+        // TODO: Need to check that this transaction has not been replaced already
+        guard let transactionHash = transactionHash.hs.reversedHexData,
               let originalFullInfo = storage.transactionFullInfo(byHash: transactionHash),
               originalFullInfo.transactionWithBlock.blockHeight == nil,
               let originalFee = originalFullInfo.metaData.fee,
@@ -196,17 +199,14 @@ class ReplacementTransactionBuilder {
             throw BuildError.rbfNotEnabled
         }
 
-        let originalSize = sizeCalculator.transactionSize(
+        let originalSize = try sizeCalculator.transactionSize(
             previousOutputs: fixedUtxo,
             outputs: originalFullInfo.outputs
         )
 
         let originalFeeRate = Int(originalFee / originalSize)
         let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
-        let descendantTransactionsFee = descendantTransactions
-            .map { $0.metaData.fee ?? 0 }
-            .reduce(into: 0) { acc, fee in acc = acc + fee }
-        let absoluteFee = originalFee + descendantTransactionsFee
+        let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
 
         guard absoluteFee <= minFee else {
             throw BuildError.feeTooLow
@@ -243,6 +243,24 @@ class ReplacementTransactionBuilder {
             ),
             descendantTransactions.map { $0.metaData.transactionHash.hs.reversedHex }
         )
+    }
+
+    func replacementInfo(transactionHash: String) -> (info: FullTransactionForInfo, feeRange: Range<Int>)? {
+        guard let transactionHash = transactionHash.hs.reversedHexData,
+              let originalFullInfo = storage.transactionFullInfo(byHash: transactionHash),
+              originalFullInfo.transactionWithBlock.blockHeight == nil,
+              originalFullInfo.metaData.type == .outgoing
+        else {
+            return nil
+        }
+
+        let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
+        let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
+        let confirmedUtxoTotalValue = unspentOutputProvider.confirmedUtxo.map(\.output.value).reduce(0, +)
+        let myOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath != nil && $0.pluginId == nil }
+        let myOutputsTotalValue = myOutputs.map(\.value).reduce(0, +)
+
+        return (info: originalFullInfo, feeRange: absoluteFee..<absoluteFee + myOutputsTotalValue + confirmedUtxoTotalValue)
     }
 }
 

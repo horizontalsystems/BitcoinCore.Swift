@@ -51,6 +51,8 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
             outputsInfo.append(outputInfo)
         }
 
+        let rbfEnabled = transactionForInfo.inputsWithPreviousOutputs.contains(where: { $0.input.rbfEnabled })
+
         return T(
             uid: transaction.uid,
             transactionHash: transaction.dataHash.hs.reversedHex,
@@ -63,7 +65,8 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
             blockHeight: transactionForInfo.transactionWithBlock.blockHeight,
             timestamp: transactionTimestamp,
             status: transaction.status,
-            conflictingHash: transaction.conflictingTxHash?.hs.reversedHex
+            conflictingHash: transaction.conflictingTxHash?.hs.reversedHex,
+            rbfEnabled: rbfEnabled
         )
     }
 

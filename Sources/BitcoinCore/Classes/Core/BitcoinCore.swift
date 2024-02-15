@@ -305,6 +305,14 @@ public extension BitcoinCore {
         return try transactionCreator.create(from: replacementTransaction.mutableTransaction)
     }
 
+    func replacmentTransactionInfo(transactionHash: String) -> (info: TransactionInfo, feeRange: Range<Int>)? {
+        guard let (fullInfo, feeRange) = replacementTransactionBuilder?.replacementInfo(transactionHash: transactionHash) else {
+            return nil
+        }
+
+        return (info: dataProvider.transactionInfo(from: fullInfo), feeRange)
+    }
+
     func debugInfo(network: INetwork) -> String {
         dataProvider.debugInfo(network: network, scriptType: purpose.scriptType, addressConverter: addressConverter)
     }

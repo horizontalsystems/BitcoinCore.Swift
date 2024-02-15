@@ -414,7 +414,7 @@ public protocol ITransactionSizeCalculator {
     func inputSize(type: ScriptType) -> Int
     func witnessSize(type: ScriptType) -> Int
     func toBytes(fee: Int) -> Int
-    func transactionSize(previousOutputs: [Output], outputs: [Output]) -> Int
+    func transactionSize(previousOutputs: [Output], outputs: [Output]) throws -> Int
 }
 
 public protocol IDustCalculator {
@@ -429,6 +429,7 @@ public protocol IUnspentOutputSelector {
 
 public protocol IUnspentOutputProvider {
     var spendableUtxo: [UnspentOutput] { get }
+    var confirmedUtxo: [UnspentOutput] { get }
 }
 
 public protocol IBalanceProvider {
@@ -454,7 +455,7 @@ protocol ISyncManagerDelegate: AnyObject {
 }
 
 public protocol ITransactionInfo: AnyObject {
-    init(uid: String, transactionHash: String, transactionIndex: Int, inputs: [TransactionInputInfo], outputs: [TransactionOutputInfo], amount: Int, type: TransactionType, fee: Int?, blockHeight: Int?, timestamp: Int, status: TransactionStatus, conflictingHash: String?)
+    init(uid: String, transactionHash: String, transactionIndex: Int, inputs: [TransactionInputInfo], outputs: [TransactionOutputInfo], amount: Int, type: TransactionType, fee: Int?, blockHeight: Int?, timestamp: Int, status: TransactionStatus, conflictingHash: String?, rbfEnabled: Bool)
 }
 
 public protocol ITransactionInfoConverter {

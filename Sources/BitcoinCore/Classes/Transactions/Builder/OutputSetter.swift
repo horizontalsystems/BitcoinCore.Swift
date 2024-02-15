@@ -26,7 +26,7 @@ extension OutputSetter: IOutputSetter {
         if !transaction.pluginData.isEmpty {
             var data = Data([OpCode.op_return])
 
-            transaction.pluginData.forEach { key, value in
+            for (key, value) in transaction.pluginData {
                 data += Data([key]) + value
             }
 
@@ -35,14 +35,12 @@ extension OutputSetter: IOutputSetter {
 
         var sorted = outputSorterFactory.sorter(for: sortType).sort(outputs: outputs)
         if let memo = transaction.memo, let memoData = memo.data(using: .utf8) {
-            var data = Data([OpCode.op_return])
-            data += VarInt(memoData.count).data
-            data += memoData
+            let data = Data([OpCode.op_return]) + OpCode.push(memoData)
 
             sorted.append(factory.nullDataOutput(data: data))
         }
 
-        sorted.enumerated().forEach { index, transactionOutput in
+        for (index, transactionOutput) in sorted.enumerated() {
             transactionOutput.index = index
         }
 
