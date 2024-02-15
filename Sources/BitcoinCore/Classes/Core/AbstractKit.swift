@@ -137,4 +137,8 @@ open class AbstractKit {
     public func send(replacementTransaction: ReplacementTransaction) throws -> FullTransaction {
         try bitcoinCore.send(replacementTransaction: replacementTransaction)
     }
+
+    public func replacmentTransactionInfo(transactionHash: String) -> (info: TransactionInfo, feeRange: Range<Int>)? {
+        bitcoinCore.replacmentTransactionInfo(transactionHash: transactionHash)
+    }
 }

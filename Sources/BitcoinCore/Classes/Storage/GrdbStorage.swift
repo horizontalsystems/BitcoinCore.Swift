@@ -321,6 +321,29 @@ open class GrdbStorage {
             }
         }
 
+        migrator.registerMigration("addSequenceToInputPrimaryKey") { db in
+            let inputs = try Input.fetchAll(db)
+            try db.drop(table: Input.databaseTableName)
+
+            try db.create(table: Input.databaseTableName) { t in
+                t.column(Input.Columns.previousOutputTxHash.name, .text).notNull()
+                t.column(Input.Columns.previousOutputIndex.name, .integer).notNull()
+                t.column(Input.Columns.signatureScript.name, .blob).notNull()
+                t.column(Input.Columns.sequence.name, .integer).notNull()
+                t.column(Input.Columns.transactionHash.name, .text).notNull()
+                t.column(Input.Columns.keyHash.name, .blob)
+                t.column(Input.Columns.address.name, .text)
+                t.column(Input.Columns.witnessData.name, .blob)
+
+                t.primaryKey([Input.Columns.previousOutputTxHash.name, Input.Columns.previousOutputIndex.name, Input.Columns.sequence.name], onConflict: .abort)
+                t.foreignKey([Input.Columns.transactionHash.name], references: Transaction.databaseTableName, columns: [Transaction.Columns.dataHash.name], onDelete: .cascade, onUpdate: .cascade, deferred: true)
+            }
+
+            for input in inputs {
+                try input.save(db)
+            }
+        }
+
         return migrator
     }
 
@@ -1034,6 +1057,7 @@ extension GrdbStorage: IStorage {
     }
 
     public func unspentOutputs() -> [UnspentOutput] {
+        // TODO: Need to filter out utxo that already have been replaced
         try! dbPool.read { db in
             let inputs = try Input.fetchAll(db)
 

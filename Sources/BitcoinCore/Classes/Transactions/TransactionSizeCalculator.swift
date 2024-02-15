@@ -75,7 +75,8 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
 
         var outputWeight: Int = outputScriptTypes.reduce(0) { $0 + outputSize(type: $1) } * 4 // in vbytes
         if let memo, let memoData = memo.data(using: .utf8) {
-            outputWeight += outputSize(lockingScriptSize: memoData.count) * 4
+            let lockingScript = Data([OpCode.op_return]) + OpCode.push(memoData)
+            outputWeight += outputSize(lockingScriptSize: lockingScript.count) * 4
         }
         if pluginDataOutputSize > 0 {
             outputWeight += outputSize(lockingScriptSize: pluginDataOutputSize) * 4
@@ -118,8 +119,45 @@ extension TransactionSizeCalculator: ITransactionSizeCalculator {
         fee / 4 + (fee % 4 == 0 ? 0 : 1)
     }
 
-    public func transactionSize(previousOutputs: [Output], outputs: [Output]) -> Int {
-        // TODO:
-        return 0
+    public func transactionSize(previousOutputs: [Output], outputs: [Output]) throws -> Int {
+        var segWit = false
+        var inputWeight = 0
+
+        for previousOutput in previousOutputs {
+            if previousOutput.scriptType.witness {
+                segWit = true
+                break
+            }
+        }
+
+        for previousOutput in previousOutputs {
+            inputWeight += inputSize(output: previousOutput) * 4 // to vbytes
+            if segWit {
+                inputWeight += witnessSize(type: previousOutput.scriptType)
+            }
+        }
+
+        var outputWeight = 0
+        for output in outputs {
+            switch output.scriptType {
+            case .nullData:
+                outputWeight += outputSize(lockingScriptSize: output.lockingScript.count) * 4
+            case .unknown, .p2multi:
+                throw CalculationError.unsupportedOutputScriptType
+
+            default:
+                outputWeight += outputSize(type: output.scriptType) * 4
+            }
+        }
+
+        let txWeight = segWit ? TransactionSizeCalculator.witnessTx : TransactionSizeCalculator.legacyTx
+
+        return toBytes(fee: txWeight + inputWeight + outputWeight)
+    }
+}
+
+extension TransactionSizeCalculator {
+    enum CalculationError: Error {
+        case unsupportedOutputScriptType
     }
 }
