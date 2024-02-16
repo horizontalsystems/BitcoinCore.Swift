@@ -285,6 +285,7 @@ public extension BitcoinCore {
 
     var statusInfo: [(String, Any)] {
         var status = [(String, Any)]()
+        status.append(("sync mode", syncManager.syncMode.description))
         status.append(("state", syncManager.syncState.toString()))
         status.append(("synced until", ((lastBlockInfo?.timestamp.map { Double($0) })?.map { Date(timeIntervalSince1970: $0) }) ?? "n/a"))
         status.append(("syncing peer", initialDownload.syncPeer?.host ?? "n/a"))
@@ -396,6 +397,14 @@ public extension BitcoinCore {
         case blockchair(key: String) // Restore and sync from Blockchair API.
         case api // Restore and sync from API.
         case full // Sync from bip44Checkpoint. Api restore disabled
+
+        var description: String {
+            switch self {
+            case .blockchair: return "Blockchair API"
+            case .api: return "Hybrid"
+            case .full: return "Blockchain"
+            }
+        }
     }
 
     enum TransactionFilter {
