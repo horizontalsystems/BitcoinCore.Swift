@@ -294,7 +294,7 @@ public extension BitcoinCore {
         let (mutableTransaction, fullInfo, descendantTransactionHashes) = try replacementTransactionBuilder.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: type)
         let info = dataProvider.transactionInfo(from: fullInfo)
 
-        return ReplacementTransaction(mutableTransaction: mutableTransaction, info: info, descendantTransactionHashes: descendantTransactionHashes)
+        return ReplacementTransaction(mutableTransaction: mutableTransaction, info: info, replacedTransactionHashes: descendantTransactionHashes)
     }
 
     func send(replacementTransaction: ReplacementTransaction) throws -> FullTransaction {

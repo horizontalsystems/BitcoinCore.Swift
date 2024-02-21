@@ -33,6 +33,13 @@ class BlockTransactionProcessor {
         transaction.status = .relayed
         transaction.order = order
     }
+
+    private func resolveConflicts(fullTransaction: FullTransaction) {
+        for transaction in conflictsResolver.transactionsConflicting(withInblockTransaction: fullTransaction) {
+            transaction.conflictingTxHash = fullTransaction.header.dataHash
+            invalidator.invalidate(transaction: transaction)
+        }
+    }
 }
 
 extension BlockTransactionProcessor: IBlockTransactionProcessor {
@@ -49,6 +56,7 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
                     extractor.extract(transaction: existingTransaction)
                     transactionListener?.onReceive(transaction: existingTransaction)
                     relay(transaction: existingTransaction.header, inBlock: block, order: index)
+                    resolveConflicts(fullTransaction: fullTransaction)
 
                     try storage.update(transaction: existingTransaction)
                     updated.append(existingTransaction.header)
@@ -70,11 +78,7 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
                 }
 
                 relay(transaction: transaction, inBlock: block, order: index)
-
-                conflictsResolver.transactionsConflicting(withInblockTransaction: fullTransaction).forEach {
-                    $0.conflictingTxHash = fullTransaction.header.dataHash
-                    invalidator.invalidate(transaction: $0)
-                }
+                resolveConflicts(fullTransaction: fullTransaction)
 
                 if let invalidTransaction = storage.invalidTransaction(byHash: transaction.dataHash) {
                     try storage.move(invalidTransaction: invalidTransaction, toTransactions: fullTransaction)

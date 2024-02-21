@@ -117,7 +117,10 @@ public protocol IStorage: IOutputStorage {
     func incomingPendingTransactionsExist() -> Bool
     func inputs(byHashes hashes: [Data]) -> [Input]
     func transactions(ofBlock: Block) -> [Transaction]
+    func transactions(hashes: [Data]) -> [Transaction]
+    func fullTransactions(from: [Transaction]) -> [FullTransaction]
     func descendantTransactionsFullInfo(of transactionHash: Data) -> [FullTransactionForInfo]
+    func descendantTransactions(of transactionHash: Data) -> [Transaction]
     func newTransactions() -> [FullTransaction]
     func newTransaction(byHash: Data) -> Transaction?
     func relayedTransactionExists(byHash: Data) -> Bool
@@ -429,7 +432,7 @@ public protocol IUnspentOutputSelector {
 
 public protocol IUnspentOutputProvider {
     var spendableUtxo: [UnspentOutput] { get }
-    var confirmedUtxo: [UnspentOutput] { get }
+    var confirmedSpendableUtxo: [UnspentOutput] { get }
 }
 
 public protocol IBalanceProvider {
