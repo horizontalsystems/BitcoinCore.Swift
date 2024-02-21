@@ -6,19 +6,34 @@ class TransactionConflictsResolver {
     }
 
     private func conflictingTransactions(for transaction: FullTransaction) -> [Transaction] {
-        let storageTransactionHashes = transaction.inputs.compactMap { input in
-            storage.inputsUsing(previousOutputTxHash: input.previousOutputTxHash, previousOutputIndex: input.previousOutputIndex)
-                .filter {
-                    $0.transactionHash != transaction.header.dataHash
-                }.first?.transactionHash
-        }
+        let storageTransactionHashes = transaction.inputs
+            .map { input in
+                storage.inputsUsing(previousOutputTxHash: input.previousOutputTxHash, previousOutputIndex: input.previousOutputIndex)
+                    .filter { $0.transactionHash != transaction.header.dataHash }
+                    .map { $0.transactionHash }
+            }
+            .flatMap { $0 }
+
         guard !storageTransactionHashes.isEmpty else {
             return []
         }
 
-        return Array(Set(storageTransactionHashes)).compactMap {
-            storage.transaction(byHash: $0)
+        return storage.transactions(hashes: storageTransactionHashes)
+    }
+
+    private func existingHasHigherSequence(mempoolTransaction: FullTransaction, existingTransaction: FullTransaction) -> Bool {
+        for existingInput in existingTransaction.inputs {
+            if let mempoolInput = mempoolTransaction.inputs.first(where: {
+                $0.previousOutputTxHash == existingInput.previousOutputTxHash &&
+                    $0.previousOutputIndex == existingInput.previousOutputIndex
+            }) {
+                if existingInput.sequence > mempoolInput.sequence {
+                    return true
+                }
+            }
         }
+
+        return false
     }
 }
 
@@ -40,7 +55,15 @@ extension TransactionConflictsResolver: ITransactionConflictsResolver {
             return []
         }
 
-        return conflictingTransactions
+        let conflictingFullTransactions = storage.fullTransactions(from: conflictingTransactions)
+
+        return conflictingFullTransactions
+            // If an existing transaction has a conflicting input with higher sequence,
+            // then mempool transaction most probably has been received before
+            // and the existing transaction is a replacement transaction that is not relayed in mempool yet.
+            // Other cases are theoretically possible, but highly unlikely
+            .filter { !existingHasHigherSequence(mempoolTransaction: transaction, existingTransaction: $0) }
+            .map { $0.header }
     }
 
     func incomingPendingTransactionsConflicting(with transaction: FullTransaction) -> [Transaction] {

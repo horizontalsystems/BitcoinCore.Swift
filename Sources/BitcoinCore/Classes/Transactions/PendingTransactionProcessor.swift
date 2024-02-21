@@ -30,6 +30,18 @@ class PendingTransactionProcessor {
         transaction.status = .relayed
         transaction.order = order
     }
+
+    private func resolveConflicts(transaction: FullTransaction, updated: inout [Transaction]) throws {
+        let conflictingTransactions = conflictsResolver.transactionsConflicting(withPendingTransaction: transaction)
+
+        for conflictingTransaction in conflictingTransactions {
+            for descendantTransaction in storage.descendantTransactions(of: conflictingTransaction.dataHash) {
+                descendantTransaction.conflictingTxHash = transaction.header.dataHash
+                try storage.update(transaction: descendantTransaction)
+                updated.append(descendantTransaction)
+            }
+        }
+    }
 }
 
 extension PendingTransactionProcessor: IPendingTransactionProcessor {
@@ -53,6 +65,8 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
                 }
 
                 if let existingTransaction = storage.transaction(byHash: transaction.header.dataHash) {
+                    try resolveConflicts(transaction: transaction, updated: &updated)
+
                     if existingTransaction.status == .relayed {
                         // if comes again from memPool we don't need to update it
                         continue
@@ -83,18 +97,9 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
                     continue
                 }
 
-                let conflictingTransactions = conflictsResolver.transactionsConflicting(withPendingTransaction: transaction)
-                if !conflictingTransactions.isEmpty {
-                    // Ignore current transaction and mark former transactions as conflicting with current transaction
-                    for tx in conflictingTransactions {
-                        tx.conflictingTxHash = transaction.header.dataHash
-                        try storage.update(transaction: tx)
-                        updated.append(tx)
-                    }
-                } else {
-                    try storage.add(transaction: transaction)
-                    inserted.append(transaction.header)
-                }
+                try resolveConflicts(transaction: transaction, updated: &updated)
+                try storage.add(transaction: transaction)
+                inserted.append(transaction.header)
 
                 let needToCheckDoubleSpend = !transaction.header.isOutgoing
                 if !skipCheckBloomFilter {

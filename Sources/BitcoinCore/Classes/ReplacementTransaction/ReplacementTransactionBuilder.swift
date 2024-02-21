@@ -106,13 +106,14 @@ class ReplacementTransactionBuilder {
         let myExternalOutputs = myOutputs.filter { !$0.changeOutput }.sorted { a, b in a.value < b.value }
 
         let sortedOutputs = myChangeOutputs + myExternalOutputs
-        let unusedUtxo = unspentOutputProvider.spendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
+        let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
-        for utxoCount in 0..<unusedUtxo.count {
-            for i in 0..<sortedOutputs.count {
+        var utxoCount = 0
+        repeat {
+            var outputsCount = sortedOutputs.count
+            repeat {
                 let utxo = Array(unusedUtxo.prefix(utxoCount))
-                let outputsCount = sortedOutputs.count - i
                 let outputs = Array(sortedOutputs.suffix(outputsCount))
 
                 if let replacement = try replacementTransaction(
@@ -128,8 +129,12 @@ class ReplacementTransactionBuilder {
                         optimalReplacement = (inputs: utxo, outputs: replacement.outputs, fee: replacement.fee)
                     }
                 }
-            }
-        }
+
+                outputsCount -= 1
+            } while outputsCount >= 0
+
+            utxoCount += 1
+        } while utxoCount <= unusedUtxo.count
 
         guard let optimalReplacement else {
             return nil
@@ -144,11 +149,12 @@ class ReplacementTransactionBuilder {
     }
 
     private func cancelReplacement(originalFullInfo: FullTransactionForInfo, minFee: Int, originalFee: Int, originalFeeRate: Int, fixedUtxo: [Output], changeAddress: Address) throws -> MutableTransaction? {
-        let unusedUtxo = unspentOutputProvider.spendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
+        let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
         let originalInputsValue = fixedUtxo.map(\.value).reduce(0, +)
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
-        for utxoCount in 0..<unusedUtxo.count {
+        var utxoCount = 0
+        repeat {
             let utxo = Array(unusedUtxo.prefix(utxoCount))
             let outputs = [factory.output(withIndex: 0, address: changeAddress, value: originalInputsValue - originalFee, publicKey: nil)]
 
@@ -165,7 +171,9 @@ class ReplacementTransactionBuilder {
                     optimalReplacement = (inputs: utxo, outputs: replacement.outputs, fee: replacement.fee)
                 }
             }
-        }
+
+            utxoCount += 1
+        } while utxoCount <= unusedUtxo.count
 
         guard let optimalReplacement else {
             return nil
@@ -207,6 +215,10 @@ class ReplacementTransactionBuilder {
         let originalFeeRate = Int(originalFee / originalSize)
         let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
         let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
+
+        guard descendantTransactions.allSatisfy({ $0.transactionWithBlock.transaction.conflictingTxHash == nil }) else {
+            throw BuildError.alreadyReplaced
+        }
 
         guard absoluteFee <= minFee else {
             throw BuildError.feeTooLow
@@ -256,7 +268,7 @@ class ReplacementTransactionBuilder {
 
         let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
         let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
-        let confirmedUtxoTotalValue = unspentOutputProvider.confirmedUtxo.map(\.output.value).reduce(0, +)
+        let confirmedUtxoTotalValue = unspentOutputProvider.confirmedSpendableUtxo.map(\.output.value).reduce(0, +)
         let myOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath != nil && $0.pluginId == nil }
         let myOutputsTotalValue = myOutputs.map(\.value).reduce(0, +)
 
@@ -271,5 +283,6 @@ extension ReplacementTransactionBuilder {
         case feeTooLow
         case rbfNotEnabled
         case unableToReplace
+        case alreadyReplaced
     }
 }

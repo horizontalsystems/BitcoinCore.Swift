@@ -26,7 +26,7 @@ class UnspentOutputProvider {
     }
 
     private var unspendableUtxo: [UnspentOutput] {
-        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) }
+        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) || $0.transaction.status == .new }
     }
 
     init(storage: IStorage, pluginManager: IPluginManager, confirmationsThreshold: Int) {
@@ -38,17 +38,15 @@ class UnspentOutputProvider {
 
 extension UnspentOutputProvider: IUnspentOutputProvider {
     var spendableUtxo: [UnspentOutput] {
-        allUtxo.filter { pluginManager.isSpendable(unspentOutput: $0) }
+        allUtxo.filter { pluginManager.isSpendable(unspentOutput: $0) && $0.transaction.status != .new }
     }
 
-    // Only confirmed unspent outputs
-    var confirmedUtxo: [UnspentOutput] {
+    // Only confirmed spendable outputs
+    var confirmedSpendableUtxo: [UnspentOutput] {
         let lastBlockHeight = storage.lastBlock?.height ?? 0
 
-        return storage.unspentOutputs()
+        return spendableUtxo
             .filter { unspentOutput in
-                // If a transaction is an incoming transaction, then it can be used
-                // only if it's included in a block and has enough number of confirmations
                 guard let blockHeight = unspentOutput.blockHeight else {
                     return false
                 }
