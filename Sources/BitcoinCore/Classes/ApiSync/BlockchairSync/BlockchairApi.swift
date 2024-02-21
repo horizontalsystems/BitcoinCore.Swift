@@ -4,14 +4,12 @@ import HsToolKit
 import ObjectMapper
 
 public class BlockchairApi {
-    private let baseUrl = "https://api.blockchair.com/"
+    private let baseUrl = "https://api.blocksdecoded.com/v1/blockchair"
     private let chainId: String
     private let limit = 10000
-    private let secretKey: String
     private let networkManager: NetworkManager
 
-    public init(secretKey: String, chainId: String = "bitcoin", logger: Logger? = nil) {
-        self.secretKey = secretKey
+    public init(chainId: String = "bitcoin", logger: Logger? = nil) {
         self.chainId = chainId
         networkManager = NetworkManager(logger: logger)
     }
@@ -21,9 +19,8 @@ public class BlockchairApi {
             "transaction_details": true,
             "limit": "\(limit),0",
             "offset": "\(receivedTransactions.count),0",
-            "key": secretKey,
         ]
-        let url = "\(baseUrl)\(chainId)/dashboards/addresses/\(addresses.joined(separator: ","))"
+        let url = "\(baseUrl)/\(chainId)/dashboards/addresses/\(addresses.joined(separator: ","))"
 
         do {
             let response: BlockchairTransactionsReponse = try await networkManager.fetch(url: url, method: .get, parameters: parameters)
@@ -58,10 +55,9 @@ public class BlockchairApi {
     private func _blockHashes(heights: [Int]) async throws -> [Int: String] {
         let parameters: Parameters = [
             "limit": "0",
-            "key": secretKey,
         ]
         let heightsStr = heights.map { "\($0)" }.joined(separator: ",")
-        let url = "\(baseUrl)\(chainId)/dashboards/blocks/\(heightsStr)"
+        let url = "\(baseUrl)/\(chainId)/dashboards/blocks/\(heightsStr)"
 
         do {
             let response: BlockchairBlocksResponse = try await networkManager.fetch(url: url, method: .get, parameters: parameters)
@@ -116,9 +112,8 @@ public class BlockchairApi {
     func lastBlockHeader() async throws -> ApiBlockHeaderItem {
         let parameters: Parameters = [
             "limit": "0",
-            "key": secretKey,
         ]
-        let url = "\(baseUrl)\(chainId)/stats"
+        let url = "\(baseUrl)/\(chainId)/stats"
         let response: BlockchairStatsReponse = try await networkManager.fetch(url: url, method: .get, parameters: parameters)
 
         return ApiBlockHeaderItem(hash: response.data.bestBlockHash.hs.reversedHexData!, height: response.data.bestBlockHeight, timestamp: response.data.bestBlockTime)

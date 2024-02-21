@@ -394,7 +394,7 @@ public extension BitcoinCore {
     }
 
     enum SyncMode: Equatable {
-        case blockchair(key: String) // Restore and sync from Blockchair API.
+        case blockchair // Restore and sync from Blockchair API.
         case api // Restore and sync from API.
         case full // Sync from bip44Checkpoint. Api restore disabled
 
