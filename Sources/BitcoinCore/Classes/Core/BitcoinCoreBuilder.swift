@@ -249,19 +249,21 @@ public class BitcoinCoreBuilder {
         var apiSyncer: IApiSyncer
         let initialDownload: IInitialDownload
 
-        if case let .blockchair(key) = syncMode {
+        if case .blockchair = syncMode {
             let blockchairApi: BlockchairApi
 
             if let provider = apiTransactionProvider as? BlockchairTransactionProvider {
                 blockchairApi = provider.blockchairApi
             } else {
-                blockchairApi = BlockchairApi(secretKey: key, chainId: network.blockchairChainId)
+                blockchairApi = BlockchairApi(chainId: network.blockchairChainId)
             }
 
             let lastBlockProvider = BlockchairLastBlockProvider(blockchairApi: blockchairApi)
-            apiSyncer = BlockchairApiSyncer(storage: storage, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain,
-                                            transactionProvider: apiTransactionProvider, lastBlockProvider: lastBlockProvider,
-                                            publicKeyManager: publicKeyManager, blockchain: blockchain, apiSyncStateManager: apiSyncStateManager, logger: logger)
+            apiSyncer = BlockchairApiSyncer(
+                storage: storage, gapLimit: 20, restoreKeyConverter: restoreKeyConverterChain,
+                transactionProvider: apiTransactionProvider, lastBlockProvider: lastBlockProvider,
+                publicKeyManager: publicKeyManager, blockchain: blockchain, apiSyncStateManager: apiSyncStateManager, logger: logger
+            )
 
             initialDownload = BlockDownload(blockSyncer: blockSyncer, peerManager: peerManager, merkleBlockValidator: merkleBlockValidator, logger: logger)
         } else {
