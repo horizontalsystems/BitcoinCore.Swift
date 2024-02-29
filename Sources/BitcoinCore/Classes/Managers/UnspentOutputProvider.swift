@@ -26,7 +26,7 @@ class UnspentOutputProvider {
     }
 
     private var unspendableUtxo: [UnspentOutput] {
-        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) || $0.transaction.status == .new }
+        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) || $0.transaction.status != .relayed }
     }
 
     init(storage: IStorage, pluginManager: IPluginManager, confirmationsThreshold: Int) {
@@ -38,7 +38,7 @@ class UnspentOutputProvider {
 
 extension UnspentOutputProvider: IUnspentOutputProvider {
     var spendableUtxo: [UnspentOutput] {
-        allUtxo.filter { pluginManager.isSpendable(unspentOutput: $0) && $0.transaction.status != .new }
+        allUtxo.filter { pluginManager.isSpendable(unspentOutput: $0) && $0.transaction.status == .relayed }
     }
 
     // Only confirmed spendable outputs

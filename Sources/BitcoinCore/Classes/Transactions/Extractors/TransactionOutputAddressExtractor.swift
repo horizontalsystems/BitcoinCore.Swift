@@ -23,9 +23,6 @@ extension TransactionOutputAddressExtractor: ITransactionExtractor {
             case .p2pk:
                 // If the scriptType is P2PK, we generate Address as if it was P2PKH
                 payload = Crypto.ripeMd160Sha256(_payload)
-            case .p2wpkhSh:
-                // If the scriptType is P2WPKH(SH), we convert payload to P2SH and generate Address
-                payload = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(_payload))
             default: payload = _payload
             }
 

@@ -108,4 +108,14 @@ extension PluginManager: IPluginManager {
 
         return try? plugin.parsePluginData(from: pluginDataString, transactionTimestamp: transactionTimestamp)
     }
+
+    public func incrementedSequence(of inputWithPreviousOutput: InputWithPreviousOutput) -> Int {
+        guard let pluginId = inputWithPreviousOutput.previousOutput?.pluginId,
+              let plugin = plugins[pluginId]
+        else {
+            return inputWithPreviousOutput.input.sequence + 1
+        }
+
+        return plugin.incrementSequence(sequence: inputWithPreviousOutput.input.sequence)
+    }
 }
