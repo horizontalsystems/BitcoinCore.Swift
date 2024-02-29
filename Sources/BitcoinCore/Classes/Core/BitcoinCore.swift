@@ -262,9 +262,8 @@ public extension BitcoinCore {
         return address.stringValue
     }
 
-    func changeAddress() throws -> Address {
-        let publicKey = try publicKeyManager.changePublicKey()
-        return try addressConverter.convert(publicKey: publicKey, type: purpose.scriptType)
+    func address(from publicKey: PublicKey) throws -> Address {
+        try addressConverter.convert(publicKey: publicKey, type: purpose.scriptType)
     }
 
     func changePublicKey() throws -> PublicKey {
@@ -305,12 +304,8 @@ public extension BitcoinCore {
         return try transactionCreator.create(from: replacementTransaction.mutableTransaction)
     }
 
-    func replacmentTransactionInfo(transactionHash: String) -> (info: TransactionInfo, feeRange: Range<Int>)? {
-        guard let (fullInfo, feeRange) = replacementTransactionBuilder?.replacementInfo(transactionHash: transactionHash) else {
-            return nil
-        }
-
-        return (info: dataProvider.transactionInfo(from: fullInfo), feeRange)
+    func replacmentTransactionInfo(transactionHash: String, type: ReplacementType) -> (originalTransactionSize: Int, feeRange: Range<Int>)? {
+        replacementTransactionBuilder?.replacementInfo(transactionHash: transactionHash, type: type)
     }
 
     func debugInfo(network: INetwork) -> String {

@@ -1,4 +1,4 @@
 public enum ReplacementType {
     case speedUp
-    case cancel(changeAddress: Address)
+    case cancel(address: Address, publicKey: PublicKey)
 }

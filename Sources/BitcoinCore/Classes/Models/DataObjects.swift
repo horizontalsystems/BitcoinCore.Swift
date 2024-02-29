@@ -64,7 +64,7 @@ public struct OutputWithPublicKey {
     let spendingBlockHeight: Int?
 }
 
-struct InputWithPreviousOutput {
+public struct InputWithPreviousOutput {
     let input: Input
     let previousOutput: Output?
 }

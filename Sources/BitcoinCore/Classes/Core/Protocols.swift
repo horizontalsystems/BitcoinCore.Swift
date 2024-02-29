@@ -615,6 +615,7 @@ public protocol IPlugin: IRestoreKeyConverter {
     func isSpendable(unspentOutput: UnspentOutput) throws -> Bool
     func inputSequenceNumber(output: Output) throws -> Int
     func parsePluginData(from: String, transactionTimestamp: Int) throws -> IPluginOutputData
+    func incrementSequence(sequence: Int) -> Int
 }
 
 public extension IPlugin {
@@ -630,6 +631,7 @@ public protocol IPluginManager {
     func processTransactionWithNullData(transaction: FullTransaction, nullDataOutput: Output) throws
     func isSpendable(unspentOutput: UnspentOutput) -> Bool
     func parsePluginData(fromPlugin: UInt8, pluginDataString: String, transactionTimestamp: Int) -> IPluginOutputData?
+    func incrementedSequence(of: InputWithPreviousOutput) -> Int
 }
 
 public protocol IBlockMedianTimeHelper {

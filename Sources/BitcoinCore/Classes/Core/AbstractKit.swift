@@ -131,14 +131,25 @@ open class AbstractKit {
     }
 
     public func cancelTransaction(transactionHash: String, minFee: Int) throws -> ReplacementTransaction {
-        try bitcoinCore.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: .cancel(changeAddress: try bitcoinCore.changeAddress()))
+        let publicKey = try bitcoinCore.receivePublicKey()
+        return try bitcoinCore.replacementTransaction(transactionHash: transactionHash, minFee: minFee, type: .cancel(address: bitcoinCore.address(from: publicKey), publicKey: publicKey))
     }
 
     public func send(replacementTransaction: ReplacementTransaction) throws -> FullTransaction {
         try bitcoinCore.send(replacementTransaction: replacementTransaction)
     }
 
-    public func replacmentTransactionInfo(transactionHash: String) -> (info: TransactionInfo, feeRange: Range<Int>)? {
-        bitcoinCore.replacmentTransactionInfo(transactionHash: transactionHash)
+    public func speedUpTransactionInfo(transactionHash: String) -> (originalTransactionSize: Int, feeRange: Range<Int>)? {
+        bitcoinCore.replacmentTransactionInfo(transactionHash: transactionHash, type: .speedUp)
+    }
+
+    public func cancelTransactionInfo(transactionHash: String) -> (originalTransactionSize: Int, feeRange: Range<Int>)? {
+        if let receivePublicKey = try? bitcoinCore.receivePublicKey(),
+           let address = try? bitcoinCore.address(from: receivePublicKey)
+        {
+            return bitcoinCore.replacmentTransactionInfo(transactionHash: transactionHash, type: .cancel(address: address, publicKey: receivePublicKey))
+        } else {
+            return nil
+        }
     }
 }
