@@ -61,7 +61,7 @@ class ReplacementTransactionBuilder {
               let publicKey = storage.publicKey(byPath: path),
               let transaction = storage.transaction(byHash: previousOutput.transactionHash)
         else {
-            throw BuildError.invalidTransaction
+            throw ReplacementTransactionBuildError.invalidTransaction
         }
 
         return UnspentOutput(output: previousOutput, publicKey: publicKey, transaction: transaction)
@@ -209,16 +209,16 @@ class ReplacementTransactionBuilder {
               let originalFee = originalFullInfo.metaData.fee,
               originalFullInfo.metaData.type != .incoming
         else {
-            throw BuildError.invalidTransaction
+            throw ReplacementTransactionBuildError.invalidTransaction
         }
 
         let fixedUtxo = originalFullInfo.inputsWithPreviousOutputs.compactMap { $0.previousOutput }
         guard fixedUtxo.count == originalFullInfo.inputsWithPreviousOutputs.count else {
-            throw BuildError.noPreviousOutput
+            throw ReplacementTransactionBuildError.noPreviousOutput
         }
 
         guard originalFullInfo.inputsWithPreviousOutputs.contains(where: { $0.input.rbfEnabled }) else {
-            throw BuildError.rbfNotEnabled
+            throw ReplacementTransactionBuildError.rbfNotEnabled
         }
 
         let originalSize = try sizeCalculator.transactionSize(
@@ -231,11 +231,11 @@ class ReplacementTransactionBuilder {
         let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
 
         guard descendantTransactions.allSatisfy({ $0.transactionWithBlock.transaction.conflictingTxHash == nil }) else {
-            throw BuildError.alreadyReplaced
+            throw ReplacementTransactionBuildError.alreadyReplaced
         }
 
         guard absoluteFee <= minFee else {
-            throw BuildError.feeTooLow
+            throw ReplacementTransactionBuildError.feeTooLow
         }
 
         var mutableTransaction: MutableTransaction?
@@ -247,7 +247,7 @@ class ReplacementTransactionBuilder {
         }
 
         guard let mutableTransaction else {
-            throw BuildError.unableToReplace
+            throw ReplacementTransactionBuildError.unableToReplace
         }
 
         let fullTransaction = mutableTransaction.build()
@@ -322,13 +322,11 @@ class ReplacementTransactionBuilder {
     }
 }
 
-extension ReplacementTransactionBuilder {
-    enum BuildError: Error {
-        case invalidTransaction
-        case noPreviousOutput
-        case feeTooLow
-        case rbfNotEnabled
-        case unableToReplace
-        case alreadyReplaced
-    }
+public enum ReplacementTransactionBuildError: Error {
+    case invalidTransaction
+    case noPreviousOutput
+    case feeTooLow
+    case rbfNotEnabled
+    case unableToReplace
+    case alreadyReplaced
 }
