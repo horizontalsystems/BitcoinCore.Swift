@@ -34,7 +34,7 @@ public class PublicKey: Record {
         self.account = account
         self.index = index
         self.external = external
-        path = "\(account)/\(external ? 1 : 0)/\(index)"
+        path = "\(account)/\(external ? 0 : 1)/\(index)"
         raw = data
         hashP2pkh = Crypto.ripeMd160Sha256(data)
         hashP2wpkhWrappedInP2sh = Crypto.ripeMd160Sha256(OpCode.segWitOutputScript(hashP2pkh, versionByte: 0))

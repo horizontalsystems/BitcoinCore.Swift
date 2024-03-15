@@ -344,6 +344,37 @@ open class GrdbStorage {
             }
         }
 
+        migrator.registerMigration("fixPublicKeyPath") { db in
+            let outputs = try Output.fetchAll(db)
+            let outputsMap = Dictionary(grouping: outputs, by: { $0.publicKeyPath })
+
+            let blockHashPublicKeys = try BlockHashPublicKey.fetchAll(db)
+            let blockHashPublicKeysMap = Dictionary(grouping: blockHashPublicKeys, by: { $0.publicKeyPath })
+
+            let publicKeys = try PublicKey.fetchAll(db)
+            try PublicKey.deleteAll(db)
+            try BlockHashPublicKey.deleteAll(db)
+
+            for publicKey in publicKeys {
+                let newPublicKey = try PublicKey(
+                    withAccount: publicKey.account, index: publicKey.index,
+                    external: publicKey.external, hdPublicKeyData: publicKey.raw
+                )
+
+                try newPublicKey.insert(db)
+
+                for output in outputsMap[publicKey.path] ?? [] {
+                    output.publicKeyPath = newPublicKey.path
+                    try output.update(db)
+                }
+
+                for blockHashPublicKey in blockHashPublicKeysMap[publicKey.path] ?? [] {
+                    blockHashPublicKey.publicKeyPath = newPublicKey.path
+                    try blockHashPublicKey.insert(db)
+                }
+            }
+        }
+
         return migrator
     }
 
