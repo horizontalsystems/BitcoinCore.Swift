@@ -6,6 +6,7 @@ class PendingTransactionProcessor {
     private let publicKeyManager: IPublicKeyManager
     private let irregularOutputFinder: IIrregularOutputFinder
     private let conflictsResolver: ITransactionConflictsResolver
+    private let ignoreIncoming: Bool
 
     weak var listener: IBlockchainDataListener?
     weak var transactionListener: ITransactionListener?
@@ -14,7 +15,7 @@ class PendingTransactionProcessor {
 
     private var notMineTransactions = Set<Data>()
 
-    init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder, conflictsResolver: ITransactionConflictsResolver,
+    init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder, conflictsResolver: ITransactionConflictsResolver, ignoreIncoming: Bool,
          listener: IBlockchainDataListener? = nil, queue: DispatchQueue)
     {
         self.storage = storage
@@ -22,6 +23,7 @@ class PendingTransactionProcessor {
         self.publicKeyManager = publicKeyManager
         self.irregularOutputFinder = irregularOutputFinder
         self.conflictsResolver = conflictsResolver
+        self.ignoreIncoming = ignoreIncoming
         self.listener = listener
         self.queue = queue
     }
@@ -98,6 +100,10 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
                 }
 
                 try resolveConflicts(transaction: transaction, updated: &updated)
+                if ignoreIncoming && transaction.metaData.type == .incoming {
+                    continue
+                }
+
                 try storage.add(transaction: transaction)
                 inserted.append(transaction.header)
 
