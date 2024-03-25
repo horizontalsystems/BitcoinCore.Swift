@@ -66,6 +66,20 @@ extension TransactionConflictsResolver: ITransactionConflictsResolver {
             .map { $0.header }
     }
 
+    // Checks if the transactions has a conflicting input with higher sequence
+    func isTransactionReplaced(transaction: FullTransaction) -> Bool {
+        let conflictingTransactions = conflictingTransactions(for: transaction)
+
+        guard !conflictingTransactions.isEmpty, conflictingTransactions.allSatisfy({ $0.blockHash == nil }) else {
+            return false
+        }
+
+        let conflictingFullTransactions = storage.fullTransactions(from: conflictingTransactions)
+
+        return conflictingFullTransactions
+            .contains { existingHasHigherSequence(mempoolTransaction: transaction, existingTransaction: $0) }
+    }
+
     func incomingPendingTransactionsConflicting(with transaction: FullTransaction) -> [Transaction] {
         let pendingTxHashes = storage.incomingPendingTransactionHashes()
         if pendingTxHashes.isEmpty {

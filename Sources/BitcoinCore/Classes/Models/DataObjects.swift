@@ -134,13 +134,15 @@ public struct FullTransactionForInfo {
     let metaData: TransactionMetadata
 
     var rawTransaction: String {
-        let fullTransaction = FullTransaction(
+        TransactionSerializer.serialize(transaction: fullTransaction).hs.hex
+    }
+
+    var fullTransaction: FullTransaction {
+        .init(
             header: transactionWithBlock.transaction,
             inputs: inputsWithPreviousOutputs.map(\.input),
             outputs: outputs
         )
-
-        return TransactionSerializer.serialize(transaction: fullTransaction).hs.hex
     }
 }
 

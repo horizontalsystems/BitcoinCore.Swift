@@ -321,7 +321,7 @@ public class BitcoinCoreBuilder {
             transactionSendTimer.delegate = transactionSender
 
             transactionCreator = TransactionCreator(transactionBuilder: transactionBuilder, transactionProcessor: pendingTransactionProcessor, transactionSender: transactionSenderInstance, transactionSigner: transactionSigner, bloomFilterManager: bloomFilterManager)
-            replacementTransactionBuilder = ReplacementTransactionBuilder(storage: storage, sizeCalculator: transactionSizeCalculatorInstance, dustCalculator: dustCalculatorInstance, factory: factory, metadataExtractor: transactionMetadataExtractor, pluginManager: pluginManager, unspentOutputProvider: unspentOutputProvider)
+            replacementTransactionBuilder = ReplacementTransactionBuilder(storage: storage, sizeCalculator: transactionSizeCalculatorInstance, dustCalculator: dustCalculatorInstance, factory: factory, metadataExtractor: transactionMetadataExtractor, pluginManager: pluginManager, unspentOutputProvider: unspentOutputProvider, transactionConflictsResolver: transactionConflictResolver)
         }
         let mempoolTransactions = MempoolTransactions(transactionSyncer: pendingTransactionSyncer, transactionSender: transactionSender)
 

@@ -8,8 +8,12 @@ class ReplacementTransactionBuilder {
     private let metadataExtractor: TransactionMetadataExtractor
     private let pluginManager: IPluginManager
     private let unspentOutputProvider: IUnspentOutputProvider
+    private let conflictsResolver: TransactionConflictsResolver
 
-    init(storage: IStorage, sizeCalculator: ITransactionSizeCalculator, dustCalculator: IDustCalculator, factory: IFactory, metadataExtractor: TransactionMetadataExtractor, pluginManager: IPluginManager, unspentOutputProvider: IUnspentOutputProvider) {
+    init(storage: IStorage, sizeCalculator: ITransactionSizeCalculator, dustCalculator: IDustCalculator, factory: IFactory,
+         metadataExtractor: TransactionMetadataExtractor, pluginManager: IPluginManager, unspentOutputProvider: IUnspentOutputProvider,
+         transactionConflictsResolver: TransactionConflictsResolver)
+    {
         self.storage = storage
         self.sizeCalculator = sizeCalculator
         self.dustCalculator = dustCalculator
@@ -17,6 +21,7 @@ class ReplacementTransactionBuilder {
         self.metadataExtractor = metadataExtractor
         self.pluginManager = pluginManager
         self.unspentOutputProvider = unspentOutputProvider
+        conflictsResolver = transactionConflictsResolver
     }
 
     private func replacementTransaction(minFee: Int, minFeeRate: Int, utxo: [Output], fixedOutputs: [Output], outputs: [Output]) throws -> (outputs: [Output], fee: Int)? {
@@ -158,7 +163,7 @@ class ReplacementTransactionBuilder {
         return mutableTransaction
     }
 
-    private func cancelReplacement(originalFullInfo: FullTransactionForInfo, minFee: Int, originalFee: Int, originalFeeRate: Int, fixedUtxo: [Output], userAddress: Address, publicKey: PublicKey) throws -> MutableTransaction? {
+    private func cancelReplacement(originalFullInfo: FullTransactionForInfo, minFee: Int, originalFeeRate: Int, fixedUtxo: [Output], userAddress: Address, publicKey: PublicKey) throws -> MutableTransaction? {
         let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
         let originalInputsValue = fixedUtxo.map(\.value).reduce(0, +)
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
@@ -230,7 +235,9 @@ class ReplacementTransactionBuilder {
         let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
         let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
 
-        guard descendantTransactions.allSatisfy({ $0.transactionWithBlock.transaction.conflictingTxHash == nil }) else {
+        guard descendantTransactions.allSatisfy({ $0.transactionWithBlock.transaction.conflictingTxHash == nil }),
+              !conflictsResolver.isTransactionReplaced(transaction: originalFullInfo.fullTransaction)
+        else {
             throw ReplacementTransactionBuildError.alreadyReplaced
         }
 
@@ -243,7 +250,7 @@ class ReplacementTransactionBuilder {
             case .speedUp:
                 mutableTransaction = try speedUpReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo)
             case .cancel(let userAddress, let publicKey):
-                mutableTransaction = try cancelReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFee: originalFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo, userAddress: userAddress, publicKey: publicKey)
+                mutableTransaction = try cancelReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo, userAddress: userAddress, publicKey: publicKey)
         }
 
         guard let mutableTransaction else {
@@ -288,6 +295,12 @@ class ReplacementTransactionBuilder {
 
         let descendantTransactions = storage.descendantTransactionsFullInfo(of: transactionHash)
         let absoluteFee = descendantTransactions.map { $0.metaData.fee ?? 0 }.reduce(0, +)
+
+        guard descendantTransactions.allSatisfy({ $0.transactionWithBlock.transaction.conflictingTxHash == nil }),
+              !conflictsResolver.isTransactionReplaced(transaction: originalFullInfo.fullTransaction)
+        else {
+            return nil
+        }
 
         let originalSize: Int
         let removableOutputsValue: Int
