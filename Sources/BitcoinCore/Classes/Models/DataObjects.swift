@@ -105,9 +105,9 @@ public struct UnspentOutputInfo: Hashable, Equatable {
     public let address: String?
     public let value: Int
 
-    public static func ==(lhs: UnspentOutputInfo, rhs: UnspentOutputInfo) -> Bool {
+    public static func == (lhs: UnspentOutputInfo, rhs: UnspentOutputInfo) -> Bool {
         lhs.outputIndex == rhs.outputIndex &&
-        lhs.transactionHash == rhs.transactionHash
+            lhs.transactionHash == rhs.transactionHash
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -116,7 +116,7 @@ public struct UnspentOutputInfo: Hashable, Equatable {
     }
 }
 
-public extension Array where Element == UnspentOutputInfo {
+public extension [UnspentOutputInfo] {
     func outputs(from outputs: [UnspentOutput]) -> [UnspentOutput] {
         let selectedKeys = map { ($0.outputIndex, $0.transactionHash) }
         return outputs.filter { output in

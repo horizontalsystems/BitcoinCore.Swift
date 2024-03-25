@@ -1,8 +1,8 @@
- import XCTest
- import Cuckoo
- @testable import BitcoinCore
+@testable import BitcoinCore
+import Cuckoo
+import XCTest
 
- class TransactionSizeCalculatorTests: XCTestCase {
+class TransactionSizeCalculatorTests: XCTestCase {
     var calculator: TransactionSizeCalculator!
 
     override func setUp() {
@@ -59,5 +59,4 @@
         XCTAssertEqual(calculator.outputSize(type: .p2wpkh), 31)
         XCTAssertEqual(calculator.outputSize(type: .p2wpkhSh), 32)
     }
-
- }
+}

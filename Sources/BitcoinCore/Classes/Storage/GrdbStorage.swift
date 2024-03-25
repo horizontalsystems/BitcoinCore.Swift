@@ -890,7 +890,7 @@ extension GrdbStorage: IStorage {
         var inputs = [Input]()
         var outputs = [Output]()
         var metadata = [TransactionMetadata]()
-        let hashes = transactions.map { $0.dataHash }
+        let hashes = transactions.map(\.dataHash)
 
         try! dbPool.read { db in
             for transactionHashChunks in hashes.chunked(into: 999) {
@@ -915,7 +915,7 @@ extension GrdbStorage: IStorage {
                 outputs: outputsByTransaction[hash] ?? []
             )
 
-            if let _metadata =  metadata.first(where: { $0.transactionHash == hash }) {
+            if let _metadata = metadata.first(where: { $0.transactionHash == hash }) {
                 fullTransaction.metaData.transactionHash = _metadata.transactionHash
                 fullTransaction.metaData.fee = _metadata.fee
                 fullTransaction.metaData.type = _metadata.type

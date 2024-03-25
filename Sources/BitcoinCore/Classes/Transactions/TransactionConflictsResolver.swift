@@ -10,7 +10,7 @@ class TransactionConflictsResolver {
             .map { input in
                 storage.inputsUsing(previousOutputTxHash: input.previousOutputTxHash, previousOutputIndex: input.previousOutputIndex)
                     .filter { $0.transactionHash != transaction.header.dataHash }
-                    .map { $0.transactionHash }
+                    .map(\.transactionHash)
             }
             .flatMap { $0 }
 
@@ -63,7 +63,7 @@ extension TransactionConflictsResolver: ITransactionConflictsResolver {
             // and the existing transaction is a replacement transaction that is not relayed in mempool yet.
             // Other cases are theoretically possible, but highly unlikely
             .filter { !existingHasHigherSequence(mempoolTransaction: transaction, existingTransaction: $0) }
-            .map { $0.header }
+            .map(\.header)
     }
 
     // Checks if the transactions has a conflicting input with higher sequence

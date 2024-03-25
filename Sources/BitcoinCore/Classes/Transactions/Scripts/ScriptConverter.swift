@@ -5,7 +5,7 @@ public class ScriptConverter {
 
     public func encode(script: Script) -> Data {
         var scriptData = Data()
-        script.chunks.forEach { chunk in
+        for chunk in script.chunks {
             if let data = chunk.data {
                 scriptData += OpCode.push(data)
             } else {

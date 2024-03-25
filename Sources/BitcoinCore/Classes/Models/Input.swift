@@ -62,7 +62,7 @@ public class Input: Record {
 
 extension Input {
     var rbfEnabled: Bool {
-        sequence < 0xFFFFFFFE
+        sequence < 0xFFFF_FFFE
     }
 }
 

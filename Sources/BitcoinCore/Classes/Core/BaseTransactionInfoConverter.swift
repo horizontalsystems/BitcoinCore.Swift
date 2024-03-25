@@ -51,7 +51,7 @@ public class BaseTransactionInfoConverter: IBaseTransactionInfoConverter {
             outputsInfo.append(outputInfo)
         }
 
-        let rbfEnabled = transactionForInfo.inputsWithPreviousOutputs.contains(where: { $0.input.rbfEnabled })
+        let rbfEnabled = transactionForInfo.inputsWithPreviousOutputs.contains(where: \.input.rbfEnabled)
 
         return T(
             uid: transaction.uid,

@@ -1,4 +1,5 @@
 import HsExtensions
+
 /// getdata is used in response to inv, to retrieve the content of a specific object,
 /// and is usually sent after receiving an inv packet, after filtering known elements.
 /// It can be used to retrieve transactions, but only if they are in the memory pool or

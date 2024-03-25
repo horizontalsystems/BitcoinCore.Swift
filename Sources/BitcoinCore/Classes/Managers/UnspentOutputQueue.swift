@@ -61,10 +61,10 @@ class UnspentOutputQueue {
 
         // Calculate the possibility of sending without change
         let feeWithoutChange = sizeCalculator.transactionSize(
-                previousOutputs: selectedOutputs.map(\.output),
-                outputScriptTypes: [params.outputScriptType],
-                memo: params.memo,
-                pluginDataOutputSize: params.pluginDataOutputSize
+            previousOutputs: selectedOutputs.map(\.output),
+            outputScriptTypes: [params.outputScriptType],
+            memo: params.memo,
+            pluginDataOutputSize: params.pluginDataOutputSize
         ) * params.fee
 
         // Calculate the values with which a transaction can be sent
