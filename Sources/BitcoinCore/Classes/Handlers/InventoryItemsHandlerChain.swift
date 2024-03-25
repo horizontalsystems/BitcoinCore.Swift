@@ -2,7 +2,7 @@ class InventoryItemsHandlerChain: IInventoryItemsHandler {
     private var concreteHandlers = [IInventoryItemsHandler]()
 
     func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem]) {
-        concreteHandlers.forEach { handler in
+        for handler in concreteHandlers {
             handler.handleInventoryItems(peer: peer, inventoryItems: inventoryItems)
         }
     }

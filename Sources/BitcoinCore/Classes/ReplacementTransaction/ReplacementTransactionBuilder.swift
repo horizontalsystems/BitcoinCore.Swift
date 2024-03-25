@@ -79,7 +79,7 @@ class ReplacementTransactionBuilder {
             return pluginManager.incrementedSequence(of: inputWithPreviousOutput)
         }
 
-        return min(input.sequence + 1, 0xFFFFFFFF)
+        return min(input.sequence + 1, 0xFFFF_FFFF)
     }
 
     private func setInputs(to mutableTransaction: MutableTransaction, originalInputs: [InputWithPreviousOutput], additionalInputs: [UnspentOutput]) throws {
@@ -113,7 +113,7 @@ class ReplacementTransactionBuilder {
         // If an output has a pluginId, it most probably has a timelocked value and it shouldn't be altered.
         var fixedOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath == nil || $0.pluginId != nil }
         let myOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath != nil && $0.pluginId == nil }
-        let myChangeOutputs = myOutputs.filter { $0.changeOutput }.sorted { a, b in a.value < b.value }
+        let myChangeOutputs = myOutputs.filter(\.changeOutput).sorted { a, b in a.value < b.value }
         let myExternalOutputs = myOutputs.filter { !$0.changeOutput }.sorted { a, b in a.value < b.value }
 
         var sortedOutputs = myChangeOutputs + myExternalOutputs
@@ -133,7 +133,7 @@ class ReplacementTransactionBuilder {
 
                 if let replacement = try replacementTransaction(
                     minFee: minFee, minFeeRate: originalFeeRate,
-                    utxo: fixedUtxo + utxo.map { $0.output },
+                    utxo: fixedUtxo + utxo.map(\.output),
                     fixedOutputs: fixedOutputs, outputs: outputs
                 ) {
                     if let _optimalReplacement = optimalReplacement {
@@ -180,7 +180,7 @@ class ReplacementTransactionBuilder {
 
             if let replacement = try replacementTransaction(
                 minFee: minFee, minFeeRate: originalFeeRate,
-                utxo: fixedUtxo + utxo.map { $0.output },
+                utxo: fixedUtxo + utxo.map(\.output),
                 fixedOutputs: [], outputs: outputs
             ) {
                 if let _optimalReplacement = optimalReplacement {
@@ -217,12 +217,12 @@ class ReplacementTransactionBuilder {
             throw ReplacementTransactionBuildError.invalidTransaction
         }
 
-        let fixedUtxo = originalFullInfo.inputsWithPreviousOutputs.compactMap { $0.previousOutput }
+        let fixedUtxo = originalFullInfo.inputsWithPreviousOutputs.compactMap(\.previousOutput)
         guard fixedUtxo.count == originalFullInfo.inputsWithPreviousOutputs.count else {
             throw ReplacementTransactionBuildError.noPreviousOutput
         }
 
-        guard originalFullInfo.inputsWithPreviousOutputs.contains(where: { $0.input.rbfEnabled }) else {
+        guard originalFullInfo.inputsWithPreviousOutputs.contains(where: \.input.rbfEnabled) else {
             throw ReplacementTransactionBuildError.rbfNotEnabled
         }
 
@@ -247,10 +247,10 @@ class ReplacementTransactionBuilder {
 
         var mutableTransaction: MutableTransaction?
         switch type {
-            case .speedUp:
-                mutableTransaction = try speedUpReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo)
-            case .cancel(let userAddress, let publicKey):
-                mutableTransaction = try cancelReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo, userAddress: userAddress, publicKey: publicKey)
+        case .speedUp:
+            mutableTransaction = try speedUpReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo)
+        case let .cancel(userAddress, publicKey):
+            mutableTransaction = try cancelReplacement(originalFullInfo: originalFullInfo, minFee: minFee, originalFeeRate: originalFeeRate, fixedUtxo: fixedUtxo, userAddress: userAddress, publicKey: publicKey)
         }
 
         guard let mutableTransaction else {
@@ -274,7 +274,7 @@ class ReplacementTransactionBuilder {
                 outputs: mutableTransaction.outputs,
                 metaData: metadata
             ),
-            descendantTransactions.map { $0.metaData.transactionHash.hs.reversedHex }
+            descendantTransactions.map(\.metaData.transactionHash.hs.reversedHex)
         )
     }
 
@@ -288,7 +288,7 @@ class ReplacementTransactionBuilder {
             return nil
         }
 
-        let fixedUtxo = originalFullInfo.inputsWithPreviousOutputs.compactMap { $0.previousOutput }
+        let fixedUtxo = originalFullInfo.inputsWithPreviousOutputs.compactMap(\.previousOutput)
         guard fixedUtxo.count == originalFullInfo.inputsWithPreviousOutputs.count else {
             return nil
         }
@@ -306,24 +306,24 @@ class ReplacementTransactionBuilder {
         let removableOutputsValue: Int
 
         switch type {
-            case .speedUp:
-                var fixedOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath == nil || $0.pluginId != nil }
-                let myOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath != nil && $0.pluginId == nil }
-                let myChangeOutputs = myOutputs.filter { $0.changeOutput }.sorted { a, b in a.value < b.value }
-                let myExternalOutputs = myOutputs.filter { !$0.changeOutput }.sorted { a, b in a.value < b.value }
+        case .speedUp:
+            var fixedOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath == nil || $0.pluginId != nil }
+            let myOutputs = originalFullInfo.outputs.filter { $0.publicKeyPath != nil && $0.pluginId == nil }
+            let myChangeOutputs = myOutputs.filter(\.changeOutput).sorted { a, b in a.value < b.value }
+            let myExternalOutputs = myOutputs.filter { !$0.changeOutput }.sorted { a, b in a.value < b.value }
 
-                var sortedOutputs = myChangeOutputs + myExternalOutputs
-                if fixedOutputs.isEmpty, !sortedOutputs.isEmpty {
-                    fixedOutputs.append(sortedOutputs.removeLast())
-                }
+            var sortedOutputs = myChangeOutputs + myExternalOutputs
+            if fixedOutputs.isEmpty, !sortedOutputs.isEmpty {
+                fixedOutputs.append(sortedOutputs.removeLast())
+            }
 
-                originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
-                removableOutputsValue = sortedOutputs.map(\.value).reduce(0, +)
-            case .cancel(let userAddress, _):
-                let dustValue = dustCalculator.dust(type: userAddress.scriptType)
-                let fixedOutputs = [factory.output(withIndex: 0, address: userAddress, value: dustValue, publicKey: nil)]
-                originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
-                removableOutputsValue = originalFullInfo.outputs.map(\.value).reduce(0, +) - dustValue
+            originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
+            removableOutputsValue = sortedOutputs.map(\.value).reduce(0, +)
+        case let .cancel(userAddress, _):
+            let dustValue = dustCalculator.dust(type: userAddress.scriptType)
+            let fixedOutputs = [factory.output(withIndex: 0, address: userAddress, value: dustValue, publicKey: nil)]
+            originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
+            removableOutputsValue = originalFullInfo.outputs.map(\.value).reduce(0, +) - dustValue
         }
 
         let confirmedUtxoTotalValue = unspentOutputProvider.confirmedSpendableUtxo.map(\.output.value).reduce(0, +)

@@ -87,7 +87,7 @@ open class AbstractKit {
     }
 
     open var unspentOutputs: [UnspentOutputInfo] {
-        bitcoinCore.unspentOutputs.map { $0.info }
+        bitcoinCore.unspentOutputs.map(\.info)
     }
 
     open func receiveAddress() -> String {

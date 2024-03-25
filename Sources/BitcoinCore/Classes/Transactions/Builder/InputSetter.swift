@@ -88,7 +88,7 @@ extension InputSetter: IInputSetter {
         return OutputInfo(unspentOutputs: unspentOutputs, changeInfo: changeInfo)
     }
 
-    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType) throws -> [UnspentOutput] {
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType _: TransactionDataSortType) throws -> [UnspentOutput] {
         let value = mutableTransaction.recipientValue
         let unspentOutputInfo = try unspentOutputSelector.select(
             value: value, memo: mutableTransaction.memo, feeRate: feeRate,

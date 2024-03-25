@@ -55,7 +55,7 @@ public class PaymentAddressParser: IPaymentAddressParser {
             parametersParts.append(contentsOf: parameters)
         }
 
-        parametersParts.forEach { parameter in
+        for parameter in parametersParts {
             let parts = parameter.components(separatedBy: "=")
             if parts.count == 2 {
                 switch parts[0] {

@@ -27,7 +27,7 @@ class MempoolTransactions {
 
     private func removeFromRequestedTransactions(peerHost: String, transactionHashes: [Data]) {
         peersQueue.async {
-            transactionHashes.forEach { transactionHash in
+            for transactionHash in transactionHashes {
                 if let index = self.requestedTransactions[peerHost]?.firstIndex(of: transactionHash) {
                     self.requestedTransactions[peerHost]?.remove(at: index)
                 }
@@ -76,7 +76,7 @@ extension MempoolTransactions: IInventoryItemsHandler {
     func handleInventoryItems(peer: IPeer, inventoryItems: [InventoryItem]) {
         var transactionHashes = [Data]()
 
-        inventoryItems.forEach { item in
+        for item in inventoryItems {
             if case .transaction = item.objectType, !isTransactionRequested(hash: item.hash), transactionSyncer.shouldRequestTransaction(hash: item.hash) {
                 transactionHashes.append(item.hash)
             }

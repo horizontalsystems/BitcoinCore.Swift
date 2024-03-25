@@ -100,7 +100,7 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
                 }
 
                 try resolveConflicts(transaction: transaction, updated: &updated)
-                if ignoreIncoming && transaction.metaData.type == .incoming {
+                if ignoreIncoming, transaction.metaData.type == .incoming {
                     continue
                 }
 
