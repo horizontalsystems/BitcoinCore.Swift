@@ -345,6 +345,7 @@ protocol ITransactionConflictsResolver {
     func transactionsConflicting(withInblockTransaction transaction: FullTransaction) -> [Transaction]
     func transactionsConflicting(withPendingTransaction transaction: FullTransaction) -> [Transaction]
     func incomingPendingTransactionsConflicting(with transaction: FullTransaction) -> [Transaction]
+    func isTransactionReplaced(transaction: FullTransaction) -> Bool
 }
 
 public protocol IBlockTransactionProcessor: AnyObject {

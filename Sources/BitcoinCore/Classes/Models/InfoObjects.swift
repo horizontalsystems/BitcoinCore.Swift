@@ -15,6 +15,11 @@ open class TransactionInfo: ITransactionInfo, Codable {
     public let conflictingHash: String?
     public let rbfEnabled: Bool
 
+    public var replaceable: Bool {
+        // Here we can't check wether there are conflicting transactions in state "new", so this flag must be used with caution.
+        rbfEnabled && blockHeight == nil && conflictingHash == nil
+    }
+
     public required init(uid: String, transactionHash: String, transactionIndex: Int, inputs: [TransactionInputInfo], outputs: [TransactionOutputInfo],
                          amount: Int, type: TransactionType, fee: Int?, blockHeight: Int?, timestamp: Int, status: TransactionStatus, conflictingHash: String?, rbfEnabled: Bool)
     {
