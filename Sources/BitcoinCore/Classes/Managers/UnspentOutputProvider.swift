@@ -25,8 +25,12 @@ class UnspentOutputProvider {
             }
     }
 
-    private var unspendableUtxo: [UnspentOutput] {
-        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) || $0.transaction.status != .relayed }
+    private var unspendableTimeLockedUtxo: [UnspentOutput] {
+        allUtxo.filter { !pluginManager.isSpendable(unspentOutput: $0) }
+    }
+
+    private var unspendableNotRelayedUtxo: [UnspentOutput] {
+        allUtxo.filter { $0.transaction.status != .relayed }
     }
 
     init(storage: IStorage, pluginManager: IPluginManager, confirmationsThreshold: Int) {
@@ -59,8 +63,9 @@ extension UnspentOutputProvider: IUnspentOutputProvider {
 extension UnspentOutputProvider: IBalanceProvider {
     var balanceInfo: BalanceInfo {
         let spendable = spendableUtxo.map(\.output.value).reduce(0, +)
-        let unspendable = unspendableUtxo.map(\.output.value).reduce(0, +)
+        let unspendableTimeLocked = unspendableTimeLockedUtxo.map(\.output.value).reduce(0, +)
+        let unspendableNotRelayed = unspendableNotRelayedUtxo.map(\.output.value).reduce(0, +)
 
-        return BalanceInfo(spendable: spendable, unspendable: unspendable)
+        return BalanceInfo(spendable: spendable, unspendableTimeLocked: unspendableTimeLocked, unspendableNotRelayed: unspendableNotRelayed)
     }
 }
