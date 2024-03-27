@@ -205,6 +205,7 @@ public protocol IPeer: AnyObject {
     var delegate: PeerDelegate? { get set }
     var localBestBlockHeight: Int32 { get set }
     var announcedLastBlockHeight: Int32 { get }
+    var subVersion: String { get }
     var host: String { get }
     var logName: String { get }
     var ready: Bool { get }

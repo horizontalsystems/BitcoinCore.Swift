@@ -202,6 +202,25 @@ class TransactionMessageParser: IMessageParser {
     }
 }
 
+class RejectMessageParser: IMessageParser {
+    var id: String { "reject" }
+
+    func parse(data: Data) -> IMessage {
+        let byteStream = ByteStream(data)
+
+        let message = byteStream.read(VarString.self)
+        let ccode = byteStream.read(UInt8.self)
+        let reason = byteStream.read(VarString.self)
+        var data = Data()
+
+        if message.value != "version" {
+            data = byteStream.read(Data.self, count: 32)
+        }
+
+        return RejectMessage(message: message, ccode: ccode, reason: reason, data: data)
+    }
+}
+
 class UnknownMessageParser: IMessageParser {
     var id: String { "unknown" }
 

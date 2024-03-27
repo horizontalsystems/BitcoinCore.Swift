@@ -374,6 +374,7 @@ public class BitcoinCoreBuilder {
             .add(messageParser: MemPoolMessageParser())
             .add(messageParser: MerkleBlockMessageParser(blockHeaderParser: blockHeaderParser))
             .add(messageParser: TransactionMessageParser())
+            .add(messageParser: RejectMessageParser())
 
         bitcoinCore.add(messageSerializer: GetDataMessageSerializer())
             .add(messageSerializer: GetBlocksMessageSerializer())
