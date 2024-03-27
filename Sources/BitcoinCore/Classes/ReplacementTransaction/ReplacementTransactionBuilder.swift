@@ -328,6 +328,10 @@ class ReplacementTransactionBuilder {
 
         let confirmedUtxoTotalValue = unspentOutputProvider.confirmedSpendableUtxo.map(\.output.value).reduce(0, +)
 
+        guard absoluteFee <= originalFee + removableOutputsValue + confirmedUtxoTotalValue else {
+            return nil
+        }
+
         return (
             originalTransactionSize: originalSize,
             feeRange: absoluteFee ..< originalFee + removableOutputsValue + confirmedUtxoTotalValue
