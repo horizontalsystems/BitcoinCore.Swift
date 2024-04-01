@@ -128,3 +128,23 @@ struct BlockchairBlocksResponse: ImmutableMappable {
         }
     }
 }
+
+struct BlockchairBroadcastResponse: ImmutableMappable {
+    let data: [String: String]?
+    let context: ContextMap
+
+    init(map: Map) throws {
+        data = try map.value("data")
+        context = try map.value("context")
+    }
+
+    struct ContextMap: ImmutableMappable {
+        let code: Int
+        let error: String?
+
+        init(map: Map) throws {
+            code = try map.value("code")
+            error = try map.value("error")
+        }
+    }
+}

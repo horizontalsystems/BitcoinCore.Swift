@@ -16,12 +16,13 @@ class TransactionSender {
     private let logger: Logger?
     private let queue: DispatchQueue
 
+    private let sendType: BitcoinCore.SendType
     private let maxRetriesCount: Int
     private let retriesPeriod: Double // seconds
 
     init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer,
          logger: Logger? = nil, queue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.transaction-sender", qos: .background),
-         maxRetriesCount: Int = 3, retriesPeriod: Double = 60)
+         sendType: BitcoinCore.SendType, maxRetriesCount: Int = 3, retriesPeriod: Double = 60)
     {
         self.transactionSyncer = transactionSyncer
         self.initialBlockDownload = initialBlockDownload
@@ -30,6 +31,7 @@ class TransactionSender {
         self.timer = timer
         self.logger = logger
         self.queue = queue
+        self.sendType = sendType
         self.maxRetriesCount = maxRetriesCount
         self.retriesPeriod = retriesPeriod
     }
@@ -97,7 +99,20 @@ class TransactionSender {
         }
     }
 
-    private func send(transactions: [FullTransaction]) {
+    private func apiSend(transactions: [FullTransaction], blockchairApi: BlockchairApi) {
+        Task(priority: .userInitiated) {
+            for transaction in transactions {
+                do {
+                    try await blockchairApi.broadcastTransaction(hex: TransactionSerializer.serialize(transaction: transaction))
+                    transactionSyncer.handleRelayed(transactions: [transaction])
+                } catch {
+                    transactionSyncer.handleInvalid(fullTransaction: transaction)
+                }
+            }
+        }
+    }
+
+    private func p2pSend(transactions: [FullTransaction]) {
         let peers = peersToSendTo()
         guard !peers.isEmpty else {
             return
@@ -111,6 +126,15 @@ class TransactionSender {
             for peer in peers {
                 peer.add(task: SendTransactionTask(transaction: transaction))
             }
+        }
+    }
+
+    private func send(transactions: [FullTransaction]) {
+        switch sendType {
+        case .p2p:
+            p2pSend(transactions: transactions)
+        case let .api(blockchairApi):
+            apiSend(transactions: transactions, blockchairApi: blockchairApi)
         }
     }
 
