@@ -436,6 +436,11 @@ public extension BitcoinCore {
         }
     }
 
+    enum SendType {
+        case p2p
+        case api(blockchairApi: BlockchairApi)
+    }
+
     enum TransactionFilter {
         case p2shOutput(scriptHash: Data)
         case outpoint(transactionHash: Data, outputIndex: Int)

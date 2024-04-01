@@ -25,6 +25,7 @@ public class BitcoinCoreBuilder {
 
     // parameters with default values
     private var confirmationsThreshold = 6
+    private var sendType = BitcoinCore.SendType.p2p
     private var syncMode = BitcoinCore.SyncMode.api
     private var peerCount = 10
     private var peerCountToConnect = 100
@@ -70,6 +71,11 @@ public class BitcoinCoreBuilder {
 
     public func set(syncMode: BitcoinCore.SyncMode) -> BitcoinCoreBuilder {
         self.syncMode = syncMode
+        return self
+    }
+
+    public func set(sendType: BitcoinCore.SendType) -> BitcoinCoreBuilder {
+        self.sendType = sendType
         return self
     }
 
@@ -312,7 +318,7 @@ public class BitcoinCoreBuilder {
             let transactionBuilder = TransactionBuilder(recipientSetter: recipientSetter, inputSetter: inputSetter, lockTimeSetter: lockTimeSetter, outputSetter: outputSetter)
             transactionFeeCalculator = TransactionFeeCalculator(recipientSetter: recipientSetter, inputSetter: inputSetter, addressConverter: addressConverter, publicKeyManager: publicKeyManager, changeScriptType: purpose.scriptType)
             let transactionSendTimer = TransactionSendTimer(interval: 60)
-            let transactionSenderInstance = TransactionSender(transactionSyncer: pendingTransactionSyncer, initialBlockDownload: initialDownload, peerManager: peerManager, storage: storage, timer: transactionSendTimer, logger: logger)
+            let transactionSenderInstance = TransactionSender(transactionSyncer: pendingTransactionSyncer, initialBlockDownload: initialDownload, peerManager: peerManager, storage: storage, timer: transactionSendTimer, logger: logger, sendType: sendType)
 
             dustCalculator = dustCalculatorInstance
             transactionSizeCalculator = transactionSizeCalculatorInstance

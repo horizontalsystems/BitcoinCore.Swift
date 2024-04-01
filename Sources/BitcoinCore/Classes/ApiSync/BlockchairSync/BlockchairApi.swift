@@ -129,4 +129,12 @@ public class BlockchairApi {
 
         return hashesMap
     }
+
+    func broadcastTransaction(hex: Data) async throws {
+        let url = "https://api.blockchair.com/\(chainId)/push/transaction"
+        let response: BlockchairBroadcastResponse = try await networkManager.fetch(url: url, method: .post, parameters: ["data": hex.hs.hex])
+        guard let data = response.data, data["transaction_hash"] != nil else {
+            throw BitcoinCoreErrors.TransactionSendError.apiSendFailed(reason: response.context.error)
+        }
+    }
 }
