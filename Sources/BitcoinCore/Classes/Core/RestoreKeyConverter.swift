@@ -1,4 +1,5 @@
 import Foundation
+import HdWalletKit
 
 class RestoreKeyConverterChain: IRestoreKeyConverter {
     var converters = [IRestoreKeyConverter]()
@@ -36,7 +37,7 @@ public class Bip44RestoreKeyConverter {
 
 extension Bip44RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        let legacyAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2pkh).stringValue
+        let legacyAddress = try? addressConverter.convert(publicKey: publicKey, type: Purpose.bip44.scriptType).stringValue
 
         return [legacyAddress].compactMap { $0 }
     }
@@ -56,7 +57,7 @@ public class Bip49RestoreKeyConverter {
 
 extension Bip49RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        let wpkhShAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2wpkhSh).stringValue
+        let wpkhShAddress = try? addressConverter.convert(publicKey: publicKey, type: Purpose.bip49.scriptType).stringValue
 
         return [wpkhShAddress].compactMap { $0 }
     }
@@ -76,7 +77,7 @@ public class Bip84RestoreKeyConverter {
 
 extension Bip84RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        let segwitAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2wpkh).stringValue
+        let segwitAddress = try? addressConverter.convert(publicKey: publicKey, type: Purpose.bip84.scriptType).stringValue
 
         return [segwitAddress].compactMap { $0 }
     }
@@ -96,7 +97,7 @@ public class Bip86RestoreKeyConverter {
 
 extension Bip86RestoreKeyConverter: IRestoreKeyConverter {
     public func keysForApiRestore(publicKey: PublicKey) -> [String] {
-        let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: .p2tr).stringValue
+        let taprootAddress = try? addressConverter.convert(publicKey: publicKey, type: Purpose.bip86.scriptType).stringValue
 
         return [taprootAddress].compactMap { $0 }
     }

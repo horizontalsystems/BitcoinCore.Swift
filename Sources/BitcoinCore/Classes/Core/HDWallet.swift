@@ -6,7 +6,7 @@ extension HDWallet: IHDWallet {
         case publicKeysDerivationFailed
     }
 
-    func publicKey(account: Int, index: Int, external: Bool) throws -> PublicKey {
+    public func publicKey(account: Int, index: Int, external: Bool) throws -> PublicKey {
         try PublicKey(withAccount: account, index: index, external: external, hdPublicKeyData: publicKey(account: account, index: index, chain: external ? .external : .internal).raw)
     }
 
