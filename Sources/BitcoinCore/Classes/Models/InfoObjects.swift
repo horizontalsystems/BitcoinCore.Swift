@@ -88,4 +88,8 @@ public struct BalanceInfo: Equatable {
     public static func == (lhs: BalanceInfo, rhs: BalanceInfo) -> Bool {
         lhs.spendable == rhs.spendable && lhs.unspendableTimeLocked == rhs.unspendableTimeLocked && lhs.unspendableNotRelayed == rhs.unspendableNotRelayed
     }
+
+    public var unspendable: Int {
+        unspendableNotRelayed + unspendableTimeLocked
+    }
 }

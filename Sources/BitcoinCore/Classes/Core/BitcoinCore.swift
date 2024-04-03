@@ -473,3 +473,35 @@ public extension BitcoinCore {
         case notStarted
     }
 }
+
+public extension BitcoinCore {
+    static func firstAddress(seed: Data, purpose: Purpose, network: INetwork, addressCoverter: AddressConverterChain) throws -> Address {
+        let wallet = HDWallet(seed: seed, coinType: network.coinType, xPrivKey: network.xPrivKey, purpose: purpose)
+        let publicKey: PublicKey = try wallet.publicKey(account: 0, index: 0, external: true)
+
+        return try addressCoverter.convert(publicKey: publicKey, type: purpose.scriptType)
+    }
+
+    static func firstAddress(extendedKey: HDExtendedKey, purpose: Purpose, network: INetwork, addressCoverter: AddressConverterChain) throws -> Address {
+        let publicKey: PublicKey
+        switch extendedKey {
+        case let .private(key: privateKey):
+            switch extendedKey.derivedType {
+            case .master:
+                let wallet = HDWallet(masterKey: privateKey, coinType: network.coinType, purpose: purpose)
+                publicKey = try wallet.publicKey(account: 0, index: 0, external: true)
+            case .account:
+                let wallet = HDAccountWallet(privateKey: privateKey)
+                publicKey = try wallet.publicKey(index: 0, external: true)
+            case .bip32:
+                throw BitcoinCoreBuilder.BuildError.notSupported
+            }
+
+        case let .public(key: hdPublicKey):
+            let wallet = HDWatchAccountWallet(publicKey: hdPublicKey)
+            publicKey = try wallet.publicKey(index: 0, external: true)
+        }
+
+        return try addressCoverter.convert(publicKey: publicKey, type: purpose.scriptType)
+    }
+}
