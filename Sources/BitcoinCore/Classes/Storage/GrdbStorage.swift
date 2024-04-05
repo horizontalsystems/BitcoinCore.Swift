@@ -733,19 +733,19 @@ extension GrdbStorage: IStorage {
     }
 
     public func add(block: Block) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try block.insert(db)
         }
     }
 
     public func setBlockPartial(hash: Data) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try Block.filter(Block.Columns.headerHash == hash).updateAll(db, Block.Columns.partial.set(to: true))
         }
     }
 
     public func delete(blocks: [Block]) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             for block in blocks {
                 for transaction in transactions(ofBlock: block) {
                     try Input.filter(Input.Columns.transactionHash == transaction.dataHash).deleteAll(db)
@@ -760,7 +760,7 @@ extension GrdbStorage: IStorage {
     }
 
     public func unstaleAllBlocks() throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try db.execute(sql: "UPDATE \(Block.databaseTableName) SET stale = ? WHERE stale = ?", arguments: [false, true])
         }
     }
@@ -975,19 +975,19 @@ extension GrdbStorage: IStorage {
     }
 
     public func add(transaction: FullTransaction) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try _add(transaction: transaction, db: db)
         }
     }
 
     public func update(transaction: FullTransaction) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try _update(transaction: transaction, db: db)
         }
     }
 
     public func update(transaction: Transaction) throws {
-        _ = try! dbPool.write { db in
+        _ = try dbPool.write { db in
             try transaction.update(db)
         }
     }
@@ -1114,7 +1114,7 @@ extension GrdbStorage: IStorage {
     }
 
     public func moveTransactionsTo(invalidTransactions: [InvalidTransaction]) throws {
-        try! dbPool.writeInTransaction { db in
+        try dbPool.writeInTransaction { db in
             for invalidTransaction in invalidTransactions {
                 try invalidTransaction.insert(db)
 
@@ -1136,7 +1136,7 @@ extension GrdbStorage: IStorage {
     }
 
     public func move(invalidTransaction: InvalidTransaction, toTransactions transaction: FullTransaction) throws {
-        try! dbPool.writeInTransaction { db in
+        try dbPool.writeInTransaction { db in
             try _add(transaction: transaction, db: db)
             try InvalidTransaction.filter(Transaction.Columns.uid == invalidTransaction.uid).deleteAll(db)
 
