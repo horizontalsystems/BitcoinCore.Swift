@@ -6,7 +6,8 @@ import ObjectMapper
 
 class BlockchairApiSyncer {
     weak var listener: IApiSyncerListener?
-    private var tasks = Set<AnyTask>()
+    private var task: AnyTask?
+    private var syncing: Bool = false
 
     private let storage: IStorage
     private let gapLimit: Int
@@ -94,7 +95,7 @@ class BlockchairApiSyncer {
         }
     }
 
-    private func _syncLastBlock() async throws {
+    private func syncLastBlock() async throws {
         let blockHeaderItem = try await lastBlockProvider.lastBlockHeader()
         let header = BlockHeader(
             version: 0,
@@ -112,17 +113,6 @@ class BlockchairApiSyncer {
     private func handle(error: Error) {
         listener?.onSyncFailed(error: error)
     }
-
-    private func syncLastBlock() {
-        Task { [weak self] in
-            do {
-                try await self?._syncLastBlock()
-            } catch {
-                self?.handle(error: error)
-            }
-        }
-        .store(in: &tasks)
-    }
 }
 
 extension BlockchairApiSyncer: IApiSyncer {
@@ -131,18 +121,23 @@ extension BlockchairApiSyncer: IApiSyncer {
     }
 
     func sync() {
-        Task { [weak self] in
+        guard !syncing else { return }
+
+        task = Task { [weak self] in
+            self?.syncing = false
+
             do {
                 try await self?.scan()
-                self?.syncLastBlock()
+                try await self?.syncLastBlock()
             } catch {
                 self?.handle(error: error)
             }
-        }
-        .store(in: &tasks)
+
+            self?.syncing = false
+        }.erased()
     }
 
     func terminate() {
-        tasks = Set()
+        task = nil
     }
 }
