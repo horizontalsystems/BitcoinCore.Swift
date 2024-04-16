@@ -12,6 +12,7 @@ public enum BitcoinCoreErrors {
         case noConnectedPeers
         case peersNotSynced
         case apiSendFailed(reason: String?)
+        case invalidParameters
     }
 
     public enum MerkleBlockValidation: Error {

@@ -40,35 +40,31 @@ class InputSetter {
 }
 
 extension InputSetter: IInputSetter {
-    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, unspentOutputs: [UnspentOutput]?, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> OutputInfo {
+    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, params: SendParameters) throws -> OutputInfo {
         let unspentOutputInfo: SelectedUnspentOutputInfo
-        if let unspentOutputs {
-            let params = UnspentOutputQueue.Parameters(
-                value: mutableTransaction.recipientValue,
-                senderPay: senderPay,
-                memo: mutableTransaction.memo,
-                fee: feeRate,
+        if let unspentOutputs = params.unspentOutputs.flatMap({ $0.outputs(from: unspentOutputSelector.all) }) {
+            let utxoSelectorParams = UnspentOutputQueue.Parameters(
+                sendParams: params,
                 outputsLimit: nil,
                 outputScriptType: mutableTransaction.recipientAddress.scriptType,
                 changeType: changeScriptType,
                 pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
 
-            let queue = UnspentOutputQueue(parameters: params, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
+            let queue = UnspentOutputQueue(parameters: utxoSelectorParams, sizeCalculator: transactionSizeCalculator, dustCalculator: dustCalculator, outputs: unspentOutputs)
             unspentOutputInfo = try queue.calculate()
         } else {
-            let value = mutableTransaction.recipientValue
             unspentOutputInfo = try unspentOutputSelector.select(
-                value: value, memo: mutableTransaction.memo, feeRate: feeRate,
+                params: params,
                 outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
-                senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
+                pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
         }
 
-        let unspentOutputs = inputSorterFactory.sorter(for: sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
+        let unspentOutputs = inputSorterFactory.sorter(for: params.sortType).sort(unspentOutputs: unspentOutputInfo.unspentOutputs)
 
         for unspentOutput in unspentOutputs {
-            try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: rbfEnabled))
+            try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: params.rbfEnabled))
         }
 
         mutableTransaction.recipientValue = unspentOutputInfo.recipientValue
@@ -88,20 +84,13 @@ extension InputSetter: IInputSetter {
         return OutputInfo(unspentOutputs: unspentOutputs, changeInfo: changeInfo)
     }
 
-    @discardableResult func setInputs(to mutableTransaction: MutableTransaction, feeRate: Int, senderPay: Bool, sortType _: TransactionDataSortType) throws -> [UnspentOutput] {
-        let value = mutableTransaction.recipientValue
-        let unspentOutputInfo = try unspentOutputSelector.select(
-            value: value, memo: mutableTransaction.memo, feeRate: feeRate,
-            outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
-            senderPay: senderPay, pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
-        )
-
-        return unspentOutputInfo.unspentOutputs
-    }
-
-    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, feeRate: Int, rbfEnabled: Bool) throws {
+    func setInputs(to mutableTransaction: MutableTransaction, fromUnspentOutput unspentOutput: UnspentOutput, params: SendParameters) throws {
         guard unspentOutput.output.scriptType == .p2sh else {
             throw UnspentOutputError.notSupportedScriptType
+        }
+
+        guard let feeRate = params.feeRate else {
+            throw BitcoinCoreErrors.TransactionSendError.invalidParameters
         }
 
         // Calculate fee
@@ -113,7 +102,7 @@ extension InputSetter: IInputSetter {
         }
 
         // Add to mutable transaction
-        try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: rbfEnabled))
+        try mutableTransaction.add(inputToSign: input(fromUnspentOutput: unspentOutput, rbfEnabled: params.rbfEnabled))
         mutableTransaction.recipientValue = unspentOutput.output.value - fee
     }
 }
