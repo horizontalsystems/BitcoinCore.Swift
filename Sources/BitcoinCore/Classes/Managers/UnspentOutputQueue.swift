@@ -12,8 +12,8 @@ class UnspentOutputQueue {
         params = parameters
         self.sizeCalculator = sizeCalculator
 
-        recipientOutputDust = dustCalculator.dust(type: params.outputScriptType)
-        changeOutputDust = dustCalculator.dust(type: params.changeType)
+        recipientOutputDust = dustCalculator.dust(type: params.outputScriptType, dustThreshold: parameters.sendParams.dustThreshold)
+        changeOutputDust = dustCalculator.dust(type: params.changeType, dustThreshold: parameters.sendParams.dustThreshold)
 
         outputs.forEach { push(output: $0) }
     }
@@ -39,9 +39,9 @@ class UnspentOutputQueue {
     // we can calculate the amount the user will receive and the potential amount that can be returned to the sender
     private func values(value: Int, total: Int, fee: Int) throws -> (receive: Int, remainder: Int) {
         // will receive
-        let receiveValue = params.senderPay ? value : value - fee
+        let receiveValue = params.sendParams.senderPay ? value : value - fee
         // should send
-        let sentValue = params.senderPay ? value + fee : value
+        let sentValue = params.sendParams.senderPay ? value + fee : value
 
         // If the total value of outputs is less than required, throw notEnough
         if totalValue < sentValue { throw BitcoinCoreErrors.SendValueErrors.notEnough }
@@ -58,20 +58,23 @@ class UnspentOutputQueue {
         guard !selectedOutputs.isEmpty else {
             throw BitcoinCoreErrors.SendValueErrors.emptyOutputs
         }
+        guard let value = params.sendParams.value, let feeRate = params.sendParams.feeRate else {
+            throw BitcoinCoreErrors.TransactionSendError.invalidParameters
+        }
 
         // Calculate the possibility of sending without change
         let feeWithoutChange = sizeCalculator.transactionSize(
             previousOutputs: selectedOutputs.map(\.output),
             outputScriptTypes: [params.outputScriptType],
-            memo: params.memo,
+            memo: params.sendParams.memo,
             pluginDataOutputSize: params.pluginDataOutputSize
-        ) * params.fee
+        ) * feeRate
 
         // Calculate the values with which a transaction can be sent
-        let sendValues = try values(value: params.value, total: totalValue, fee: feeWithoutChange)
+        let sendValues = try values(value: value, total: totalValue, fee: feeWithoutChange)
 
         // Calculate how much is needed for change
-        let changeFee = sizeCalculator.outputSize(type: params.changeType) * params.fee
+        let changeFee = sizeCalculator.outputSize(type: params.changeType) * feeRate
 
         // Calculate how much will remain after adding the change
         let remainder = sendValues.remainder - changeFee
@@ -85,10 +88,7 @@ class UnspentOutputQueue {
     }
 
     struct Parameters {
-        let value: Int
-        let senderPay: Bool
-        let memo: String?
-        let fee: Int
+        let sendParams: SendParameters
 
         let outputsLimit: Int?
 

@@ -13,26 +13,26 @@ class TransactionBuilder {
 }
 
 extension TransactionBuilder: ITransactionBuilder {
-    func buildTransaction(toAddress: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData]) throws -> MutableTransaction {
+    func buildTransaction(params: SendParameters) throws -> MutableTransaction {
         let mutableTransaction = MutableTransaction()
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: value, pluginData: pluginData, skipChecks: false)
-        try inputSetter.setInputs(to: mutableTransaction, feeRate: feeRate, senderPay: senderPay, unspentOutputs: unspentOutputs, sortType: sortType, rbfEnabled: rbfEnabled)
+        try recipientSetter.setRecipient(to: mutableTransaction, params: params, skipChecks: false)
+        try inputSetter.setInputs(to: mutableTransaction, params: params)
         lockTimeSetter.setLockTime(to: mutableTransaction)
-
-        outputSetter.setOutputs(to: mutableTransaction, sortType: sortType)
+        outputSetter.setOutputs(to: mutableTransaction, sortType: params.sortType)
 
         return mutableTransaction
     }
 
-    func buildTransaction(from unspentOutput: UnspentOutput, toAddress: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> MutableTransaction {
+    func buildTransaction(from unspentOutput: UnspentOutput, params: SendParameters) throws -> MutableTransaction {
         let mutableTransaction = MutableTransaction(outgoing: false)
+        params.value = unspentOutput.output.value
 
-        try recipientSetter.setRecipient(to: mutableTransaction, toAddress: toAddress, memo: memo, value: unspentOutput.output.value, pluginData: [:], skipChecks: false)
-        try inputSetter.setInputs(to: mutableTransaction, fromUnspentOutput: unspentOutput, feeRate: feeRate, rbfEnabled: rbfEnabled)
+        try recipientSetter.setRecipient(to: mutableTransaction, params: params, skipChecks: false)
+        try inputSetter.setInputs(to: mutableTransaction, fromUnspentOutput: unspentOutput, params: params)
         lockTimeSetter.setLockTime(to: mutableTransaction)
 
-        outputSetter.setOutputs(to: mutableTransaction, sortType: sortType)
+        outputSetter.setOutputs(to: mutableTransaction, sortType: params.sortType)
 
         return mutableTransaction
     }

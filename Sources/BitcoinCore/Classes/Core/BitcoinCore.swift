@@ -13,6 +13,7 @@ public class BitcoinCore {
     private let unspentOutputSelector: UnspentOutputSelectorChain
 
     private let transactionCreator: ITransactionCreator?
+    private let transactionBuilder: ITransactionBuilder?
     private let transactionFeeCalculator: ITransactionFeeCalculator?
     private let replacementTransactionBuilder: ReplacementTransactionBuilder?
     private let dustCalculator: IDustCalculator?
@@ -84,7 +85,7 @@ public class BitcoinCore {
          peerGroup: IPeerGroup, initialDownload: IInitialDownload, bloomFilterLoader: BloomFilterLoader, transactionSyncer: ITransactionSyncer,
          publicKeyManager: IPublicKeyManager, addressConverter: AddressConverterChain, restoreKeyConverterChain: RestoreKeyConverterChain,
          unspentOutputSelector: UnspentOutputSelectorChain,
-         transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, replacementTransactionBuilder: ReplacementTransactionBuilder?, dustCalculator: IDustCalculator?,
+         transactionCreator: ITransactionCreator?, transactionFeeCalculator: ITransactionFeeCalculator?, transactionBuilder: ITransactionBuilder?, replacementTransactionBuilder: ReplacementTransactionBuilder?, dustCalculator: IDustCalculator?,
          paymentAddressParser: IPaymentAddressParser, networkMessageParser: NetworkMessageParser, networkMessageSerializer: NetworkMessageSerializer,
          syncManager: SyncManager, pluginManager: IPluginManager, watchedTransactionManager: IWatchedTransactionManager, purpose: Purpose,
          peerManager: IPeerManager)
@@ -101,6 +102,7 @@ public class BitcoinCore {
         self.unspentOutputSelector = unspentOutputSelector
         self.transactionCreator = transactionCreator
         self.transactionFeeCalculator = transactionFeeCalculator
+        self.transactionBuilder = transactionBuilder
         self.replacementTransactionBuilder = replacementTransactionBuilder
         self.dustCalculator = dustCalculator
         self.paymentAddressParser = paymentAddressParser
@@ -168,43 +170,32 @@ public extension BitcoinCore {
         }
     }
 
-    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
+    func address(fromHash hash: Data, scriptType: ScriptType) throws -> Address {
+        try addressConverter.convert(lockingScriptPayload: hash, type: scriptType)
+    }
+
+    func send(params: SendParameters) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
-        return try transactionCreator.create(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: outputs, pluginData: pluginData)
+        return try transactionCreator.create(params: params)
     }
 
-    func send(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, pluginData: [UInt8: IPluginData]) throws -> FullTransaction {
-        try send(to: address, memo: memo, value: value, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: nil, pluginData: pluginData)
-    }
-
-    func send(to hash: Data, memo: String?, scriptType: ScriptType, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutputInfo]?) throws -> FullTransaction {
+    internal func redeem(from unspentOutput: UnspentOutput, params: SendParameters) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
-        let toAddress = try addressConverter.convert(lockingScriptPayload: hash, type: scriptType)
-        return try transactionCreator.create(to: toAddress.stringValue, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: outputs, pluginData: [:])
+        return try transactionCreator.create(from: unspentOutput, params: params)
     }
 
-    internal func redeem(from unspentOutput: UnspentOutput, memo: String?, to address: String, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
+    func createRawTransaction(params: SendParameters) throws -> Data {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.create(from: unspentOutput, to: address, memo: memo, feeRate: feeRate, sortType: sortType, rbfEnabled: rbfEnabled)
-    }
-
-    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
-        guard let transactionCreator else {
-            throw CoreError.readOnlyCore
-        }
-
-        return try transactionCreator.createRawTransaction(to: address, memo: memo, value: value, feeRate: feeRate, senderPay: true, sortType: sortType, rbfEnabled: rbfEnabled, unspentOutputs: unspentOutputs, pluginData: pluginData)
+        return try transactionCreator.createRawTransaction(params: params)
     }
 
     func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {
@@ -215,37 +206,43 @@ public extension BitcoinCore {
         paymentAddressParser.parse(paymentAddress: paymentAddress)
     }
 
-    func sendInfo(for value: Int, toAddress: String? = nil, memo: String?, feeRate: Int, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> BitcoinSendInfo {
+    func sendInfo(params: SendParameters) throws -> BitcoinSendInfo {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionFeeCalculator.sendInfo(for: value, feeRate: feeRate, senderPay: true, toAddress: toAddress, memo: memo, unspentOutputs: unspentOutputs, pluginData: pluginData)
+//        if let t = try transactionBuilder?.buildTransaction(params: params) {
+//            print(TransactionSerializer.serialize(transaction: t.build()).hs.hex)
+//        }
+        return try transactionFeeCalculator.sendInfo(params: params)
     }
 
-    func maxSpendableValue(toAddress: String? = nil, memo: String?, feeRate: Int, unspentOutputs: [UnspentOutputInfo]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Int {
+    func maxSpendableValue(params: SendParameters) throws -> Int {
         guard let transactionFeeCalculator else {
             throw CoreError.readOnlyCore
         }
 
-        let outputs = unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
+        let outputs = params.unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
         let balance = outputs.map { $0.map(\.output.value).reduce(0, +) } ?? balance.spendable
 
-        let sendAllFee = try transactionFeeCalculator.sendInfo(for: balance, feeRate: feeRate, senderPay: false, toAddress: toAddress, memo: memo, unspentOutputs: outputs, pluginData: pluginData).fee
+        params.value = balance
+        params.senderPay = false
+        let sendAllFee = try transactionFeeCalculator.sendInfo(params: params).fee
+
         return max(0, balance - sendAllFee)
     }
 
-    func minSpendableValue(toAddress: String? = nil) throws -> Int {
+    func minSpendableValue(params: SendParameters) throws -> Int {
         guard let dustCalculator else {
             throw CoreError.readOnlyCore
         }
 
         var scriptType = ScriptType.p2pkh
-        if let addressStr = toAddress, let address = try? addressConverter.convert(address: addressStr) {
+        if let address = params.address, let address = try? addressConverter.convert(address: address) {
             scriptType = address.scriptType
         }
 
-        return dustCalculator.dust(type: scriptType)
+        return dustCalculator.dust(type: scriptType, dustThreshold: params.dustThreshold)
     }
 
     func maxSpendLimit(pluginData: [UInt8: IPluginData]) throws -> Int? {
@@ -503,5 +500,40 @@ public extension BitcoinCore {
         }
 
         return try addressCoverter.convert(publicKey: publicKey, type: purpose.scriptType)
+    }
+}
+
+public class SendParameters {
+    var address: String?
+    var value: Int?
+    var feeRate: Int?
+    var sortType: TransactionDataSortType
+    var senderPay: Bool
+    var rbfEnabled: Bool
+    var memo: String?
+    var unspentOutputs: [UnspentOutputInfo]?
+    var pluginData: [UInt8: IPluginData]
+    var dustThreshold: Int?
+    var onlyStandardInputs: Bool
+    var changeToFirstInput: Bool
+
+    public init(
+        address: String? = nil, value: Int? = nil, feeRate: Int? = nil, sortType: TransactionDataSortType = .none,
+        senderPay: Bool = true, rbfEnabled: Bool = true, memo: String? = nil,
+        unspentOutputs: [UnspentOutputInfo]? = nil, pluginData: [UInt8: IPluginData] = [:],
+        dustThreshold: Int? = nil, onlyStandardInputs: Bool = false, changeToFirstInput: Bool = false
+    ) {
+        self.address = address
+        self.value = value
+        self.feeRate = feeRate
+        self.sortType = sortType
+        self.senderPay = senderPay
+        self.rbfEnabled = rbfEnabled
+        self.memo = memo
+        self.unspentOutputs = unspentOutputs
+        self.pluginData = pluginData
+        self.dustThreshold = dustThreshold
+        self.onlyStandardInputs = onlyStandardInputs
+        self.changeToFirstInput = changeToFirstInput
     }
 }

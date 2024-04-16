@@ -53,7 +53,7 @@ class ReplacementTransactionBuilder {
         let output = Output(original: outputs.removeFirst())
         output.value = output.value - (minFee - fee)
 
-        guard output.value > dustCalculator.dust(type: output.scriptType) else {
+        guard output.value > dustCalculator.dust(type: output.scriptType, dustThreshold: nil) else {
             return nil
         }
 
@@ -170,7 +170,7 @@ class ReplacementTransactionBuilder {
 
         var utxoCount = 0
         repeat {
-            guard originalInputsValue - minFee >= dustCalculator.dust(type: userAddress.scriptType) else {
+            guard originalInputsValue - minFee >= dustCalculator.dust(type: userAddress.scriptType, dustThreshold: nil) else {
                 utxoCount += 1
                 continue
             }
@@ -320,7 +320,7 @@ class ReplacementTransactionBuilder {
             originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
             removableOutputsValue = sortedOutputs.map(\.value).reduce(0, +)
         case let .cancel(userAddress, _):
-            let dustValue = dustCalculator.dust(type: userAddress.scriptType)
+            let dustValue = dustCalculator.dust(type: userAddress.scriptType, dustThreshold: nil)
             let fixedOutputs = [factory.output(withIndex: 0, address: userAddress, value: dustValue, publicKey: nil)]
             originalSize = (try? sizeCalculator.transactionSize(previousOutputs: fixedUtxo, outputs: fixedOutputs)) ?? 0
             removableOutputsValue = originalFullInfo.outputs.map(\.value).reduce(0, +) - dustValue

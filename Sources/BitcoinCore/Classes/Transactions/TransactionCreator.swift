@@ -33,31 +33,14 @@ class TransactionCreator {
 }
 
 extension TransactionCreator: ITransactionCreator {
-    func create(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> FullTransaction {
-        let mutableTransaction = try transactionBuilder.buildTransaction(
-            toAddress: address,
-            memo: memo,
-            value: value,
-            feeRate: feeRate,
-            senderPay: senderPay,
-            sortType: sortType,
-            rbfEnabled: rbfEnabled,
-            unspentOutputs: unspentOutputs,
-            pluginData: pluginData
-        )
+    func create(params: SendParameters) throws -> FullTransaction {
+        let mutableTransaction = try transactionBuilder.buildTransaction(params: params)
 
         return try create(from: mutableTransaction)
     }
 
-    func create(from unspentOutput: UnspentOutput, to address: String, memo: String?, feeRate: Int, sortType: TransactionDataSortType, rbfEnabled: Bool) throws -> FullTransaction {
-        let mutableTransaction = try transactionBuilder.buildTransaction(
-            from: unspentOutput,
-            toAddress: address,
-            memo: memo,
-            feeRate: feeRate,
-            sortType: sortType,
-            rbfEnabled: rbfEnabled
-        )
+    func create(from unspentOutput: UnspentOutput, params: SendParameters) throws -> FullTransaction {
+        let mutableTransaction = try transactionBuilder.buildTransaction(from: unspentOutput, params: params)
 
         return try create(from: mutableTransaction)
     }
@@ -70,18 +53,8 @@ extension TransactionCreator: ITransactionCreator {
         return fullTransaction
     }
 
-    func createRawTransaction(to address: String, memo: String?, value: Int, feeRate: Int, senderPay: Bool, sortType: TransactionDataSortType, rbfEnabled: Bool, unspentOutputs: [UnspentOutput]?, pluginData: [UInt8: IPluginData] = [:]) throws -> Data {
-        let mutableTransaction = try transactionBuilder.buildTransaction(
-            toAddress: address,
-            memo: memo,
-            value: value,
-            feeRate: feeRate,
-            senderPay: senderPay,
-            sortType: sortType,
-            rbfEnabled: rbfEnabled,
-            unspentOutputs: unspentOutputs,
-            pluginData: pluginData
-        )
+    func createRawTransaction(params: SendParameters) throws -> Data {
+        let mutableTransaction = try transactionBuilder.buildTransaction(params: params)
         try transactionSigner.sign(mutableTransaction: mutableTransaction)
         let fullTransaction = mutableTransaction.build()
 

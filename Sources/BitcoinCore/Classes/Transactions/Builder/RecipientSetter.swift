@@ -9,11 +9,15 @@ class RecipientSetter {
 }
 
 extension RecipientSetter: IRecipientSetter {
-    func setRecipient(to mutableTransaction: MutableTransaction, toAddress: String, memo: String?, value: Int, pluginData: [UInt8: IPluginData], skipChecks: Bool = false) throws {
-        mutableTransaction.recipientAddress = try addressConverter.convert(address: toAddress)
-        mutableTransaction.recipientValue = value
-        mutableTransaction.memo = memo
+    func setRecipient(to mutableTransaction: MutableTransaction, params: SendParameters, skipChecks: Bool = false) throws {
+        guard let address = params.address, let value = params.value else {
+            throw BitcoinCoreErrors.TransactionSendError.invalidParameters
+        }
 
-        try pluginManager.processOutputs(mutableTransaction: mutableTransaction, pluginData: pluginData, skipChecks: skipChecks)
+        mutableTransaction.recipientAddress = try addressConverter.convert(address: address)
+        mutableTransaction.recipientValue = value
+        mutableTransaction.memo = params.memo
+
+        try pluginManager.processOutputs(mutableTransaction: mutableTransaction, pluginData: params.pluginData, skipChecks: skipChecks)
     }
 }
