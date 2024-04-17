@@ -1,17 +1,5 @@
 import Foundation
 
-public struct SelectedUnspentOutputInfo {
-    public let unspentOutputs: [UnspentOutput]
-    public let recipientValue: Int // amount to set to recipient output
-    public let changeValue: Int? // amount to set to change output. No change output if nil
-
-    public init(unspentOutputs: [UnspentOutput], recipientValue: Int, changeValue: Int?) {
-        self.unspentOutputs = unspentOutputs
-        self.recipientValue = recipientValue
-        self.changeValue = changeValue
-    }
-}
-
 public class UnspentOutputSelector {
     private let calculator: ITransactionSizeCalculator
     private let provider: IUnspentOutputProvider
