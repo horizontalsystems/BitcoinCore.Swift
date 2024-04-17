@@ -136,6 +136,7 @@ public protocol IStorage: IOutputStorage {
     func unspentOutputs() -> [UnspentOutput]
     func inputs(transactionHash: Data) -> [Input]
     func outputs(transactionHash: Data) -> [Output]
+    func outputsCount(transactionHash: Data) -> Int
     func inputsUsingOutputs(withTransactionHash: Data) -> [Input]
     func inputsUsing(previousOutputTxHash: Data, previousOutputIndex: Int) -> [Input]
 
@@ -427,14 +428,13 @@ public protocol IDustCalculator {
 }
 
 public protocol IUnspentOutputSelector {
-    var all: [UnspentOutput] { get }
-
+    func all(filters: UtxoFilters) -> [UnspentOutput]
     func select(params: SendParameters, outputScriptType: ScriptType, changeType: ScriptType, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo
 }
 
 public protocol IUnspentOutputProvider {
-    var spendableUtxo: [UnspentOutput] { get }
-    var confirmedSpendableUtxo: [UnspentOutput] { get }
+    func spendableUtxo(filters: UtxoFilters) -> [UnspentOutput]
+    func confirmedSpendableUtxo(filters: UtxoFilters) -> [UnspentOutput]
 }
 
 public protocol IBalanceProvider {

@@ -13,8 +13,8 @@ public class UnspentOutputSelectorSingleNoChange {
 }
 
 extension UnspentOutputSelectorSingleNoChange: IUnspentOutputSelector {
-    public var all: [UnspentOutput] {
-        provider.spendableUtxo
+    public func all(filters: UtxoFilters) -> [UnspentOutput] {
+        provider.spendableUtxo(filters: filters)
     }
 
     public func select(params: SendParameters, outputScriptType: ScriptType = .p2pkh, changeType: ScriptType = .p2pkh, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {
@@ -22,7 +22,7 @@ extension UnspentOutputSelectorSingleNoChange: IUnspentOutputSelector {
             throw BitcoinCoreErrors.TransactionSendError.invalidParameters
         }
 
-        let sortedOutputs = provider.spendableUtxo.sorted(by: { lhs, rhs in
+        let sortedOutputs = all(filters: params.utxoFilters).sorted(by: { lhs, rhs in
             (lhs.output.failedToSpend && !rhs.output.failedToSpend) || (
                 lhs.output.failedToSpend == rhs.output.failedToSpend && lhs.output.value < rhs.output.value
             )

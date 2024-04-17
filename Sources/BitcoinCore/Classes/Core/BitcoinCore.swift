@@ -154,12 +154,12 @@ public extension BitcoinCore {
         dataProvider.transaction(hash: hash)
     }
 
-    var unspentOutputs: [UnspentOutput] {
-        unspentOutputSelector.all
+    func unspentOutputs(filters: UtxoFilters) -> [UnspentOutput] {
+        unspentOutputSelector.all(filters: filters)
     }
 
-    var unspentOutputsInfo: [UnspentOutputInfo] {
-        unspentOutputSelector.all.map {
+    func unspentOutputsInfo(filters: UtxoFilters) -> [UnspentOutputInfo] {
+        unspentOutputSelector.all(filters: filters).map {
             .init(
                 outputIndex: $0.output.index,
                 transactionHash: $0.output.transactionHash,
@@ -222,7 +222,7 @@ public extension BitcoinCore {
             throw CoreError.readOnlyCore
         }
 
-        let outputs = params.unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all) }
+        let outputs = params.unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all(filters: params.utxoFilters)) }
         let balance = outputs.map { $0.map(\.output.value).reduce(0, +) } ?? balance.spendable
 
         params.value = balance
@@ -514,14 +514,15 @@ public class SendParameters {
     var unspentOutputs: [UnspentOutputInfo]?
     var pluginData: [UInt8: IPluginData]
     var dustThreshold: Int?
-    var onlyStandardInputs: Bool
+    var utxoFilters: UtxoFilters
+    var maxOutputsCountForInputs: Int?
     var changeToFirstInput: Bool
 
     public init(
         address: String? = nil, value: Int? = nil, feeRate: Int? = nil, sortType: TransactionDataSortType = .none,
         senderPay: Bool = true, rbfEnabled: Bool = true, memo: String? = nil,
         unspentOutputs: [UnspentOutputInfo]? = nil, pluginData: [UInt8: IPluginData] = [:],
-        dustThreshold: Int? = nil, onlyStandardInputs: Bool = false, changeToFirstInput: Bool = false
+        dustThreshold: Int? = nil, utxoFilters: UtxoFilters = UtxoFilters(), changeToFirstInput: Bool = false
     ) {
         self.address = address
         self.value = value
@@ -533,7 +534,17 @@ public class SendParameters {
         self.unspentOutputs = unspentOutputs
         self.pluginData = pluginData
         self.dustThreshold = dustThreshold
-        self.onlyStandardInputs = onlyStandardInputs
+        self.utxoFilters = utxoFilters
         self.changeToFirstInput = changeToFirstInput
+    }
+}
+
+public struct UtxoFilters {
+    public let scriptTypes: [ScriptType]?
+    public let maxOutputsCountForInputs: Int?
+
+    public init(scriptTypes: [ScriptType]? = nil, maxOutputsCountForInputs: Int? = nil) {
+        self.scriptTypes = scriptTypes
+        self.maxOutputsCountForInputs = maxOutputsCountForInputs
     }
 }

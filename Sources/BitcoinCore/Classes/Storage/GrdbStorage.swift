@@ -1201,6 +1201,12 @@ extension GrdbStorage: IStorage {
         }
     }
 
+    public func outputsCount(transactionHash: Data) -> Int {
+        try! dbPool.read { db in
+            try Output.filter(Output.Columns.transactionHash == transactionHash).fetchCount(db)
+        }
+    }
+
     public func previousOutput(ofInput input: Input) -> Output? {
         try! dbPool.read { db in
             try _previousOutput(ofInput: input, db: db)

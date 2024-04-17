@@ -121,7 +121,7 @@ class ReplacementTransactionBuilder {
             fixedOutputs.append(sortedOutputs.removeLast())
         }
 
-        let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
+        let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo(filters: UtxoFilters()).sorted(by: { a, b in a.output.value < b.output.value })
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
         var utxoCount = 0
@@ -164,7 +164,9 @@ class ReplacementTransactionBuilder {
     }
 
     private func cancelReplacement(originalFullInfo: FullTransactionForInfo, minFee: Int, originalFeeRate: Int, fixedUtxo: [Output], userAddress: Address, publicKey: PublicKey) throws -> MutableTransaction? {
-        let unusedUtxo = unspentOutputProvider.confirmedSpendableUtxo.sorted(by: { a, b in a.output.value < b.output.value })
+        let unusedUtxo = unspentOutputProvider
+            .confirmedSpendableUtxo(filters: UtxoFilters())
+            .sorted(by: { a, b in a.output.value < b.output.value })
         let originalInputsValue = fixedUtxo.map(\.value).reduce(0, +)
         var optimalReplacement: (inputs: [UnspentOutput], outputs: [Output], fee: Int)?
 
@@ -326,7 +328,9 @@ class ReplacementTransactionBuilder {
             removableOutputsValue = originalFullInfo.outputs.map(\.value).reduce(0, +) - dustValue
         }
 
-        let confirmedUtxoTotalValue = unspentOutputProvider.confirmedSpendableUtxo.map(\.output.value).reduce(0, +)
+        let confirmedUtxoTotalValue = unspentOutputProvider
+            .confirmedSpendableUtxo(filters: UtxoFilters())
+            .map(\.output.value).reduce(0, +)
 
         guard absoluteFee <= originalFee + removableOutputsValue + confirmedUtxoTotalValue else {
             return nil
