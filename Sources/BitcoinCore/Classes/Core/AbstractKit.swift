@@ -93,8 +93,8 @@ open class AbstractKit {
         try bitcoinCore.minSpendableValue(params: params)
     }
 
-    open var unspentOutputs: [UnspentOutputInfo] {
-        bitcoinCore.unspentOutputs.map(\.info)
+    open func unspentOutputs(filters: UtxoFilters) -> [UnspentOutputInfo] {
+        bitcoinCore.unspentOutputs(filters: filters).map(\.info)
     }
 
     open func receiveAddress() -> String {

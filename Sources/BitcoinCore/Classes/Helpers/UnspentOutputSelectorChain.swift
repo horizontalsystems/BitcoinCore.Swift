@@ -6,8 +6,8 @@ class UnspentOutputSelectorChain: IUnspentOutputSelector {
         self.provider = provider
     }
 
-    var all: [UnspentOutput] {
-        provider.spendableUtxo
+    public func all(filters: UtxoFilters) -> [UnspentOutput] {
+        provider.spendableUtxo(filters: filters)
     }
 
     func select(params: SendParameters, outputScriptType: ScriptType, changeType: ScriptType, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo {

@@ -41,15 +41,31 @@ class UnspentOutputProvider {
 }
 
 extension UnspentOutputProvider: IUnspentOutputProvider {
-    var spendableUtxo: [UnspentOutput] {
-        allUtxo.filter { pluginManager.isSpendable(unspentOutput: $0) && $0.transaction.status == .relayed }
+    func spendableUtxo(filters: UtxoFilters) -> [UnspentOutput] {
+        allUtxo.filter { utxo in
+            guard pluginManager.isSpendable(unspentOutput: utxo) && utxo.transaction.status == .relayed else {
+                return false
+            }
+
+            if let scriptTypes = filters.scriptTypes, !scriptTypes.contains(utxo.output.scriptType) {
+                return false
+            }
+
+            if let outputsCount = filters.maxOutputsCountForInputs,
+               storage.outputsCount(transactionHash: utxo.transaction.dataHash) > outputsCount
+            {
+                return false
+            }
+
+            return true
+        }
     }
 
     // Only confirmed spendable outputs
-    var confirmedSpendableUtxo: [UnspentOutput] {
+    func confirmedSpendableUtxo(filters: UtxoFilters) -> [UnspentOutput] {
         let lastBlockHeight = storage.lastBlock?.height ?? 0
 
-        return spendableUtxo
+        return spendableUtxo(filters: filters)
             .filter { unspentOutput in
                 guard let blockHeight = unspentOutput.blockHeight else {
                     return false
@@ -62,7 +78,7 @@ extension UnspentOutputProvider: IUnspentOutputProvider {
 
 extension UnspentOutputProvider: IBalanceProvider {
     var balanceInfo: BalanceInfo {
-        let spendable = spendableUtxo.map(\.output.value).reduce(0, +)
+        let spendable = spendableUtxo(filters: UtxoFilters()).map(\.output.value).reduce(0, +)
         let unspendableTimeLocked = unspendableTimeLockedUtxo.map(\.output.value).reduce(0, +)
         let unspendableNotRelayed = unspendableNotRelayedUtxo.map(\.output.value).reduce(0, +)
 
