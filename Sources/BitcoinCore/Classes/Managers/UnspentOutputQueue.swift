@@ -1,19 +1,42 @@
+import Foundation
+public struct SelectedUnspentOutputInfo {
+    public let unspentOutputs: [UnspentOutput]
+    public let recipientValue: Int // amount to set to recipient output
+    public let changeValue: Int? // amount to set to change output. No change output if nil
+
+    public init(unspentOutputs: [UnspentOutput], recipientValue: Int, changeValue: Int?) {
+        self.unspentOutputs = unspentOutputs
+        self.recipientValue = recipientValue
+        self.changeValue = changeValue
+    }
+}
+
 class UnspentOutputQueue {
     let params: Parameters
     let sizeCalculator: ITransactionSizeCalculator
 
     let recipientOutputDust: Int
-    let changeOutputDust: Int
 
+    var changeOutputDust: Int = 0
     var selectedOutputs = [UnspentOutput]()
     var totalValue = 0
+
+    var changeType: ScriptType {
+        var _changeType = params.changeType
+
+        if params.sendParams.changeToFirstInput, let firstOutput = selectedOutputs.first {
+            _changeType = firstOutput.output.scriptType
+        }
+
+        return _changeType
+    }
 
     init(parameters: Parameters, sizeCalculator: ITransactionSizeCalculator, dustCalculator: IDustCalculator, outputs: [UnspentOutput] = []) {
         params = parameters
         self.sizeCalculator = sizeCalculator
 
         recipientOutputDust = dustCalculator.dust(type: params.outputScriptType, dustThreshold: parameters.sendParams.dustThreshold)
-        changeOutputDust = dustCalculator.dust(type: params.changeType, dustThreshold: parameters.sendParams.dustThreshold)
+        changeOutputDust = dustCalculator.dust(type: changeType, dustThreshold: parameters.sendParams.dustThreshold)
 
         outputs.forEach { push(output: $0) }
     }
@@ -74,7 +97,7 @@ class UnspentOutputQueue {
         let sendValues = try values(value: value, total: totalValue, fee: feeWithoutChange)
 
         // Calculate how much is needed for change
-        let changeFee = sizeCalculator.outputSize(type: params.changeType) * feeRate
+        let changeFee = sizeCalculator.outputSize(type: changeType) * feeRate
 
         // Calculate how much will remain after adding the change
         let remainder = sendValues.remainder - changeFee

@@ -13,7 +13,7 @@ class InputSetter {
     private let factory: IFactory
     private let pluginManager: IPluginManager
     private let dustCalculator: IDustCalculator
-    private let changeScriptType: ScriptType
+    private let changeType: ScriptType
     private let inputSorterFactory: ITransactionDataSorterFactory
 
     init(unspentOutputSelector: IUnspentOutputSelector, transactionSizeCalculator: ITransactionSizeCalculator, addressConverter: IAddressConverter, publicKeyManager: IPublicKeyManager,
@@ -26,7 +26,7 @@ class InputSetter {
         self.factory = factory
         self.pluginManager = pluginManager
         self.dustCalculator = dustCalculator
-        self.changeScriptType = changeScriptType
+        self.changeType = changeScriptType
         self.inputSorterFactory = inputSorterFactory
     }
 
@@ -47,7 +47,7 @@ extension InputSetter: IInputSetter {
                 sendParams: params,
                 outputsLimit: nil,
                 outputScriptType: mutableTransaction.recipientAddress.scriptType,
-                changeType: changeScriptType,
+                changeType: changeType,
                 pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
 
@@ -56,7 +56,8 @@ extension InputSetter: IInputSetter {
         } else {
             unspentOutputInfo = try unspentOutputSelector.select(
                 params: params,
-                outputScriptType: mutableTransaction.recipientAddress.scriptType, changeType: changeScriptType,
+                outputScriptType: mutableTransaction.recipientAddress.scriptType,
+                changeType: changeType,
                 pluginDataOutputSize: mutableTransaction.pluginDataOutputSize
             )
         }
@@ -72,8 +73,14 @@ extension InputSetter: IInputSetter {
         // Add change output if needed
         var changeInfo: ChangeInfo?
         if let changeValue = unspentOutputInfo.changeValue {
-            let changePubKey = try publicKeyManager.changePublicKey()
-            let changeAddress = try addressConverter.convert(publicKey: changePubKey, type: changeScriptType)
+            let changeAddress: Address
+
+            if params.changeToFirstInput, let firstOutput = unspentOutputInfo.unspentOutputs.first {
+                changeAddress = try addressConverter.convert(publicKey: firstOutput.publicKey, type: firstOutput.output.scriptType)
+            } else {
+                let changePubKey = try publicKeyManager.changePublicKey()
+                changeAddress = try addressConverter.convert(publicKey: changePubKey, type: changeType)
+            }
 
             mutableTransaction.changeAddress = changeAddress
             mutableTransaction.changeValue = changeValue
