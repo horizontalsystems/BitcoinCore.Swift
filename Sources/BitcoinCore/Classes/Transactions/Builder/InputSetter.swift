@@ -26,7 +26,7 @@ class InputSetter {
         self.factory = factory
         self.pluginManager = pluginManager
         self.dustCalculator = dustCalculator
-        self.changeType = changeScriptType
+        changeType = changeScriptType
         self.inputSorterFactory = inputSorterFactory
     }
 

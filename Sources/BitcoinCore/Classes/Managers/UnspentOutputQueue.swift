@@ -1,4 +1,5 @@
 import Foundation
+
 public struct SelectedUnspentOutputInfo {
     public let unspentOutputs: [UnspentOutput]
     public let recipientValue: Int // amount to set to recipient output
