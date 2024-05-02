@@ -504,19 +504,19 @@ public extension BitcoinCore {
 }
 
 public class SendParameters {
-    var address: String?
-    var value: Int?
-    var feeRate: Int?
-    var sortType: TransactionDataSortType
-    var senderPay: Bool
-    var rbfEnabled: Bool
-    var memo: String?
-    var unspentOutputs: [UnspentOutputInfo]?
-    var pluginData: [UInt8: IPluginData]
-    var dustThreshold: Int?
-    var utxoFilters: UtxoFilters
-    var maxOutputsCountForInputs: Int?
-    var changeToFirstInput: Bool
+    public var address: String?
+    public var value: Int?
+    public var feeRate: Int?
+    public var sortType: TransactionDataSortType
+    public var senderPay: Bool
+    public var rbfEnabled: Bool
+    public var memo: String?
+    public var unspentOutputs: [UnspentOutputInfo]?
+    public var pluginData: [UInt8: IPluginData]
+    public var dustThreshold: Int?
+    public var utxoFilters: UtxoFilters
+    public var maxOutputsCountForInputs: Int?
+    public var changeToFirstInput: Bool
 
     public init(
         address: String? = nil, value: Int? = nil, feeRate: Int? = nil, sortType: TransactionDataSortType = .none,

@@ -43,7 +43,7 @@ class UnspentOutputProvider {
 extension UnspentOutputProvider: IUnspentOutputProvider {
     func spendableUtxo(filters: UtxoFilters) -> [UnspentOutput] {
         allUtxo.filter { utxo in
-            guard pluginManager.isSpendable(unspentOutput: utxo) && utxo.transaction.status == .relayed else {
+            guard pluginManager.isSpendable(unspentOutput: utxo), utxo.transaction.status == .relayed else {
                 return false
             }
 
