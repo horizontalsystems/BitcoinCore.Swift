@@ -22,8 +22,8 @@ struct InventoryMessage: IMessage {
                 objectTypeString = "\(item.objectType)"
             }
             return "[\(objectTypeString): \(item.hash.hs.reversedHex)]"
-        }.joined(separator: ", ")
+        } as [String]
 
-        return "\(items)"
+        return "\(items.joined(separator: ", "))"
     }
 }
