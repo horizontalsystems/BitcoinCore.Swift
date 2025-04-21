@@ -54,6 +54,13 @@ class OutputScriptTypeParser: ITransactionExtractor {
             // parse P2WPKH transaction output
             payload = lockingScript.subdata(in: 2 ..< lockingScriptCount)
             validScriptType = .p2tr
+        } else if lockingScriptCount == ScriptType.p2wsh.size, // P2WSH Output script 34 bytes: {version-byte 00} {0} 20 {32-byte-script-hash}
+                  lockingScript[0] == 0x00,
+                  lockingScript[1] == 0x20
+        {
+            // parse P2WSH transaction output
+            payload = lockingScript.subdata(in: 2 ..< lockingScriptCount)
+            validScriptType = .p2wsh
         } else if lockingScriptCount > 0, lockingScript[0] == OpCode.op_return { // nullData output
             payload = lockingScript.subdata(in: 0 ..< lockingScriptCount)
             validScriptType = .nullData
