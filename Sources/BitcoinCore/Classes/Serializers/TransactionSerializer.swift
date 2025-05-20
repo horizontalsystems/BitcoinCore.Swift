@@ -125,14 +125,14 @@ public enum TransactionSerializer {
         deserialize(byteStream: ByteStream(data))
     }
 
-    public static func deserialize(byteStream: ByteStream) -> FullTransaction {
+    public static func deserialize(byteStream: ByteStream, withoutWitness: Bool = false) -> FullTransaction {
         let transaction = Transaction()
         var inputs = [Input]()
         var outputs = [Output]()
 
         transaction.version = Int(byteStream.read(Int32.self))
         // peek at marker
-        if let marker = byteStream.last {
+        if !withoutWitness, let marker = byteStream.last {
             transaction.segWit = marker == 0
         }
         // marker, flag
