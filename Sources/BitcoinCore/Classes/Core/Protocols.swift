@@ -428,7 +428,7 @@ public protocol IDustCalculator {
 }
 
 public protocol IUnspentOutputSelector {
-    func all(filters: UtxoFilters) -> [UnspentOutput]
+    func allSpendable(filters: UtxoFilters) -> [UnspentOutput]
     func select(params: SendParameters, outputScriptType: ScriptType, changeType: ScriptType, pluginDataOutputSize: Int) throws -> SelectedUnspentOutputInfo
 }
 

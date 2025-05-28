@@ -155,11 +155,11 @@ public extension BitcoinCore {
     }
 
     func unspentOutputs(filters: UtxoFilters) -> [UnspentOutput] {
-        unspentOutputSelector.all(filters: filters)
+        unspentOutputSelector.allSpendable(filters: filters)
     }
 
     func unspentOutputsInfo(filters: UtxoFilters) -> [UnspentOutputInfo] {
-        unspentOutputSelector.all(filters: filters).map {
+        unspentOutputSelector.allSpendable(filters: filters).map {
             .init(
                 outputIndex: $0.output.index,
                 transactionHash: $0.output.transactionHash,
@@ -222,8 +222,14 @@ public extension BitcoinCore {
             throw CoreError.readOnlyCore
         }
 
-        let outputs = params.unspentOutputs.map { $0.outputs(from: unspentOutputSelector.all(filters: params.utxoFilters)) }
-        let balance = outputs.map { $0.map(\.output.value).reduce(0, +) } ?? balance.spendable
+        let balance: Int
+        if (params.unspentOutputs == nil && !params.utxoFilters.isEmpty) {
+            balance = self.balance.spendable
+        } else {
+            let allSpendable = unspentOutputSelector.allSpendable(filters: params.utxoFilters)
+            let outputs: [UnspentOutput] = params.unspentOutputs.map { $0.outputs(from: allSpendable) } ?? allSpendable
+            balance = outputs.map(\.output.value).reduce(0, +)
+        }
 
         params.value = balance
         params.senderPay = false
@@ -546,5 +552,9 @@ public struct UtxoFilters {
     public init(scriptTypes: [ScriptType]? = nil, maxOutputsCountForInputs: Int? = nil) {
         self.scriptTypes = scriptTypes
         self.maxOutputsCountForInputs = maxOutputsCountForInputs
+    }
+
+    public var isEmpty: Bool {
+        scriptTypes == nil && maxOutputsCountForInputs == nil
     }
 }
