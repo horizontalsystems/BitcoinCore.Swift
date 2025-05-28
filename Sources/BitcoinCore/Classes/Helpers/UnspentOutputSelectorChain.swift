@@ -6,7 +6,7 @@ class UnspentOutputSelectorChain: IUnspentOutputSelector {
         self.provider = provider
     }
 
-    public func all(filters: UtxoFilters) -> [UnspentOutput] {
+    public func allSpendable(filters: UtxoFilters) -> [UnspentOutput] {
         provider.spendableUtxo(filters: filters)
     }
 

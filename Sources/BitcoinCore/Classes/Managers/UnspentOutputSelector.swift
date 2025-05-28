@@ -15,7 +15,7 @@ public class UnspentOutputSelector {
 }
 
 extension UnspentOutputSelector: IUnspentOutputSelector {
-    public func all(filters: UtxoFilters) -> [UnspentOutput] {
+    public func allSpendable(filters: UtxoFilters) -> [UnspentOutput] {
         provider.spendableUtxo(filters: filters)
     }
 
@@ -24,7 +24,7 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
             throw BitcoinCoreErrors.TransactionSendError.invalidParameters
         }
 
-        let sortedOutputs = all(filters: params.utxoFilters).sorted(by: { lhs, rhs in
+        let sortedOutputs = allSpendable(filters: params.utxoFilters).sorted(by: { lhs, rhs in
             (lhs.output.failedToSpend && !rhs.output.failedToSpend) || (
                 lhs.output.failedToSpend == rhs.output.failedToSpend && lhs.output.value < rhs.output.value
             )

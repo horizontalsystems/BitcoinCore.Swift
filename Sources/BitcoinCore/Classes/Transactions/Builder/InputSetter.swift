@@ -42,7 +42,7 @@ class InputSetter {
 extension InputSetter: IInputSetter {
     @discardableResult func setInputs(to mutableTransaction: MutableTransaction, params: SendParameters) throws -> OutputInfo {
         let unspentOutputInfo: SelectedUnspentOutputInfo
-        if let unspentOutputs = params.unspentOutputs.flatMap({ $0.outputs(from: unspentOutputSelector.all(filters: params.utxoFilters)) }) {
+        if let unspentOutputs = params.unspentOutputs.flatMap({ $0.outputs(from: unspentOutputSelector.allSpendable(filters: params.utxoFilters)) }) {
             let utxoSelectorParams = UnspentOutputQueue.Parameters(
                 sendParams: params,
                 outputsLimit: nil,
