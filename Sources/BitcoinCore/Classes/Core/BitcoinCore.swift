@@ -146,8 +146,8 @@ public extension BitcoinCore {
         syncManager.syncState
     }
 
-    func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> [TransactionInfo] {
-        dataProvider.transactions(fromUid: fromUid, type: type, limit: limit)
+    func transactions(fromUid: String? = nil, type: TransactionFilterType?, descending: Bool, limit: Int? = nil) -> [TransactionInfo] {
+        dataProvider.transactions(fromUid: fromUid, type: type, descending: descending, limit: limit)
     }
 
     func transaction(hash: String) -> TransactionInfo? {
@@ -223,7 +223,7 @@ public extension BitcoinCore {
         }
 
         let balance: Int
-        if (params.unspentOutputs == nil && !params.utxoFilters.isEmpty) {
+        if params.unspentOutputs == nil, !params.utxoFilters.isEmpty {
             balance = self.balance.spendable
         } else {
             let allSpendable = unspentOutputSelector.allSpendable(filters: params.utxoFilters)

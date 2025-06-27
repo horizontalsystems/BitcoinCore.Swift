@@ -1055,7 +1055,7 @@ extension GrdbStorage: IStorage {
         return fullInfo(forTransactions: [transactionWithBlock]).first
     }
 
-    public func validOrInvalidTransactionsFullInfo(fromTimestamp: Int?, fromOrder: Int?, type: TransactionFilterType?, limit: Int?) -> [FullTransactionForInfo] {
+    public func validOrInvalidTransactionsFullInfo(fromTimestamp: Int?, fromOrder: Int?, descending: Bool, type: TransactionFilterType?, limit: Int?) -> [FullTransactionForInfo] {
         var transactions = [TransactionWithBlock]()
 
         try! dbPool.read { db in
@@ -1075,7 +1075,7 @@ extension GrdbStorage: IStorage {
             var whereConditions = [String]()
 
             if let fromTimestamp, let fromOrder {
-                whereConditions.append("(transactions.timestamp < \(fromTimestamp) OR (transactions.timestamp == \(fromTimestamp) AND transactions.\"order\" < \(fromOrder)))")
+                whereConditions.append("(transactions.timestamp \(descending ? "<" : ">") \(fromTimestamp) OR (transactions.timestamp == \(fromTimestamp) AND transactions.\"order\" \(descending ? "<" : ">") \(fromOrder)))")
             }
 
             if let filterType = type {
@@ -1087,7 +1087,7 @@ extension GrdbStorage: IStorage {
                 sql += " WHERE \(whereConditions.joined(separator: " AND "))"
             }
 
-            sql += " ORDER BY transactions.timestamp DESC, transactions.\"order\" DESC"
+            sql += " ORDER BY transactions.timestamp DESC, transactions.\"order\" \(descending ? "DESC" : "ASC")"
 
             if let limit {
                 sql += " LIMIT \(limit)"
