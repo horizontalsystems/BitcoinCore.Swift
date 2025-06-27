@@ -33,8 +33,8 @@ open class AbstractKit {
         bitcoinCore.syncState
     }
 
-    open func transactions(fromUid: String? = nil, type: TransactionFilterType?, limit: Int? = nil) -> [TransactionInfo] {
-        bitcoinCore.transactions(fromUid: fromUid, type: type, limit: limit)
+    open func transactions(fromUid: String? = nil, type: TransactionFilterType?, descending: Bool, limit: Int? = nil) -> [TransactionInfo] {
+        bitcoinCore.transactions(fromUid: fromUid, type: type, descending: descending, limit: limit)
     }
 
     open func transaction(hash: String) -> TransactionInfo? {
