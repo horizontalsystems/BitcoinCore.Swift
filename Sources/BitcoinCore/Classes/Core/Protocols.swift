@@ -69,7 +69,7 @@ public protocol IStorage: IOutputStorage {
     func leastScoreFastestPeerAddress(excludingIps: [String]) -> PeerAddress?
     func peerAddressExist(address: String) -> Bool
     func save(peerAddresses: [PeerAddress])
-    func deletePeerAddress(byIp ip: String)
+    func deletePeerAddress(byIp ip: String) throws
     func set(connectionTime: Double, toPeerAddress: String)
 
     var apiBlockHashesCount: Int { get }

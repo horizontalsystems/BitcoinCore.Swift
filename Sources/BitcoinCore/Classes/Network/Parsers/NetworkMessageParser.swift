@@ -213,7 +213,7 @@ class RejectMessageParser: IMessageParser {
         let reason = byteStream.read(VarString.self)
         var data = Data()
 
-        if message.value != "version" {
+        if message.value != "version", byteStream.availableBytes >= 32 {
             data = byteStream.read(Data.self, count: 32)
         }
 

@@ -525,8 +525,8 @@ extension GrdbStorage: IStorage {
         }
     }
 
-    public func deletePeerAddress(byIp ip: String) {
-        _ = try! dbPool.write { db in
+    public func deletePeerAddress(byIp ip: String) throws {
+        _ = try dbPool.write { db in
             try PeerAddress.filter(PeerAddress.Columns.ip == ip).deleteAll(db)
         }
     }
