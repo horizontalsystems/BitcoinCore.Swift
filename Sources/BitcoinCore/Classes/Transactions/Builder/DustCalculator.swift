@@ -11,7 +11,7 @@ public class DustCalculator {
 }
 
 extension DustCalculator: IDustCalculator {
-    public func dust(type: ScriptType, dustThreshold: Int?) -> Int {
+    public func dust(type: ScriptType) -> Int {
         // https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.cpp#L14
 
         var size = sizeCalculator.outputSize(type: type)
@@ -25,12 +25,6 @@ extension DustCalculator: IDustCalculator {
             size += sizeCalculator.inputSize(type: .p2pkh)
         }
 
-        var dust = size * minFeeRate
-
-        if let dustThreshold, dustThreshold > dust {
-            dust = dustThreshold
-        }
-
-        return dust
+        return size * minFeeRate
     }
 }

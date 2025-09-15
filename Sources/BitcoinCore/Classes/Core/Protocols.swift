@@ -424,7 +424,7 @@ public protocol ITransactionSizeCalculator {
 }
 
 public protocol IDustCalculator {
-    func dust(type: ScriptType, dustThreshold: Int?) -> Int
+    func dust(type: ScriptType) -> Int
 }
 
 public protocol IUnspentOutputSelector {

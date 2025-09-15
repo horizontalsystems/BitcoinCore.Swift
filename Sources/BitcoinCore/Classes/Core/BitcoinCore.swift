@@ -248,7 +248,7 @@ public extension BitcoinCore {
             scriptType = address.scriptType
         }
 
-        return dustCalculator.dust(type: scriptType, dustThreshold: params.dustThreshold)
+        return dustCalculator.dust(type: scriptType)
     }
 
     func maxSpendLimit(pluginData: [UInt8: IPluginData]) throws -> Int? {
@@ -519,7 +519,6 @@ public class SendParameters {
     public var memo: String?
     public var unspentOutputs: [UnspentOutputInfo]?
     public var pluginData: [UInt8: IPluginData]
-    public var dustThreshold: Int?
     public var utxoFilters: UtxoFilters
     public var maxOutputsCountForInputs: Int?
     public var changeToFirstInput: Bool
@@ -528,7 +527,7 @@ public class SendParameters {
         address: String? = nil, value: Int? = nil, feeRate: Int? = nil, sortType: TransactionDataSortType = .none,
         senderPay: Bool = true, rbfEnabled: Bool = true, memo: String? = nil,
         unspentOutputs: [UnspentOutputInfo]? = nil, pluginData: [UInt8: IPluginData] = [:],
-        dustThreshold: Int? = nil, utxoFilters: UtxoFilters = UtxoFilters(), changeToFirstInput: Bool = false
+        utxoFilters: UtxoFilters = UtxoFilters(), changeToFirstInput: Bool = false
     ) {
         self.address = address
         self.value = value
@@ -539,7 +538,6 @@ public class SendParameters {
         self.memo = memo
         self.unspentOutputs = unspentOutputs
         self.pluginData = pluginData
-        self.dustThreshold = dustThreshold
         self.utxoFilters = utxoFilters
         self.changeToFirstInput = changeToFirstInput
     }

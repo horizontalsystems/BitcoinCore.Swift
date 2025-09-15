@@ -36,8 +36,8 @@ class UnspentOutputQueue {
         params = parameters
         self.sizeCalculator = sizeCalculator
 
-        recipientOutputDust = dustCalculator.dust(type: params.outputScriptType, dustThreshold: parameters.sendParams.dustThreshold)
-        changeOutputDust = dustCalculator.dust(type: changeType, dustThreshold: parameters.sendParams.dustThreshold)
+        recipientOutputDust = dustCalculator.dust(type: params.outputScriptType)
+        changeOutputDust = dustCalculator.dust(type: changeType)
 
         outputs.forEach { push(output: $0) }
     }
@@ -70,7 +70,7 @@ class UnspentOutputQueue {
         // If the total value of outputs is less than required, throw notEnough
         if totalValue < sentValue { throw BitcoinCoreErrors.SendValueErrors.notEnough }
         // if receiveValue less than dust, just throw error
-        if receiveValue <= recipientOutputDust { throw BitcoinCoreErrors.SendValueErrors.dust }
+        if receiveValue <= recipientOutputDust { throw BitcoinCoreErrors.SendValueErrors.dust(recipientOutputDust) }
 
         // The remainder after sending the required amount to the recipient
         let remainder = total - receiveValue - fee

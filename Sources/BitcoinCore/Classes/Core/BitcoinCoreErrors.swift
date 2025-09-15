@@ -52,7 +52,7 @@ public enum BitcoinCoreErrors {
     }
 
     public enum SendValueErrors: Error {
-        case dust
+        case dust(Int)
         case emptyOutputs
         case singleNoChangeOutputNotFound
         case notEnough
