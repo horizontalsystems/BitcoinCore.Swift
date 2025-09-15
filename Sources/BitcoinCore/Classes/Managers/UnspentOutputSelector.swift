@@ -31,8 +31,9 @@ extension UnspentOutputSelector: IUnspentOutputSelector {
         })
 
         // check if value is not dust. recipientValue may be less, but not more
-        guard value >= dustCalculator.dust(type: outputScriptType, dustThreshold: params.dustThreshold) else {
-            throw BitcoinCoreErrors.SendValueErrors.dust
+        let dust = dustCalculator.dust(type: outputScriptType)
+        guard value >= dust else {
+            throw BitcoinCoreErrors.SendValueErrors.dust(dust)
         }
 
         let utxoSelectParams = UnspentOutputQueue.Parameters(
