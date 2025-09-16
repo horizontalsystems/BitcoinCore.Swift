@@ -1,4 +1,5 @@
 import Foundation
+import HsToolKit
 
 class PendingTransactionProcessor {
     private let storage: IStorage
@@ -12,11 +13,12 @@ class PendingTransactionProcessor {
     weak var transactionListener: ITransactionListener?
 
     private let queue: DispatchQueue
+    private let logger: Logger
 
     private var notMineTransactions = Set<Data>()
 
-    init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder, conflictsResolver: ITransactionConflictsResolver, ignoreIncoming: Bool,
-         listener: IBlockchainDataListener? = nil, queue: DispatchQueue)
+    init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder,
+         conflictsResolver: ITransactionConflictsResolver, ignoreIncoming: Bool, listener: IBlockchainDataListener? = nil, queue: DispatchQueue, logger: Logger)
     {
         self.storage = storage
         self.extractor = extractor
@@ -26,6 +28,7 @@ class PendingTransactionProcessor {
         self.ignoreIncoming = ignoreIncoming
         self.listener = listener
         self.queue = queue
+        self.logger = logger
     }
 
     private func relay(transaction: Transaction, order: Int) {
@@ -132,6 +135,7 @@ extension PendingTransactionProcessor: IPendingTransactionProcessor {
         }
 
         extractor.extract(transaction: transaction)
+        logger.debug("Saving in storage", context: ["Send", transaction.uid], save: true)
         try storage.add(transaction: transaction)
         listener?.onUpdate(updated: [], inserted: [transaction.header], inBlock: nil)
 

@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import HsCryptoKit
 
 public enum TransactionStatus: Int, DatabaseValueConvertible, Codable { case new, relayed, invalid }
 
@@ -18,6 +19,10 @@ public class Transaction: Record {
     public var conflictingTxHash: Data? = nil
     public var transactionInfoJson: Data = .init()
     public var rawTransaction: String? = nil
+
+    lazy var dUid: String = {
+        Crypto.sha256(dataHash).hs.hexString
+    }()
 
     public init(version: Int = 0, lockTime: Int = 0, timestamp: Int? = nil) {
         self.version = version

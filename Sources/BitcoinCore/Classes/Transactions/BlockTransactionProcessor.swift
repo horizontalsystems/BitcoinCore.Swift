@@ -1,4 +1,5 @@
 import Foundation
+import HsToolKit
 
 class BlockTransactionProcessor {
     private let storage: IStorage
@@ -12,9 +13,10 @@ class BlockTransactionProcessor {
     weak var transactionListener: ITransactionListener?
 
     private let queue: DispatchQueue
+    private let logger: Logger
 
     init(storage: IStorage, extractor: ITransactionExtractor, publicKeyManager: IPublicKeyManager, irregularOutputFinder: IIrregularOutputFinder,
-         conflictsResolver: TransactionConflictsResolver, invalidator: TransactionInvalidator, listener: IBlockchainDataListener? = nil, queue: DispatchQueue)
+         conflictsResolver: TransactionConflictsResolver, invalidator: TransactionInvalidator, listener: IBlockchainDataListener? = nil, queue: DispatchQueue, logger: Logger)
     {
         self.storage = storage
         self.extractor = extractor
@@ -24,6 +26,7 @@ class BlockTransactionProcessor {
         self.invalidator = invalidator
         self.listener = listener
         self.queue = queue
+        self.logger = logger
     }
 
     private func relay(transaction: Transaction, inBlock block: Block, order: Int) {
@@ -37,6 +40,7 @@ class BlockTransactionProcessor {
     private func resolveConflicts(fullTransaction: FullTransaction) {
         for transaction in conflictsResolver.transactionsConflicting(withInblockTransaction: fullTransaction) {
             transaction.conflictingTxHash = fullTransaction.header.dataHash
+            logger.debug("BlockTransactionProcessor# invalidated by \(fullTransaction.uid)", context: ["Send", transaction.dUid], save: true)
             invalidator.invalidate(transaction: transaction)
         }
     }
@@ -53,6 +57,10 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
             for (index, fullTransaction) in transactions.inTopologicalOrder().enumerated() {
                 let transaction = fullTransaction.header
                 if let existingTransaction = storage.fullTransaction(byHash: fullTransaction.header.dataHash) {
+                    if existingTransaction.header.blockHash == nil {
+                        logger.debug("BlockTransactionProcessor# relaying transaction in block", context: ["Send", fullTransaction.uid], save: true)
+                    }
+
                     extractor.extract(transaction: existingTransaction)
                     transactionListener?.onReceive(transaction: existingTransaction)
                     relay(transaction: existingTransaction.header, inBlock: block, order: index)
@@ -70,6 +78,7 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
                 guard transaction.isMine else {
                     for tx in conflictsResolver.incomingPendingTransactionsConflicting(with: fullTransaction) {
                         tx.conflictingTxHash = fullTransaction.header.dataHash
+                        logger.debug("BlockTransactionProcessor# invalidated by \(fullTransaction.uid)", context: ["Send", tx.dUid], save: true)
                         invalidator.invalidate(transaction: tx)
                         needToUpdateBloomFilter = true
                     }
@@ -80,6 +89,7 @@ extension BlockTransactionProcessor: IBlockTransactionProcessor {
                 relay(transaction: transaction, inBlock: block, order: index)
                 resolveConflicts(fullTransaction: fullTransaction)
 
+                logger.debug("BlockTransactionProcessor# Inserted as new", context: ["Send", fullTransaction.uid], save: true)
                 if let invalidTransaction = storage.invalidTransaction(byHash: transaction.dataHash) {
                     try storage.move(invalidTransaction: invalidTransaction, toTransactions: fullTransaction)
                     updated.append(transaction)

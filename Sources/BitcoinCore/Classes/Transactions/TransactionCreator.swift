@@ -1,4 +1,5 @@
 import Foundation
+import HsToolKit
 
 class TransactionCreator {
     enum CreationError: Error {
@@ -10,13 +11,15 @@ class TransactionCreator {
     private let transactionSender: ITransactionSender
     private let transactionSigner: TransactionSigner
     private let bloomFilterManager: IBloomFilterManager
+    private let logger: Logger
 
-    init(transactionBuilder: ITransactionBuilder, transactionProcessor: IPendingTransactionProcessor, transactionSender: ITransactionSender, transactionSigner: TransactionSigner, bloomFilterManager: IBloomFilterManager) {
+    init(transactionBuilder: ITransactionBuilder, transactionProcessor: IPendingTransactionProcessor, transactionSender: ITransactionSender, transactionSigner: TransactionSigner, bloomFilterManager: IBloomFilterManager, logger: Logger) {
         self.transactionBuilder = transactionBuilder
         self.transactionProcessor = transactionProcessor
         self.transactionSender = transactionSender
         self.transactionSigner = transactionSigner
         self.bloomFilterManager = bloomFilterManager
+        self.logger = logger
     }
 
     private func processAndSend(transaction: FullTransaction) throws {
@@ -25,6 +28,7 @@ class TransactionCreator {
         do {
             try transactionProcessor.processCreated(transaction: transaction)
         } catch _ as BloomFilterManager.BloomFilterExpired {
+            logger.debug("Forcing bloom filter regeneration", context: ["Send", transaction.uid], save: true)
             bloomFilterManager.regenerateBloomFilter()
         }
 
@@ -49,6 +53,7 @@ extension TransactionCreator: ITransactionCreator {
         try transactionSigner.sign(mutableTransaction: mutableTransaction)
         let fullTransaction = mutableTransaction.build()
 
+        logger.debug("Sending", context: ["Send", fullTransaction.uid], save: true)
         try processAndSend(transaction: fullTransaction)
         return fullTransaction
     }

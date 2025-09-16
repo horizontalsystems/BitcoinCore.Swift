@@ -27,6 +27,10 @@ open class FullTransaction {
     public let outputs: [Output]
     public let metaData = TransactionMetadata()
 
+    lazy var uid: String = {
+        Crypto.sha256(header.dataHash).hs.hexString
+    }()
+
     public init(header: Transaction, inputs: [Input], outputs: [Output], forceHashUpdate: Bool = true) {
         self.header = header
         self.inputs = inputs
