@@ -13,16 +13,14 @@ class TransactionSender {
     private let peerManager: IPeerManager
     private let storage: IStorage
     private let timer: ITransactionSendTimer
-    private let logger: Logger?
+    private let logger: Logger
     private let queue: DispatchQueue
 
     private let sendType: BitcoinCore.SendType
     private let maxRetriesCount: Int
     private let retriesPeriod: Double // seconds
 
-    init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer,
-         logger: Logger? = nil, queue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.transaction-sender", qos: .background),
-         sendType: BitcoinCore.SendType, maxRetriesCount: Int = 3, retriesPeriod: Double = 60)
+    init(transactionSyncer: ITransactionSyncer, initialBlockDownload: IInitialDownload, peerManager: IPeerManager, storage: IStorage, timer: ITransactionSendTimer, logger: Logger, queue: DispatchQueue = DispatchQueue(label: "io.horizontalsystems.bitcoin-core.transaction-sender", qos: .background), sendType: BitcoinCore.SendType, maxRetriesCount: Int = 3, retriesPeriod: Double = 60)
     {
         self.transactionSyncer = transactionSyncer
         self.initialBlockDownload = initialBlockDownload
@@ -75,6 +73,7 @@ class TransactionSender {
         guard let sentTransaction = storage.sentTransaction(byHash: transaction.header.dataHash),
               !sentTransaction.sendSuccess
         else {
+            logger.debug("#transactionSendSuccess Already completed", context: ["Send", transaction.uid], save: true)
             return
         }
 
@@ -82,9 +81,11 @@ class TransactionSender {
         sentTransaction.sendSuccess = true
 
         if sentTransaction.retriesCount >= maxRetriesCount {
+            logger.debug("#transactionSendSuccess Invalidating transaction. retriesCount: \(sentTransaction.retriesCount)", context: ["Send", transaction.uid], save: true)
             transactionSyncer.handleInvalid(fullTransaction: transaction)
             storage.delete(sentTransaction: sentTransaction)
         } else {
+            logger.debug("#transactionSendSuccess Retries count incresed to \(sentTransaction.retriesCount)", context: ["Send", transaction.uid], save: true)
             storage.update(sentTransaction: sentTransaction)
         }
     }
@@ -93,8 +94,10 @@ class TransactionSender {
         if let sentTransaction = storage.sentTransaction(byHash: transaction.header.dataHash) {
             sentTransaction.lastSendTime = CACurrentMediaTime()
             sentTransaction.sendSuccess = false
+            logger.debug("Updating SentTransaction. lastSendTime: \(sentTransaction.lastSendTime)", context: ["Send", transaction.uid], save: true)
             storage.update(sentTransaction: sentTransaction)
         } else {
+            logger.debug("Creating SentTransaction. lastSendTime: \(CACurrentMediaTime())", context: ["Send", transaction.uid], save: true)
             storage.add(sentTransaction: SentTransaction(dataHash: transaction.header.dataHash))
         }
     }
@@ -124,6 +127,7 @@ class TransactionSender {
             transactionSendStart(transaction: transaction)
 
             for peer in peers {
+                logger.debug("Adding SendTransactionTask task to peer \(peer.host)", context: ["Send", transaction.uid], save: true)
                 peer.add(task: SendTransactionTask(transaction: transaction))
             }
         }
@@ -173,6 +177,7 @@ extension TransactionSender: ITransactionSender {
         queue.async {
             for transaction in transactions {
                 if let sentTransaction = self.storage.sentTransaction(byHash: transaction.header.dataHash) {
+                    self.logger.debug("Transaction relayed", context: ["Send", transaction.uid], save: true)
                     self.storage.delete(sentTransaction: sentTransaction)
                 }
             }

@@ -32,7 +32,6 @@ extension TransactionSendTimer: ITransactionSendTimer {
     func stop() {
         if let runLoop {
             timer?.invalidate()
-            timer?.invalidate()
 
             CFRunLoopStop(runLoop.getCFRunLoop())
             timer = nil
