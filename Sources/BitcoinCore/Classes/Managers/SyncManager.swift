@@ -105,7 +105,7 @@ class SyncManager {
     }
 
     private func startPeerGroup() {
-        syncState = .syncing(progress: 0)
+        syncState = .syncingStarted
         peerGroup.start()
     }
 
@@ -164,7 +164,7 @@ extension SyncManager: IApiSyncerListener {
         if peerGroup.started {
             if foundTransactionsCount > 0 {
                 foundTransactionsCount = 0
-                syncState = .syncing(progress: 0)
+                syncState = .syncingStarted
                 peerGroup.refresh()
             } else {
                 syncState = .synced
@@ -200,13 +200,13 @@ extension SyncManager: IBlockSyncListener {
         if allBlocksToDownload <= 0 || allBlocksToDownload <= blocksDownloaded {
             syncState = .synced
         } else {
-            syncState = .syncing(progress: Double(blocksDownloaded) / Double(allBlocksToDownload))
+            syncState = .syncing(all: Int(allBlocksToDownload), downloaded: Int(blocksDownloaded))
         }
     }
 
     func blockForceAdded() {
         guard case .blockchair = syncMode else {
-            syncState = .syncing(progress: 0)
+            syncState = .syncingStarted
             return
         }
 
@@ -215,7 +215,7 @@ extension SyncManager: IBlockSyncListener {
         if forceAddedBlocksTotal == 0 || forceAddedBlocks >= forceAddedBlocksTotal {
             syncState = .synced
         } else {
-            syncState = .syncing(progress: Double(forceAddedBlocks) / Double(forceAddedBlocksTotal))
+            syncState = .syncing(all: forceAddedBlocksTotal, downloaded: forceAddedBlocks)
         }
     }
 }

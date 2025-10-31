@@ -412,14 +412,16 @@ public extension BitcoinCore {
     enum KitState {
         case synced
         case apiSyncing(transactions: Int)
-        case syncing(progress: Double)
+        case syncingStarted
+        case syncing(all: Int, downloaded: Int)
         case notSynced(error: Error)
 
         func toString() -> String {
             switch self {
             case .synced: return "Synced"
             case let .apiSyncing(transactions): return "ApiSyncing-\(transactions)"
-            case let .syncing(progress): return "Syncing-\(Int(progress * 100))"
+            case .syncingStarted: return "Syncing-Started"
+            case let .syncing(all, downloaded): return "Syncing-\(downloaded)/\(all)"
             case let .notSynced(error): return "NotSynced-\(String(reflecting: error))"
             }
         }
