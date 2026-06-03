@@ -58,11 +58,11 @@ extension TransactionCreator: ITransactionCreator {
         return fullTransaction
     }
 
-    func createRawTransaction(params: SendParameters) throws -> Data {
+    func signedTransaction(params: SendParameters) throws -> FullTransaction {
         let mutableTransaction = try transactionBuilder.buildTransaction(params: params)
         try transactionSigner.sign(mutableTransaction: mutableTransaction)
         let fullTransaction = mutableTransaction.build()
 
-        return TransactionSerializer.serialize(transaction: fullTransaction)
+        return fullTransaction
     }
 }

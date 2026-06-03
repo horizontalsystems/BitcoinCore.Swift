@@ -190,12 +190,12 @@ public extension BitcoinCore {
         return try transactionCreator.create(from: unspentOutput, params: params)
     }
 
-    func createRawTransaction(params: SendParameters) throws -> Data {
+    func signedTransaction(params: SendParameters) throws -> FullTransaction {
         guard let transactionCreator else {
             throw CoreError.readOnlyCore
         }
 
-        return try transactionCreator.createRawTransaction(params: params)
+        return try transactionCreator.signedTransaction(params: params)
     }
 
     func validate(address: String, pluginData: [UInt8: IPluginData] = [:]) throws {
